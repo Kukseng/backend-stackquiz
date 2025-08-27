@@ -1,0 +1,55 @@
+
+keycloak:
+  realm: sq-api
+
+app:
+  default-role: PARTICIPANT
+
+spring:
+  application:
+    name: stackquiz-api
+
+  threads:
+    virtual:
+      enabled: true
+
+  servlet:
+    multipart:
+      max-request-size: 20MB
+      max-file-size: 10MB
+
+  datasource:
+    url: DB_URL
+    username: Db_USERNAME
+    password: BD_PASSWORD
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+    properties:
+      hibernate:
+        format_sql: true
+
+
+  data:
+          redis:
+            host: localhost
+            port: 6379
+            database: 0
+            timeout: 60000ms
+            lettuce:
+              pool:
+                max-active: 8
+                max-idle: 8
+                min-idle: 0
+                max-wait: -1ms
+              shutdown-timeout: 100ms
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8888/realms/sq-api
