@@ -53,39 +53,9 @@ public class QuestionServiceImpl implements QuestionService {
                     "Question Order has Exist Please Change Question Order" + createQuestionRequest.questionOrder());
         }
 
-        if (createQuestionRequest.text() == null || createQuestionRequest.text().trim().isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    "Question text cannot be empty");
-        }
-
         if (createQuestionRequest.type() == null || !VALID_QUESTION_TYPES.contains(createQuestionRequest.type())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     "Invalid question type. Must be one of: " + VALID_QUESTION_TYPES);
-        }
-
-        if (createQuestionRequest.imageUrl() == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    "Image URL cannot be null");
-        }
-
-        if (!createQuestionRequest.imageUrl().startsWith("https://")) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    "Invalid image URL format");
-        }
-
-        if (createQuestionRequest.timeLimit() < 1) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    "Time limit must be at least 1 second");
-        }
-
-        if (createQuestionRequest.points() < 0) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    "Points must be non-negative");
-        }
-
-        if (createQuestionRequest.questionOrder() < 1) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    "Question order must start from 1");
         }
 
         try {
@@ -101,18 +71,6 @@ public class QuestionServiceImpl implements QuestionService {
             log.debug("Question created with ID: {}", question.getId());
 
             return questionMapper.toQuestionResponse(question);
-
-        } catch (DataIntegrityViolationException exception) {
-
-            log.warn("Question order {} already exists", createQuestionRequest.questionOrder());
-            throw new ResponseStatusException(HttpStatus.CONFLICT,
-                    "Question order already exists");
-
-        } catch (DataAccessException exception) {
-
-            log.error("Database error while saving question", exception);
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
-                    "Failed to save question to database");
 
         } catch (Exception exception) {
 
@@ -139,11 +97,6 @@ public class QuestionServiceImpl implements QuestionService {
             return questions.stream()
                     .map(questionMapper::toQuestionResponse)
                     .collect(Collectors.toList());
-
-        } catch (DataAccessException exception) {
-            log.error("Database error while fetching all questions", exception);
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
-                    "Failed to fetch questions from database");
 
         } catch (Exception exception) {
             log.error("Unexpected error while fetching all questions", exception);
@@ -184,11 +137,6 @@ public class QuestionServiceImpl implements QuestionService {
 
             return questionMapper.toQuestionResponse(updatedQuestion);
 
-        } catch (DataAccessException e) {
-            log.error("Database error while updating question with ID: {}", id, e);
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
-                    "Failed to update question due to database error", e);
-
         } catch (Exception e) {
             log.error("Unexpected error while updating question with ID: {}", id, e);
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
@@ -213,20 +161,6 @@ public class QuestionServiceImpl implements QuestionService {
             log.info("Deleting question '{}' with ID: {}", question.getText(), id);
             questionRepository.delete(question);
             log.info("Successfully deleted question with ID: {}", id);
-
-        } catch (DataIntegrityViolationException exception) {
-            log.error("Cannot delete question {} due to data integrity constraints", id, exception);
-            throw new ResponseStatusException(HttpStatus.CONFLICT,
-                    "Cannot delete question as it's used in active quizzes");
-
-        } catch (DataAccessException exception) {
-            log.error("Database error while deleting question {}", id, exception);
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
-                    "Failed to delete question from database");
-
-        } catch (ResponseStatusException exception) {
-            throw exception;
-
         } catch (Exception exception) {
             log.error("Unexpected error while deleting question {}", id, exception);
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
@@ -293,18 +227,6 @@ public class QuestionServiceImpl implements QuestionService {
             questionRepository.deleteAll(questionsToDelete);
             log.info("Successfully deleted {} questions", questionsToDelete.size());
 
-        } catch (DataIntegrityViolationException exception) {
-            log.error("Cannot delete questions due to data integrity constraints", exception);
-            throw new ResponseStatusException(HttpStatus.CONFLICT,
-                    "Cannot delete one or more questions due to dependencies");
-
-        } catch (DataAccessException exception) {
-            log.error("Database error while deleting questions", exception);
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
-                    "Failed to delete questions from database");
-
-        } catch (ResponseStatusException exception) {
-            throw exception;
         } catch (Exception exception) {
             log.error("Unexpected error while deleting questions", exception);
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
