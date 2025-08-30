@@ -3,6 +3,7 @@ package kh.edu.cstad.stackquizapi.security;
 import org.keycloak.OAuth2Constants;
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.KeycloakBuilder;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -22,16 +23,22 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class KeycloakAdminConfig {
 
+    @Value("${keycloak.server-url}")
+    private String serverUrl;
+
+    @Value("${keycloak.client-secret:}")
+    private String clientSecret;
+
     @Bean
     public Keycloak keycloak() {
 
         return KeycloakBuilder
                 .builder()
-                .realm("sq-api")
-                .serverUrl("http://localhost:8888")
+                .realm("stackquiz")
+                .serverUrl(serverUrl)
                 .grantType(OAuth2Constants.CLIENT_CREDENTIALS)
                 .clientId("admin-cli")
-                .clientSecret("T201k8DBviE5iubvd74oUnHRFqRmJ3en")
+                .clientSecret(clientSecret)
                 .build();
 
     }

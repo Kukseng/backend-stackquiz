@@ -42,14 +42,10 @@ public class ParticipantServiceImpl implements ParticipantService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
                         "Session not found with code: " + request.sessionCode()));
 
-
-
-
         if (getSessionByCode.getStatus() == Status.ENDED) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     "Cannot join session. Session has ended.");
         }
-
 
         if (participantRepository.existsBySessionIdAndNickname(getSessionByCode.getId(), request.nickname())) {
             throw new ResponseStatusException(HttpStatus.CONFLICT,

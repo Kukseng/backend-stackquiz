@@ -1,15 +1,13 @@
 package kh.edu.cstad.stackquizapi.dto.request;
 
-import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 
 public record LoginRequest(
 
-        @Email
-        @NotBlank
-        String email,
+        @NotBlank(message = "Username is required")
+        String username,
 
-        @NotBlank
+        @NotBlank(message = "Password is required")
         String password
 
 ) {

@@ -20,6 +20,9 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -31,43 +34,53 @@ public class OptionServiceImpl implements OptionService {
     private final OptionMapper optionMapper;
 
     @Override
-    public OptionResponse addNewOption(String questionId, AddOptionRequest addOptionRequest) {
+    public List<OptionResponse> addNewOptions(String questionId, List<AddOptionRequest> addOptionRequests) {
 
-        if (!questionRepository.existsById(questionId)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND,
-                    "Question id not found");
-        }
-
-        if (addOptionRequest.optionText().isEmpty()) {
+        // Validate the list itself
+        if (addOptionRequests == null || addOptionRequests.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    "Option text cannot be null or empty");
+                    "Option requests list cannot be null or empty");
         }
 
-        if (addOptionRequest.optionOrder() == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    "Option order cannot be null");
+        // Validate each option request
+        for (int i = 0; i < addOptionRequests.size(); i++) {
+            AddOptionRequest request = addOptionRequests.get(i);
+
+            if (request.optionText() == null || request.optionText().isBlank()) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                        String.format("Option text cannot be null or empty at index %d", i));
+            }
+
+            if (request.isCorrected() == null) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                        String.format("isCorrected cannot be null at index %d", i));
+            }
         }
 
-        if (addOptionRequest.isCorrected() == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    "isCorrected cannot be null");
+        Question question = questionRepository.findById(questionId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        "Question ID not found"));
+
+        Integer maxOrder = optionRepository.findMaxOptionOrderByQuestionId(questionId);
+        int startingOrder = (maxOrder != null) ? maxOrder + 1 : 1;
+
+        List<Option> options = new ArrayList<>();
+        for (int i = 0; i < addOptionRequests.size(); i++) {
+            AddOptionRequest request = addOptionRequests.get(i);
+            Option option = optionMapper.fromAddOptionRequest(request);
+            option.setQuestion(question);
+            option.setOptionOrder(startingOrder + i);
+            option.setCreatedAt(Timestamp.from(Instant.now()));
+            options.add(option);
         }
 
-        Question question = questionRepository.findById(addOptionRequest.questionId())
-                .orElseThrow(
-                        () -> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                        "Question ID not found")
-                );
+        List<Option> savedOptions = optionRepository.saveAll(options);
 
-        Option option = new Option();
-        optionMapper.fromAddOptionRequest(addOptionRequest);
-        option.setQuestion(question);
-        option.setCreatedAt(Timestamp.from(Instant.now()));
-
-        option = optionRepository.save(option);
-
-        return optionMapper.toOptionResponse(option);
+        return savedOptions.stream()
+                .map(optionMapper::toOptionResponse)
+                .collect(Collectors.toList());
     }
+
 
     @Transactional
     @Override

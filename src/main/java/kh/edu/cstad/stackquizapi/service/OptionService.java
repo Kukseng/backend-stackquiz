@@ -5,6 +5,8 @@ import kh.edu.cstad.stackquizapi.dto.request.AddOptionRequest;
 import kh.edu.cstad.stackquizapi.dto.request.UpdateOptionRequest;
 import kh.edu.cstad.stackquizapi.dto.response.OptionResponse;
 
+import java.util.List;
+
 
 /**
  * Service interface for managing options related to questions.
@@ -21,7 +23,7 @@ public interface OptionService {
      * @param addOptionRequest the request object containing the details of the option to add
      * @return the response containing the newly added option
      */
-    OptionResponse addNewOption(String questionId, AddOptionRequest addOptionRequest);
+    List<OptionResponse> addNewOptions(String questionId, List<AddOptionRequest> addOptionRequests);
 
     /**
      * Updates an existing option by its ID.

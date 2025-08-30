@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface ParticipantAnswerRepository extends JpaRepository<ParticipantAnswer, String> {
 
@@ -21,5 +22,24 @@ public interface ParticipantAnswerRepository extends JpaRepository<ParticipantAn
             @Param("sessionId") String sessionId
     );
 
+    Optional<ParticipantAnswer> findByParticipantIdAndQuestionId(String participantId, String questionId);
+
+    List<ParticipantAnswer> findByParticipantIdOrderByAnsweredAtAsc(String participantId);
+
+    @Query("SELECT pa FROM ParticipantAnswer pa " +
+           "JOIN pa.participant p " +
+           "WHERE pa.participant.id = :participantId AND p.session.id = :sessionId " +
+           "ORDER BY pa.answeredAt ASC")
+    List<ParticipantAnswer> findByParticipantIdAndParticipantSessionIdOrderByAnsweredAtAsc(
+            @Param("participantId") String participantId,
+            @Param("sessionId") String sessionId);
+
+    List<ParticipantAnswer> findByQuestionIdOrderByAnsweredAtAsc(String questionId);
+
+    long countByParticipantId(String participantId);
+
+    @Query("SELECT COUNT(pa) FROM ParticipantAnswer pa " +
+           "WHERE pa.participant.id = :participantId AND pa.isCorrect = true")
+    long countCorrectAnswersByParticipantId(@Param("participantId") String participantId);
 
 }

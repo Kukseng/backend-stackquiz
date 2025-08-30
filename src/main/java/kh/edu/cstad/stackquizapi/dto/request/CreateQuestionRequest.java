@@ -19,10 +19,6 @@ public record CreateQuestionRequest(
         @NotNull(message = "Question type is required")
         QuestionType type,
 
-        @NotNull(message = "Question order is required")
-        @Min(value = 1, message = "Question order must be at least 1")
-        Integer questionOrder,
-
         @NotNull(message = "Time limit is required")
         @Min(value = 1, message = "Time limit must be at least 1 second")
         Integer timeLimit,

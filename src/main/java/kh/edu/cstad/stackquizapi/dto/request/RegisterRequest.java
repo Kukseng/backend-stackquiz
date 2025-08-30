@@ -5,16 +5,18 @@ import jakarta.persistence.Enumerated;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import kh.edu.cstad.stackquizapi.util.GenderUtil;
 
 
 public record RegisterRequest(
-        @NotBlank
-        @Pattern(regexp = "^[A-Za-z0-9_]{3,20}$", message = "Username must be 3–20 characters and contain only letters, numbers, or underscores")
+
+        @NotBlank(message = "Username is required")
+        @Size(min = 3, max = 50, message = "Username must be between 3 and 50 characters")
         String username,
 
-        @NotBlank
-        @Email(message = "Invalid email format")
+        @NotBlank(message = "Email is required")
+        @Email(message = "Please provide a valid email address")
         String email,
 
         @NotBlank
@@ -24,15 +26,16 @@ public record RegisterRequest(
         )
         String password,
 
-        @NotBlank
+        @NotBlank(message = "Password confirmation is required")
         String confirmedPassword,
 
-        @NotBlank
-        @Pattern(regexp = "^[A-Za-zÀ-ÖØ-öø-ÿ' -]{1,50}$", message = "First name contains invalid characters")
+        @NotBlank(message = "First name is required")
+        @Size(max = 50, message = "First name cannot exceed 50 characters")
         String firstName,
 
-        @NotBlank
-        @Pattern(regexp = "^[A-Za-zÀ-ÖØ-öø-ÿ' -]{1,50}$", message = "Last name contains invalid characters")
+        @NotBlank(message = "Last name is required")
+        @Size(max = 50, message = "Last name cannot exceed 50 characters")
         String lastName
 
-) {}
+) {
+}

@@ -35,3 +35,7 @@ out/
 
 ### VS Code ###
 .vscode/
+
+### Spring Boot Configs with Secrets ###
+src/main/resources/application.yml
+src/main/resources/application-*.yml

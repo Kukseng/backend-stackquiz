@@ -2,8 +2,10 @@ package kh.edu.cstad.stackquizapi.dto.response;
 
 import lombok.Builder;
 
+import java.util.List;
+
 @Builder
-public record RegisterResponse(
+public record UserProfileResponse(
 
         String userId,
 
@@ -15,7 +17,13 @@ public record RegisterResponse(
 
         String lastName,
 
-        boolean emailVerified
+        boolean emailVerified,
+
+        boolean enabled,
+
+        List<String> roles,
+
+        Long createdTimestamp
 
 ) {
 }

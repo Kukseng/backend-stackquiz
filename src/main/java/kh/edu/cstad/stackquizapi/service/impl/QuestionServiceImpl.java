@@ -32,7 +32,6 @@ import java.util.stream.Collectors;
 @Slf4j
 public class QuestionServiceImpl implements QuestionService {
 
-//    private int i =1;
     private final QuizRepository quizRepository;
     private final QuestionRepository questionRepository;
     private final QuestionMapper questionMapper;
@@ -48,32 +47,31 @@ public class QuestionServiceImpl implements QuestionService {
                         "Quiz Id not Found" )
         );
 
-        if (questionRepository.existsByQuestionOrder(createQuestionRequest.questionOrder())){
-            throw new ResponseStatusException(HttpStatus.CONFLICT,
-                    "Question Order has Exist Please Change Question Order" + createQuestionRequest.questionOrder());
-        }
-
         if (createQuestionRequest.type() == null || !VALID_QUESTION_TYPES.contains(createQuestionRequest.type())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     "Invalid question type. Must be one of: " + VALID_QUESTION_TYPES);
         }
 
         try {
+            Integer maxOrder = questionRepository.findMaxQuestionOrderByQuizId(createQuestionRequest.quizId());
+            int nextOrder = (maxOrder != null) ? maxOrder + 1 : 1;
+
             Question question = questionMapper.fromCreateQuestionRequest(createQuestionRequest);
             question.setQuiz(quiz);
+            question.setQuestionOrder(nextOrder);
             question.setCreatedAt(Timestamp.valueOf(LocalDateTime.now()));
             question.setUpdatedAt(Timestamp.valueOf(LocalDateTime.now()));
 
             String text = createQuestionRequest.text().toLowerCase().replace(' ', '_');
             question.setText(text);
-            log.debug("Creating question with order: {}", createQuestionRequest.questionOrder());
+
+            log.debug("Creating question with auto-generated order: {}", nextOrder);
             question = questionRepository.save(question);
             log.debug("Question created with ID: {}", question.getId());
 
             return questionMapper.toQuestionResponse(question);
 
         } catch (Exception exception) {
-
             log.error("Unexpected error while creating question", exception);
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
                     "An unexpected error occurred while creating question");

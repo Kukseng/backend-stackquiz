@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.resource.UserResource;
 import org.keycloak.representations.idm.RoleRepresentation;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -17,17 +18,20 @@ public class RoleServiceImpl implements RoleService {
 
     private final Keycloak keycloak;
 
+    @Value("${keycloak.realm}")
+    private String realm;
+
     @Override
     public void assignRole(String userId, String roleName) {
 
         log.info("assignRole userId={} roleName={}", userId, roleName);
 
-        UserResource userResource = keycloak.realm("sq-api")
+        UserResource userResource = keycloak.realm(realm)
                 .users().get(userId);
 
         log.info("assignRole userResource={}", userResource);
 
-        RoleRepresentation role = keycloak.realm("sq-api")
+        RoleRepresentation role = keycloak.realm(realm)
                 .roles()
                 .get(roleName)
                 .toRepresentation();

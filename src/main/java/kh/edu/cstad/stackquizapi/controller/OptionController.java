@@ -14,7 +14,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/options")
@@ -23,13 +26,13 @@ public class OptionController {
 
     private final OptionService optionService;
 
-    @PostMapping("/{questionId}")
-    public ResponseEntity<OptionResponse> addNewOption(
-            @PathVariable String questionId,
-            @RequestBody AddOptionRequest addOptionRequest) {
+    @PostMapping
+    public ResponseEntity<List<OptionResponse>> addNewOptions(
+            @RequestParam(required = false) String questionId,
+            @RequestBody List<AddOptionRequest> addOptionRequests) {
 
-        OptionResponse response = optionService.addNewOption(questionId, addOptionRequest);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        List<OptionResponse> responses = optionService.addNewOptions(questionId, addOptionRequests);
+        return ResponseEntity.status(HttpStatus.CREATED).body(responses);
     }
 
     @PutMapping("/{optionId}")
