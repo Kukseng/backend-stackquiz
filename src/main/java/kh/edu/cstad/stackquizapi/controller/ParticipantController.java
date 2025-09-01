@@ -44,13 +44,12 @@ public class ParticipantController {
 
     /**
      * Get all active participants in a session
-     * @param sessionId The session ID
      * @return List of active participants
      */
     @ResponseStatus(HttpStatus.OK)
-    @GetMapping("/session/{sessionId}")
-    public List<ParticipantResponse> getSessionParticipants(@PathVariable String sessionId) {
-        return participantService.getSessionParticipants(sessionId);
+    @GetMapping("/session/{quizCode}")
+    public List<ParticipantResponse> getSessionParticipants(@PathVariable String quizCode) {
+        return participantService.getSessionParticipants(quizCode);
     }
 
     /**
@@ -65,26 +64,26 @@ public class ParticipantController {
 
     /**
      * Check if a nickname is available in a session
-     * @param sessionId The session ID
+     * @param quizCode The session ID
      * @param nickname The nickname to check
      * @return Boolean indicating availability
      */
     @ResponseStatus(HttpStatus.OK)
-    @GetMapping("/session/{sessionId}/nickname-available")
+    @GetMapping("/session/{quizCode}/nickname-available")
     public boolean isNicknameAvailable(
-            @PathVariable String sessionId,
+            @PathVariable String quizCode,
             @RequestParam String nickname) {
-        return participantService.isNicknameAvailable(sessionId, nickname);
+        return participantService.isNicknameAvailable(quizCode, nickname);
     }
 
     /**
      * Check if a session can be joined
-     * @param sessionCode The session code
+     * @param quizCode The session code
      * @return Boolean indicating if session is joinable
      */
     @ResponseStatus(HttpStatus.OK)
-    @GetMapping("/session/{sessionCode}/can-join")
-    public boolean canJoinSession(@PathVariable String sessionCode) {
-        return participantService.canJoinSession(sessionCode);
+    @GetMapping("/session/{quizCode}/can-join")
+    public boolean canJoinSession(@PathVariable String quizCode) {
+        return participantService.canJoinSession(quizCode);
     }
 }

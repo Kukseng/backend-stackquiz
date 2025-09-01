@@ -6,7 +6,7 @@ import java.time.LocalDateTime;
 public record UserResponse(
 
         String id,
-
+        String profileUser,
         String username,
 
         String email,

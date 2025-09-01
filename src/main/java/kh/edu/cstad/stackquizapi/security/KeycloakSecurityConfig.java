@@ -75,7 +75,8 @@ public class KeycloakSecurityConfig {
     public SecurityFilterChain apiSecurity(HttpSecurity http) throws Exception {
         return http
                 .authorizeHttpRequests(request -> request
-                        .requestMatchers("/api/v1/auth/**").permitAll()
+                        .anyRequest().permitAll()
+                        // .requestMatchers("/api/v1/auth/**").permitAll()
 //                        .requestMatchers(HttpMethod.POST, "/api/v1/questions/**").hasRole("ORGANIZER")
 //                        .requestMatchers(HttpMethod.GET, "/api/v1/questions/**").hasRole("ORGANIZER")
 //                        .requestMatchers(HttpMethod.PATCH, "/api/v1/questions/**").hasRole("ORGANIZER")

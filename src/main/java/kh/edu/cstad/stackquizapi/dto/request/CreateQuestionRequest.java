@@ -29,8 +29,6 @@ public record CreateQuestionRequest(
 
         String imageUrl,
 
-        String optionId,
-
         String quizId
 
 ) {

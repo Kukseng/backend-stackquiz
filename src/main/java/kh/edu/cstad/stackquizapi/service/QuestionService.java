@@ -60,5 +60,20 @@ public interface QuestionService {
      */
     void deleteQuestionsByIds(List<String> ids);
 
+    /**
+     * Get all questions for a specific quiz session
+     */
+    List<QuestionResponse> getQuestionsForSession(String sessionId);
+
+    /**
+     * Get the next question for a quiz session
+     */
+    QuestionResponse getNextQuestionForSession(String sessionId);
+
+    /**
+     * Get current question for a session
+     */
+    QuestionResponse getCurrentQuestionForSession(String sessionId);
+
 }
 

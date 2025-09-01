@@ -15,6 +15,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -44,15 +45,14 @@ public class UserServiceImpl implements UserService {
                         "Password must be at least 8 characters");
             }
 
-
-
             User user = userMapper.fromCreateUserRequest(createUserRequest);
+            user.setIsActive(true);
             user.setCreatedAt(LocalDateTime.now());
             User savedUser = userRepository.save(user);
             return userMapper.toUserResponse(savedUser);
 
         } catch (ResponseStatusException e) {
-            throw e; // rethrow business errors
+            throw e;
         } catch (Exception e) {
             log.error("Unexpected error while creating user", e);
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Internal error occurred");
@@ -68,7 +68,7 @@ public class UserServiceImpl implements UserService {
                         "User ID cannot be null or empty"
                 );
             }
-            return userRepository.findByIdAndIsActiveFalse(userId)
+            return userRepository.findByIdAndIsActiveTrue(userId)
                     .map(userMapper::toUserResponse)
                     .orElseThrow(() ->
                             new ResponseStatusException(HttpStatus.NOT_FOUND, "User id not found")
@@ -95,8 +95,8 @@ public class UserServiceImpl implements UserService {
             userMapper.toCustomerPartially(updateUserRequest, user);
 
             if (updateUserRequest.email() != null &&
-                userRepository.existsByEmail(updateUserRequest.email()) &&
-                !user.getEmail().equals(updateUserRequest.email())) {
+                    userRepository.existsByEmail(updateUserRequest.email()) &&
+                    !user.getEmail().equals(updateUserRequest.email())) {
                 throw new ResponseStatusException(HttpStatus.CONFLICT, "Email already exists");
             }
 
@@ -136,7 +136,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public List<UserResponse> findAll() {
         try {
-            List<User> users = userRepository.findAllByIsActiveFalse();
+            List<User> users = userRepository.findAllByIsActiveTrue();
             if (users.isEmpty()) {
                 throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No users found");
             }

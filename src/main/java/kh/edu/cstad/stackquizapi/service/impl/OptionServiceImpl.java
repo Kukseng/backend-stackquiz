@@ -42,7 +42,7 @@ public class OptionServiceImpl implements OptionService {
                     "Option requests list cannot be null or empty");
         }
 
-        // Validate each option request
+
         for (int i = 0; i < addOptionRequests.size(); i++) {
             AddOptionRequest request = addOptionRequests.get(i);
 
@@ -132,17 +132,14 @@ public class OptionServiceImpl implements OptionService {
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
                             "Option with ID " + optionId + " not found"));
 
-            log.info("Deleting option '{}' with ID: {}", option.getOptionText(), optionId);
             questionRepository.delete(question);
             log.info("Successfully deleted option with ID: {}", optionId);
 
         } catch (DataIntegrityViolationException exception) {
-            log.error("Cannot delete option {} due to data integrity constraints", option, exception);
             throw new ResponseStatusException(HttpStatus.CONFLICT,
                     "Cannot delete option as it's used in active quizzes");
 
         } catch (DataAccessException exception) {
-            log.error("Database error while deleting option {}", optionId, exception);
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
                     "Failed to delete option from database");
 
@@ -150,7 +147,6 @@ public class OptionServiceImpl implements OptionService {
             throw exception;
 
         } catch (Exception exception) {
-            log.error("Unexpected error while deleting option {}", optionId, exception);
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
                     "An unexpected error occurred while deleting option");
         }

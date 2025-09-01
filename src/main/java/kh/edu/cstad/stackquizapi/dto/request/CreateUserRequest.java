@@ -30,6 +30,8 @@ public record CreateUserRequest(
 
         String avatarUrl,
 
-        boolean isActive
+        String profileUser
+
+
 ) {
 }

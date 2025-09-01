@@ -1,26 +1,38 @@
+version: '3.8'
 services:
-  redis:
-    image: redis:7-alpine
-    container_name: stackquiz-redis
-    ports:
-      - "6379:6379"
-    volumes:
-      - redis_data:/data
-    restart: unless-stopped
-    command: redis-server --appendonly yes
-
-  #
-  stackquiz-api:
+  backend:
     build: .
-    container_name: stackquiz-api
+    image: kukseng/stackquiz-backend:local
     ports:
-      - "8080:8080"
-    depends_on:
-      - redis
+      - "9999:9999"
     environment:
-      - SPRING_DATA_REDIS_HOST=redis
-      - SPRING_DATA_REDIS_PORT=6379
-    restart: unless-stopped
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/stackquiz-db
+      SPRING_DATASOURCE_USERNAME: stackquiz-user
+      SPRING_DATASOURCE_PASSWORD: stackquiz@123
+      REDIS_HOST: 35.247.128.230
+      REDIS_PORT: 6379
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  postgres:
+    image: postgres:17
+    restart: always
+    environment:
+      POSTGRES_USER: stackquiz-user
+      POSTGRES_PASSWORD: stackquiz@123
+      POSTGRES_DB: stackquiz-db
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U stackquiz-user -d stackquiz-db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
 volumes:
-  redis_data:
+  pgdata:
+
+

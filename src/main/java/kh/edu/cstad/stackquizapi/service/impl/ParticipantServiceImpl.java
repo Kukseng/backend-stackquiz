@@ -38,9 +38,9 @@ public class ParticipantServiceImpl implements ParticipantService {
     @Override
     public ParticipantResponse joinSession(JoinSessionRequest request) {
 
-        QuizSession getSessionByCode = quizSessionRepository.findBySessionCode(request.sessionCode())
+        QuizSession getSessionByCode = quizSessionRepository.findBySessionCode(request.quizCode())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                        "Session not found with code: " + request.sessionCode()));
+                        "Session not found with code: " + request.quizCode()));
 
         if (getSessionByCode.getStatus() == Status.ENDED) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,

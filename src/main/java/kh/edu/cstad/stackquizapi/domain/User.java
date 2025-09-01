@@ -39,6 +39,9 @@ public class User {
     @Column(length = 250)
     private String avatarUrl;
 
+    @Column(length = 250)
+    private String profileUser;
+
     @Column(length = 100)
     private String firstName;
 
@@ -51,7 +54,7 @@ public class User {
     @Column(updatable = false)
     private LocalDateTime createdAt;
 
-    private Timestamp updatedAt;
+    private LocalDateTime updatedAt;
 
     @OneToMany(mappedBy = "user")
     private List<UserRole> userRoles;

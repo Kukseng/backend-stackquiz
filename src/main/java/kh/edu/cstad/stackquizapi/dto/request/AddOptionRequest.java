@@ -6,7 +6,8 @@ public record AddOptionRequest(
 
         Integer optionOrder,
 
-        Boolean isCorrected
+        Boolean isCorrected,
 
+        String questionId
 ){
 }

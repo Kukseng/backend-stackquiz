@@ -232,4 +232,19 @@ public class QuestionServiceImpl implements QuestionService {
         }
     }
 
+    @Override
+    public List<QuestionResponse> getQuestionsForSession(String sessionId) {
+        return List.of();
+    }
+
+    @Override
+    public QuestionResponse getNextQuestionForSession(String sessionId) {
+        return null;
+    }
+
+    @Override
+    public QuestionResponse getCurrentQuestionForSession(String sessionId) {
+        return null;
+    }
+
 }
