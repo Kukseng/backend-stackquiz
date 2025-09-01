@@ -8,14 +8,7 @@ import kh.edu.cstad.stackquizapi.service.OptionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -26,13 +19,23 @@ public class OptionController {
 
     private final OptionService optionService;
 
-    @PostMapping
+    @PostMapping("/questions/{questionId}")
     public ResponseEntity<List<OptionResponse>> addNewOptions(
-            @RequestParam(required = false) String questionId,
+            @PathVariable String questionId,
             @RequestBody List<AddOptionRequest> addOptionRequests) {
 
         List<OptionResponse> responses = optionService.addNewOptions(questionId, addOptionRequests);
         return ResponseEntity.status(HttpStatus.CREATED).body(responses);
+    }
+
+    @GetMapping
+    public ResponseEntity<List<OptionResponse>> getAllOptions() {
+        return ResponseEntity.ok(optionService.gelAllOptions());
+    }
+
+    @GetMapping("/questions/{questionId}")
+    public ResponseEntity<List<OptionResponse>> getOptionsByQuestionId(@PathVariable String questionId) {
+        return ResponseEntity.ok(optionService.getOptionsByQuestionId(questionId));
     }
 
     @PutMapping("/{optionId}")
@@ -45,11 +48,8 @@ public class OptionController {
     }
 
     @DeleteMapping("/{optionId}")
-    public ResponseEntity<Void> deleteOption(
-            @PathVariable String optionId,
-            @RequestBody Option option) {
-
-        optionService.deletedOptionById(optionId, option);
+    public ResponseEntity<Void> deleteOption(@PathVariable String optionId) {
+        optionService.deleteOptionById(optionId);
         return ResponseEntity.noContent().build();
     }
 }

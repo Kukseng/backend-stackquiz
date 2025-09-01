@@ -44,6 +44,6 @@ public interface OptionService {
      * @param optionId the ID of the option to delete
      * @param option the option object to be deleted
      */
-    void deletedOptionById(String optionId, Option option);
+    void deleteOptionById(String optionId);
 }
 

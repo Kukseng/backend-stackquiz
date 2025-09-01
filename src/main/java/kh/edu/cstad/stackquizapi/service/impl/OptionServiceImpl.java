@@ -173,7 +173,7 @@ public class OptionServiceImpl implements OptionService {
     }
 
     @Override
-    public void deletedOptionById(String optionId, Option option) {
+    public void deleteOptionById(String optionId) {
 
         if (optionId == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
