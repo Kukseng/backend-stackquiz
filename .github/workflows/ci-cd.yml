@@ -40,7 +40,7 @@ jobs:
       - name: Make Gradle wrapper executable
         run: chmod +x ./gradlew
 
-      # Build & Test (BUILD THE JAR HERE)
+      # Build & Test 
       - name: Build & Test
         run: |
           ./gradlew test
