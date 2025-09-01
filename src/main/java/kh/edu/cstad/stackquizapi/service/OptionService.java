@@ -25,6 +25,10 @@ public interface OptionService {
      */
     List<OptionResponse> addNewOptions(String questionId, List<AddOptionRequest> addOptionRequests);
 
+    List<OptionResponse> gelAllOptions();
+
+    List<OptionResponse> getOptionsByQuestionId(String questionId);
+
     /**
      * Updates an existing option by its ID.
      *

@@ -21,6 +21,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -81,6 +82,58 @@ public class OptionServiceImpl implements OptionService {
                 .collect(Collectors.toList());
     }
 
+    @Override
+    public List<OptionResponse> gelAllOptions() {
+
+        try {
+
+            List<Option> options = optionRepository.findAll();
+
+            if (options.isEmpty()) {
+                log.info("No option found");
+                return Collections.emptyList();
+            }
+
+            log.info("Found {} options", options.size());
+
+            return options.stream()
+                    .map(optionMapper::toOptionResponse)
+                    .collect(Collectors.toList());
+
+        } catch (Exception exception) {
+            log.error("Unexpected error while fetching all options", exception);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                    "An unexpected error occurred while fetching questions");
+        }
+
+
+    }
+
+    @Override
+    public List<OptionResponse> getOptionsByQuestionId(String questionId) {
+
+        try {
+
+            List<Option> options = optionRepository.findByQuestion_Id(questionId);
+
+            if (options.isEmpty()) {
+                log.info("No questions found");
+                return Collections.emptyList();
+            }
+
+            log.info("Found {} questions", options.size());
+
+            return options.stream()
+                    .map(optionMapper::toOptionResponse)
+                    .collect(Collectors.toList());
+
+        } catch (Exception exception) {
+            log.error("Unexpected error while fetching all options", exception);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                    "An unexpected error occurred while fetching questions");
+        }
+
+    }
 
     @Transactional
     @Override
