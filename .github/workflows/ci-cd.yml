@@ -3,7 +3,7 @@ name: Backend CI/CD
 on:
   push:
     branches:
-      - main
+      - master
 
 jobs:
   build-test-deploy:
@@ -40,7 +40,7 @@ jobs:
       - name: Make Gradle wrapper executable
         run: chmod +x ./gradlew
 
-      # Build & Test (BUILD THE JAR HERE)
+      # Build & Test 
       - name: Build & Test
         run: |
           ./gradlew test
@@ -52,7 +52,7 @@ jobs:
           REDIS_HOST: localhost
           REDIS_PORT: 6379
 
-      # Build Docker Image (just package the JAR)
+      # Build Docker Image 
       - name: Build Docker image
         run: docker build -t stackquiz-backend:latest .
 
