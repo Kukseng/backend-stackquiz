@@ -1,0 +1,38 @@
+version: '3.8'
+services:
+  backend:
+    build: .
+    image: kukseng/stackquiz-backend:local
+    ports:
+      - "9999:9999"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/stackquiz-db
+      SPRING_DATASOURCE_USERNAME: stackquiz-user
+      SPRING_DATASOURCE_PASSWORD: stackquiz@123
+      REDIS_HOST: 35.247.128.230
+      REDIS_PORT: 6379
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  postgres:
+    image: postgres:17
+    restart: always
+    environment:
+      POSTGRES_USER: stackquiz-user
+      POSTGRES_PASSWORD: stackquiz@123
+      POSTGRES_DB: stackquiz-db
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U stackquiz-user -d stackquiz-db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  pgdata:
+
+
