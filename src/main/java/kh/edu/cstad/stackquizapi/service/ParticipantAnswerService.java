@@ -25,30 +25,6 @@ public interface ParticipantAnswerService {
      */
     List<ParticipantAnswerResponse> getParticipantAnswers(String participantId);
 
-    /**
-     * Get participant's answers for a specific session
-     */
-    List<ParticipantAnswerResponse> getParticipantSessionAnswers(String participantId, String sessionId);
-
-    /**
-     * Get all answers for a specific question across all participants
-     */
-    List<ParticipantAnswerResponse> getQuestionAnswers(String questionId);
-
-    /**
-     * Get all answers for a specific question in a session
-     */
-    List<ParticipantAnswerResponse> getQuestionSessionAnswers(String questionId, String sessionId);
-
-    /**
-     * Get answer summary for a participant (statistics)
-     */
-    AnswerSummaryResponse getParticipantAnswerSummary(String participantId);
-
-    /**
-     * Get question statistics (how many answered correctly, etc.)
-     */
-    QuestionStatisticsResponse getQuestionStatistics(String questionId, String sessionId);
 
     /**
      * Update an existing answer (if allowed)
@@ -70,16 +46,11 @@ public interface ParticipantAnswerService {
      */
     ParticipantAnswerResponse getParticipantQuestionAnswer(String participantId, String questionId);
 
-    /**
-     * Validate and score an answer
-     */
-    ParticipantAnswerResponse validateAndScoreAnswer(SubmitAnswerRequest request);
-
-    /**
-     * Get all answers for a session (for reporting)
-     */
-    List<ParticipantAnswerResponse> getSessionAnswers(String sessionId);
-
+//    /**
+//     * Validate and score an answer
+//     */
+//    ParticipantAnswerResponse validateAndScoreAnswer(SubmitAnswerRequest request);
+//
     /**
      * Calculate participant's total score
      */

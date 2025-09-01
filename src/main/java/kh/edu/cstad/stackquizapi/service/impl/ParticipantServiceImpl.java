@@ -108,7 +108,7 @@ public class ParticipantServiceImpl implements ParticipantService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
                         "Question not found"));
 
-        // Verify question belongs to the same quiz as the session
+
         if (!question.getQuiz().getId().equals(participant.getSession().getQuiz().getId())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     "Question does not belong to this session's quiz");
