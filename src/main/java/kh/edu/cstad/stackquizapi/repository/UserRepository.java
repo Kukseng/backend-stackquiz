@@ -13,7 +13,7 @@ public interface UserRepository
 
     boolean existsByEmail(String email);
 
-    Optional<User> findById(String Id);
+
 
     Optional<User> findByIdAndIsActiveFalse(String  userId);
 
