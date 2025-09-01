@@ -6,11 +6,9 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface ParticipantRepository extends JpaRepository<Participant, String> {
-
-
-
 
     boolean existsBySessionIdAndNickname (String sessionId, String nickname);
 
@@ -18,14 +16,16 @@ public interface ParticipantRepository extends JpaRepository<Participant, String
 
     List<Participant> findBySessionId (String sessionId);
 
-
-
-
-
     int countBySessionId(String sessionId);
 
+    Optional<Participant> findByIdAndIsActiveTrue (String id);
 
     int countBySessionIdAndIsActiveTrue(String sessionId);
 
     List<Participant> findBySessionIdOrderByTotalScoreDesc (String sessionId);
+
+    // In ParticipantRepository
+    @Query("SELECT COUNT(p) + 1 FROM Participant p WHERE p.session.id = :sessionId " +
+            "AND p.totalScore > :score AND p.isActive = true")
+    int getParticipantPosition(@Param("sessionId") String sessionId, @Param("score") Integer score);
 }

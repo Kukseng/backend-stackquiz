@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 
 public record ParticipantResponse(
 
-        String participantId,
+        String id,
 
         String nickname,
 
@@ -14,9 +14,7 @@ public record ParticipantResponse(
 
         Integer totalScore,
 
-        LocalDateTime joinedAt,
-
-        Integer currentPosition
+        LocalDateTime joinedAt
 
 ) {
 }

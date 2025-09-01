@@ -52,18 +52,25 @@ public class ParticipantServiceImpl implements ParticipantService {
                     "Nickname '" + request.nickname() + "' is already taken in this session");
         }
 
+
 //         get session code
 //        Optional<QuizSession> sessionOpt = getSessionByCode(sessionCode);
         // Join Quiz by SessionCode
         Participant participant = participantMapper.toParticipant(request);
+//        participant.setSession(request.quizCode());
+//        participant.getId();
+//        participant.setNickname(request.nickname());
         participant.setSession(getSessionByCode);
 
-//        participant.setNickname(request.nickname());
         participant.setJoinedAt(LocalDateTime.now());
         participant.setTotalScore(0);
         participant.setIsActive(true);
 
         Participant savedParticipant = participantRepository.save(participant);
+        List<Participant> participantsOrderedByScore = participantRepository
+                .findBySessionIdOrderByTotalScoreDesc(getSessionByCode.getId());
+
+
 
 
 
@@ -86,7 +93,7 @@ public class ParticipantServiceImpl implements ParticipantService {
     @Override
     public SubmitAnswerResponse submitAnswer(SubmitAnswerRequest request) {
 
-        Participant participant = participantRepository.findById(request.participantId())
+        Participant participant = participantRepository.findByIdAndIsActiveTrue(request.participantId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
                         "Participant not found"));
 
@@ -147,7 +154,6 @@ public class ParticipantServiceImpl implements ParticipantService {
         participant.setTotalScore(newTotalScore);
         participantRepository.save(participant);
 
-        // UPDATE REDIS LEADERBOARD WITH NEW SCORE
         leaderboardService.updateParticipantScore(
                 participant.getSession().getId(),
                 participant.getId(),

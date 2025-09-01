@@ -51,11 +51,9 @@ public class QuizSessionController {
     }
 
     @ResponseStatus(HttpStatus.OK)
-    @GetMapping("/{hostId}")
-    public Optional<QuizSession> getQuizSessions(@PathVariable String hostId){
-        return quizSessionService.getSessionByCode(hostId);
+    @GetMapping("/{quizCode}")
+    public Optional<QuizSession> getQuizSessions(@PathVariable String quizCode){
+        return quizSessionService.getSessionByCode(quizCode);
     }
-
-
 
 }

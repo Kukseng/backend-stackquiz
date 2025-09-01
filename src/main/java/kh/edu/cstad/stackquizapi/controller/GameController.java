@@ -57,7 +57,7 @@ public class GameController {
 
             ParticipantMessage participantMessage = new ParticipantMessage(
                     sessionId,
-                    participant.participantId(),
+                    participant.id(),
                     participants,
                     participants.size(),
                     "PARTICIPANT_JOINED"
@@ -77,7 +77,7 @@ public class GameController {
             );
 
             messagingTemplate.convertAndSendToUser(
-                    participant.participantId(),
+                    participant.id(),
                     "/topic/session/" + sessionId + "/game-state",
                     welcomeMessage
             );
