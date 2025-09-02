@@ -49,35 +49,35 @@ public class AuthController {
                         .build());
     }
 
-    @PostMapping("/login")
-    public ResponseEntity<ApiResponse<LoginResponse>> login(
-            @Valid @RequestBody LoginRequest request) {
+//    @PostMapping("/login")
+//    public ResponseEntity<ApiResponse<LoginResponse>> login(
+//            @Valid @RequestBody LoginRequest request) {
+//
+//        log.info("Login request received for username: {}", request.username());
+//
+//        LoginResponse response = authService.login(request);
+//
+//        return ResponseEntity.ok(ApiResponse.<LoginResponse>builder()
+//                .success(true)
+//                .message("Login successful")
+//                .data(response)
+//                .build());
+//    }
 
-        log.info("Login request received for username: {}", request.username());
-
-        LoginResponse response = authService.login(request);
-
-        return ResponseEntity.ok(ApiResponse.<LoginResponse>builder()
-                .success(true)
-                .message("Login successful")
-                .data(response)
-                .build());
-    }
-
-    @PostMapping("/refresh")
-    public ResponseEntity<ApiResponse<LoginResponse>> refreshToken(
-            @Valid @RequestBody RefreshTokenRequest request) {
-
-        log.info("Token refresh request received");
-
-        LoginResponse response = authService.refreshToken(request);
-
-        return ResponseEntity.ok(ApiResponse.<LoginResponse>builder()
-                .success(true)
-                .message("Token refreshed successfully")
-                .data(response)
-                .build());
-    }
+//    @PostMapping("/refresh")
+//    public ResponseEntity<ApiResponse<LoginResponse>> refreshToken(
+//            @Valid @RequestBody RefreshTokenRequest request) {
+//
+//        log.info("Token refresh request received");
+//
+//        LoginResponse response = authService.refreshToken(request);
+//
+//        return ResponseEntity.ok(ApiResponse.<LoginResponse>builder()
+//                .success(true)
+//                .message("Token refreshed successfully")
+//                .data(response)
+//                .build());
+//    }
 
     @PostMapping("/logout")
     public ResponseEntity<ApiResponse<Void>> logout(
