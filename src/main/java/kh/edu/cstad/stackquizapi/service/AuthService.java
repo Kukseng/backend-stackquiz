@@ -30,7 +30,6 @@ public interface AuthService {
 
     void verifyEmail(String userId);
 
-    Mono<String> login(String username, String password);
 
 
 

@@ -159,22 +159,6 @@ public class AuthServiceImpl implements AuthService {
     }
 
 
-    @Override
-    public Mono<String> login(String username, String password) {
-        return webClient.post()
-                .uri("/token")
-                .header("Content-Type", "application/x-www-form-urlencoded")
-                .body(BodyInserters.fromFormData("client_id", "nextjs") // your client_id
-                        .with("client_secret", "azpLBVVq454Vzz22h004FbTqeMGFS8k7")    // your client_secret
-                        .with("grant_type", "password")
-                        .with("username", username)
-                        .with("password", password))
-                .retrieve()
-                .bodyToMono(String.class);
-    }
-
-
-
 
     @Override
     public void verifyEmail(String userId) {
