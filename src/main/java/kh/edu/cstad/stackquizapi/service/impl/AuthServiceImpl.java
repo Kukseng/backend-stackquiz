@@ -25,20 +25,16 @@ import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.reactive.function.BodyInserters;
-import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.http.*;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
-import reactor.core.publisher.Mono;
 
 @Slf4j
 @Service
@@ -48,7 +44,7 @@ public class AuthServiceImpl implements AuthService {
     private final Keycloak adminKeycloak;
     private final RoleService roleService;
     private final UserService userService;
-    private final WebClient webClient = WebClient.builder().build();
+
     @Value("${keycloak.realm}")
     private String realm;
 
@@ -177,4 +173,121 @@ public class AuthServiceImpl implements AuthService {
         }
     }
 
+    @Override
+    public void requestPasswordReset(String email) {
+        log.info("Password reset requested for email: {}", email);
+
+        try {
+            UserRepresentation user = adminKeycloak.realm(realm)
+                    .users()
+                    .searchByEmail(email, true)
+                    .stream()
+                    .findFirst()
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                            "No account found with this email"));
+
+            adminKeycloak.realm(realm)
+                    .users()
+                    .get(user.getId())
+                    .executeActionsEmail(Collections.singletonList("UPDATE_PASSWORD"));
+
+            log.info("Password reset email sent for user: {}", user.getId());
+
+        } catch (ResponseStatusException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("Failed to send password reset email: {}", e.getMessage());
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Failed to send password reset email");
+        }
+    }
+
+    @Override
+    public void resetPassword(ResetPasswordRequest request) {
+        log.info("Resetting password for email: {}", request.email());
+
+        try {
+            UserRepresentation user = adminKeycloak.realm(realm)
+                    .users()
+                    .searchByEmail(request.email(), true)
+                    .stream()
+                    .findFirst()
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                            "No account found with this email"));
+
+            CredentialRepresentation credential = new CredentialRepresentation();
+            credential.setType(CredentialRepresentation.PASSWORD);
+            credential.setValue(request.newPassword());
+            credential.setTemporary(false);
+
+            adminKeycloak.realm(realm)
+                    .users()
+                    .get(user.getId())
+                    .resetPassword(credential);
+
+            log.info("Password successfully reset for user: {}", user.getId());
+
+        } catch (ResponseStatusException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("Password reset failed: {}", e.getMessage());
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Password reset failed");
+        }
+    }
+
+    @Override
+    public UserProfileResponse getUserProfile(String userId) {
+        try {
+            UserRepresentation user = adminKeycloak.realm(realm)
+                    .users()
+                    .get(userId)
+                    .toRepresentation();
+
+            List<String> roles = getUserRoles(userId);
+
+            return UserProfileResponse.builder()
+                    .userId(user.getId())
+                    .username(user.getUsername())
+                    .email(user.getEmail())
+                    .firstName(user.getFirstName())
+                    .lastName(user.getLastName())
+                    .emailVerified(user.isEmailVerified())
+                    .enabled(user.isEnabled())
+                    .roles(roles)
+                    .createdTimestamp(user.getCreatedTimestamp())
+                    .build();
+
+        } catch (Exception e) {
+            log.error("Failed to get user profile for {}: {}", userId, e.getMessage());
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
+        }
+    }
+
+    private UserRepresentation getUserByUsername(String username) {
+        return adminKeycloak.realm(realm)
+                .users()
+                .search(username, true)
+                .stream()
+                .filter(user -> user.getUsername().equals(username))
+                .findFirst()
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+    }
+
+    private List<String> getUserRoles(String userId) {
+        try {
+            return adminKeycloak.realm(realm)
+                    .users()
+                    .get(userId)
+                    .roles()
+                    .realmLevel()
+                    .listAll()
+                    .stream()
+                    .map(RoleRepresentation::getName)
+                    .collect(Collectors.toList());
+        } catch (Exception e) {
+            log.warn("Failed to get roles for user {}: {}", userId, e.getMessage());
+            return Collections.emptyList();
+        }
+    }
 }
