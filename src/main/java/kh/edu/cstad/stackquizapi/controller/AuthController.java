@@ -93,46 +93,46 @@ public class AuthController {
                 .build());
     }
 
-    @PostMapping("/verify-email/{userId}")
-    public ResponseEntity<ApiResponse<Void>> verifyEmail(@PathVariable String userId) {
+//    @PostMapping("/verify-email/{userId}")
+//    public ResponseEntity<ApiResponse<Void>> verifyEmail(@PathVariable String userId) {
+//
+//        log.info("Email verification request for user: {}", userId);
+//
+//        authService.verifyEmail(userId);
+//
+//        return ResponseEntity.ok(ApiResponse.<Void>builder()
+//                .success(true)
+//                .message("Verification email sent successfully")
+//                .build());
+//    }
 
-        log.info("Email verification request for user: {}", userId);
+//    @PostMapping("/request-password-reset")
+//    public ResponseEntity<ApiResponse<Void>> requestPasswordReset(
+//            @RequestParam String email) {
+//
+//        log.info("Password reset request for email: {}", email);
+//
+//        authService.requestPasswordReset(email);
+//
+//        return ResponseEntity.ok(ApiResponse.<Void>builder()
+//                .success(true)
+//                .message("Password reset email sent successfully")
+//                .build());
+//    }
 
-        authService.verifyEmail(userId);
-
-        return ResponseEntity.ok(ApiResponse.<Void>builder()
-                .success(true)
-                .message("Verification email sent successfully")
-                .build());
-    }
-
-    @PostMapping("/request-password-reset")
-    public ResponseEntity<ApiResponse<Void>> requestPasswordReset(
-            @RequestParam String email) {
-
-        log.info("Password reset request for email: {}", email);
-
-        authService.requestPasswordReset(email);
-
-        return ResponseEntity.ok(ApiResponse.<Void>builder()
-                .success(true)
-                .message("Password reset email sent successfully")
-                .build());
-    }
-
-    @PostMapping("/reset-password")
-    public ResponseEntity<ApiResponse<Void>> resetPassword(
-            @Valid @RequestBody ResetPasswordRequest request) {
-
-        log.info("Password reset for email: {}", request.email());
-
-        authService.resetPassword(request);
-
-        return ResponseEntity.ok(ApiResponse.<Void>builder()
-                .success(true)
-                .message("Password reset successful")
-                .build());
-    }
+//    @PostMapping("/reset-password")
+//    public ResponseEntity<ApiResponse<Void>> resetPassword(
+//            @Valid @RequestBody ResetPasswordRequest request) {
+//
+//        log.info("Password reset for email: {}", request.email());
+//
+//        authService.resetPassword(request);
+//
+//        return ResponseEntity.ok(ApiResponse.<Void>builder()
+//                .success(true)
+//                .message("Password reset successful")
+//                .build());
+//    }
 
     @GetMapping("/profile/{userId}")
     public ResponseEntity<ApiResponse<UserProfileResponse>> getUserProfile(
