@@ -130,14 +130,6 @@ public class AuthServiceImpl implements AuthService {
                     log.warn("Failed to send verification email: {}", e.getMessage());
                 }
 
-                userService.createUser(CreateUserRequest
-                        .builder()
-                                .firstName(createdUser.getFirstName())
-                                .lastName(createdUser.getLastName())
-                                .email(createdUser.getEmail())
-                                .username(createdUser.getUsername())
-                        .build());
-
                 return RegisterResponse.builder()
                         .userId(createdUser.getId())
                         .username(createdUser.getUsername())
