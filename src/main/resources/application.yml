@@ -50,7 +50,8 @@ spring:
           min-idle: 0
           max-wait: -1ms
         shutdown-timeout: 100ms
-  
+  main:
+      allow-bean-definition-overriding: true
   
   security:
     oauth2:

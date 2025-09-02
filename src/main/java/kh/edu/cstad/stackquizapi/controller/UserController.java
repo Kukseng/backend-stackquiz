@@ -1,5 +1,7 @@
 package kh.edu.cstad.stackquizapi.controller;
 
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import kh.edu.cstad.stackquizapi.dto.request.CreateUserRequest;
 import kh.edu.cstad.stackquizapi.dto.request.UpdateUserRequest;
 import kh.edu.cstad.stackquizapi.dto.response.UserResponse;
@@ -23,6 +25,8 @@ public class UserController {
         return userService.createUser(createUserRequest);
     }
 
+//    @SecurityRequirement(name = "bearerAuth")
+//    @Tag(name = "User", description = "The User API. Contains all the operations that can be performed on a user.")
     @ResponseStatus(HttpStatus.OK)
     @GetMapping
     public List<UserResponse> findAll() {
