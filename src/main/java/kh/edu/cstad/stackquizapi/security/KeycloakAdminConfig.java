@@ -37,7 +37,7 @@ public class KeycloakAdminConfig {
                 .realm("stackquiz")
                 .serverUrl(serverUrl)
                 .grantType(OAuth2Constants.CLIENT_CREDENTIALS)
-                .clientId("admin-cli")
+                .clientId("")
                 .clientSecret(clientSecret)
                 .build();
 

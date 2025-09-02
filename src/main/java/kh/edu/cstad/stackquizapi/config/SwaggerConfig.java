@@ -24,7 +24,7 @@ import java.util.List;
 @Configuration
 public class SwaggerConfig {
 
-    @Value("${spring.app.api-url:http://localhost:9999}")
+    @Value("${http://localhost:9999}")
     private String apiUrl;
 
     @Bean
