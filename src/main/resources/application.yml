@@ -38,8 +38,8 @@ spring:
   
   data:
     redis:
-      REDIS_HOST: 35.247.128.230
-      REDIS_PORT: 6379
+      host: ${REDIS_HOST:redis}
+      port: ${REDIS_PORT:6379}
       database: 0
       timeout: 60000ms
       lettuce:
