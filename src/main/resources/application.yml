@@ -10,7 +10,6 @@ app:
 spring:
   application:
     name: stackquiz-api
-  
   threads:
     virtual:
       enabled: true
@@ -39,8 +38,8 @@ spring:
   
   data:
     redis:
-      host: 127.0.0.1
-      port: 6379
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
       database: 0
       timeout: 60000ms
       lettuce:
