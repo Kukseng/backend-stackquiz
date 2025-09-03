@@ -39,7 +39,7 @@ spring:
   
   data:
     redis:
-      host: https://stackquiz-api.stackquiz.me
+      host: 127.0.0.1
       port: 6379
       database: 0
       timeout: 60000ms
