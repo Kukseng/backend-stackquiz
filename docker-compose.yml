@@ -4,7 +4,7 @@ services:
     build: .
     image: kukseng/stackquiz-backend:local
     ports:
-      - "127.0.0.1:9999:9999"
+      - "9999:9999"
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/stackquiz-db
       SPRING_DATASOURCE_USERNAME: stackquiz-user
@@ -34,5 +34,4 @@ services:
 
 volumes:
   pgdata:
-
 
