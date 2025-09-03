@@ -1,7 +1,7 @@
 version: '3.8'
 services:
   backend:
-    image: kukseng/stackquiz-backend:latest
+    image: kukseng/stackquiz-backend:local
     ports:
       - "9999:9999"
     environment:
