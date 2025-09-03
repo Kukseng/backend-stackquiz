@@ -1,6 +1,7 @@
 package kh.edu.cstad.stackquizapi.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import kh.edu.cstad.stackquizapi.dto.request.CreateQuestionRequest;
 import kh.edu.cstad.stackquizapi.dto.request.UpdateQuestionRequest;
 import kh.edu.cstad.stackquizapi.dto.response.QuestionResponse;
@@ -28,21 +29,28 @@ public class QuestionController {
 
     private final QuestionService questionService;
 
-    @Operation(summary = "Create new question")
+    // get current user for profile
+    @Operation(summary = "Get all users (secured)",
+            security = { @SecurityRequirement(name = "bearerAuth") })
     @PostMapping
     public ResponseEntity<QuestionResponse> createQuestion(@RequestBody CreateQuestionRequest request) {
         QuestionResponse response = questionService.createNewQuestion(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @Operation(summary = "Get all questions")
+
+    @Operation(summary = "Get all users (secured)",
+            security = { @SecurityRequirement(name = "bearerAuth") })
     @GetMapping
     public ResponseEntity<List<QuestionResponse>> getAllQuestions() {
         List<QuestionResponse> responses = questionService.getAllQuestions();
         return ResponseEntity.ok(responses);
     }
 
-    @Operation(summary = "Get question by ID")
+
+
+    @Operation(summary = "Get all users (secured)",
+            security = { @SecurityRequirement(name = "bearerAuth") })
     @GetMapping("/{id}")
     public ResponseEntity<QuestionResponse> getQuestionById(@PathVariable String id) {
         QuestionResponse response = questionService.getQuestionById(id);
@@ -58,14 +66,18 @@ public class QuestionController {
         return ResponseEntity.ok(response);
     }
 
-    @Operation(summary = "Delete question by ID")
+    // get current user for profile
+    @Operation(summary = "Get all users (secured)",
+            security = { @SecurityRequirement(name = "bearerAuth") })
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteQuestionById(@PathVariable String id) {
         questionService.deleteQuestionById(id);
         return ResponseEntity.noContent().build();
     }
 
-    @Operation(summary = "Delete question by list of IDs")
+
+    @Operation(summary = "Get all users (secured)",
+            security = { @SecurityRequirement(name = "bearerAuth") })
     @DeleteMapping
     public ResponseEntity<Void> deleteQuestionsByIds(@RequestBody List<String> ids) {
         questionService.deleteQuestionsByIds(ids);

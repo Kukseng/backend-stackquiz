@@ -1,5 +1,7 @@
 package kh.edu.cstad.stackquizapi.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import kh.edu.cstad.stackquizapi.dto.request.JoinSessionRequest;
 import kh.edu.cstad.stackquizapi.dto.request.SubmitAnswerRequest;
 import kh.edu.cstad.stackquizapi.dto.response.LeaderboardResponse;
@@ -44,6 +46,9 @@ public class GameController {
     /**
      * Handle participant joining a quiz session
      */
+    // get current user for profile
+    @Operation(summary = "Get all users (secured)",
+            security = { @SecurityRequirement(name = "bearerAuth") })
     @MessageMapping("/session/{sessionId}/join")
     public void joinSession(@DestinationVariable String sessionId,
                             @Payload JoinSessionRequest request,

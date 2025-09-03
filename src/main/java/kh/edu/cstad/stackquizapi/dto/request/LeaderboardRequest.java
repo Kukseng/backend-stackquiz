@@ -6,8 +6,8 @@ import jakarta.validation.constraints.NotBlank;
 
 // For getting leaderboard with pagination
 public record LeaderboardRequest(
-        @NotBlank(message = "Session ID is required")
-        String sessionId,
+        @NotBlank(message = "Session Code is required")
+        String sessionCode,
 
         @Min(value = 1, message = "Limit must be at least 1")
         @Max(value = 100, message = "Limit cannot exceed 100")

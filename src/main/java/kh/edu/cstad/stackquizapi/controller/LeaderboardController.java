@@ -1,6 +1,8 @@
 package kh.edu.cstad.stackquizapi.controller;
 
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import kh.edu.cstad.stackquizapi.dto.request.LeaderboardRequest;
 import kh.edu.cstad.stackquizapi.dto.request.HistoricalLeaderboardRequest;
 import kh.edu.cstad.stackquizapi.dto.response.*;
@@ -23,6 +25,9 @@ public class LeaderboardController {
     /**
      * Get real-time leaderboard with pagination and filters
      */
+    // get current user for profile
+    @Operation(summary = "Get all users (secured)",
+            security = { @SecurityRequirement(name = "bearerAuth") })
     @ResponseStatus(HttpStatus.OK)
     @PostMapping("/live")
     public LeaderboardResponse getRealTimeLeaderboard(@Valid @RequestBody LeaderboardRequest request) {
@@ -32,6 +37,9 @@ public class LeaderboardController {
     /**
      * Get simple real-time leaderboard by session ID
      */
+    // get current user for profile
+    @Operation(summary = "Get all users (secured)",
+            security = { @SecurityRequirement(name = "bearerAuth") })
     @ResponseStatus(HttpStatus.OK)
     @GetMapping("/session/{sessionId}")
     public LeaderboardResponse getLeaderboard(@PathVariable String sessionId) {
@@ -42,6 +50,9 @@ public class LeaderboardController {
     /**
      * Get top N participants
      */
+    // get current user for profile
+    @Operation(summary = "Get all users (secured)",
+            security = { @SecurityRequirement(name = "bearerAuth") })
     @ResponseStatus(HttpStatus.OK)
     @GetMapping("/session/{sessionId}/top/{limit}")
     public LeaderboardResponse getTopLeaderboard(
@@ -56,6 +67,9 @@ public class LeaderboardController {
     /**
      * Get podium (top 3) for dramatic display
      */
+    // get current user for profile
+    @Operation(summary = "Get all users (secured)",
+            security = { @SecurityRequirement(name = "bearerAuth") })
     @ResponseStatus(HttpStatus.OK)
     @GetMapping("/session/{sessionId}/podium")
     public LeaderboardResponse getPodium(@PathVariable String sessionId) {
@@ -65,6 +79,9 @@ public class LeaderboardController {
     /**
      * Get specific participant's current rank and position
      */
+    // get current user for profile
+    @Operation(summary = "Get all users (secured)",
+            security = { @SecurityRequirement(name = "bearerAuth") })
     @ResponseStatus(HttpStatus.OK)
     @GetMapping("/session/{sessionId}/participant/{participantId}/rank")
     public ParticipantRankResponse getParticipantRank(
@@ -76,6 +93,9 @@ public class LeaderboardController {
     /**
      * Get historical leaderboards (for host's past sessions)
      */
+    // get current user for profile
+    @Operation(summary = "Get all users (secured)",
+            security = { @SecurityRequirement(name = "bearerAuth") })
     @ResponseStatus(HttpStatus.OK)
     @PostMapping("/history")
     public List<HistoricalLeaderboardResponse> getHistoricalLeaderboards(
@@ -95,6 +115,9 @@ public class LeaderboardController {
     /**
      * Get session statistics
      */
+    // get current user for profile
+    @Operation(summary = "Get all users (secured)",
+            security = { @SecurityRequirement(name = "bearerAuth") })
     @ResponseStatus(HttpStatus.OK)
     @GetMapping("/session/{sessionId}/stats")
     public SessionStats getSessionStats(@PathVariable String sessionId) {
@@ -104,6 +127,9 @@ public class LeaderboardController {
     /**
      * Initialize leaderboard for a new session
      */
+    // get current user for profile
+    @Operation(summary = "Get all users (secured)",
+            security = { @SecurityRequirement(name = "bearerAuth") })
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping("/session/{sessionId}/initialize")
     public void initializeLeaderboard(@PathVariable String sessionId) {
@@ -113,6 +139,9 @@ public class LeaderboardController {
     /**
      * Finalize leaderboard when session ends
      */
+    // get current user for profile
+    @Operation(summary = "Get all users (secured)",
+            security = { @SecurityRequirement(name = "bearerAuth") })
     @ResponseStatus(HttpStatus.OK)
     @PostMapping("/session/{sessionId}/finalize")
     public void finalizeLeaderboard(@PathVariable String sessionId) {

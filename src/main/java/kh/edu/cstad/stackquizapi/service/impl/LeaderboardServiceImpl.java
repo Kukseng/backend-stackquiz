@@ -44,11 +44,11 @@ public class LeaderboardServiceImpl implements LeaderboardService {
     @Override
     public LeaderboardResponse getRealTimeLeaderboard(LeaderboardRequest request) {
 
-        String actualSessionId = request.sessionId();
+        String actualSessionId = request.sessionCode();
 
 
-        if (request.sessionId().length() <= 10) {
-            QuizSession session = quizSessionRepository.findBySessionCode(request.sessionId())
+        if (request.sessionCode().length() <= 10) {
+            QuizSession session = quizSessionRepository.findBySessionCode(request.sessionCode())
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
                             "Session not found"));
             actualSessionId = session.getId();
@@ -114,7 +114,7 @@ public class LeaderboardServiceImpl implements LeaderboardService {
         String leaderboardStatus = determineLeaderboardStatus(actualSessionId);
 
         return LeaderboardResponse.builder()
-                .sessionId(request.sessionId())
+                .sessionId(request.sessionCode())
                 .entries(entries)
                 .totalParticipants(totalParticipants)
                 .lastUpdated(System.currentTimeMillis())

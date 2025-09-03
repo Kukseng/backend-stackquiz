@@ -46,8 +46,8 @@ public class SwaggerConfig {
                 .servers(List.of(
                         new Server().url(apiUrl).description("Development server"),
                         new Server().url("https://stackquiz-api.stackquiz.me").description("Production server")))
-                .addSecurityItem(new SecurityRequirement()
-                        .addList(securitySchemeName))
+//                .addSecurityItem(new SecurityRequirement()
+//                        .addList(securitySchemeName))
                 .components(new Components()
                         .addSecuritySchemes(securitySchemeName,
                                 new SecurityScheme()

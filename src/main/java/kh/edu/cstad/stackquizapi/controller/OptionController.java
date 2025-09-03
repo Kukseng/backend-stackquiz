@@ -1,5 +1,7 @@
 package kh.edu.cstad.stackquizapi.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import kh.edu.cstad.stackquizapi.domain.Option;
 import kh.edu.cstad.stackquizapi.dto.request.AddOptionRequest;
 import kh.edu.cstad.stackquizapi.dto.request.UpdateOptionRequest;
@@ -19,6 +21,9 @@ public class OptionController {
 
     private final OptionService optionService;
 
+    // get current user for profile
+    @Operation(summary = "Get all users (secured)",
+            security = { @SecurityRequirement(name = "bearerAuth") })
     @PostMapping("/questions/{questionId}")
     public ResponseEntity<List<OptionResponse>> addNewOptions(
             @PathVariable String questionId,
@@ -28,16 +33,25 @@ public class OptionController {
         return ResponseEntity.status(HttpStatus.CREATED).body(responses);
     }
 
+    // get current user for profile
+    @Operation(summary = "Get all users (secured)",
+            security = { @SecurityRequirement(name = "bearerAuth") })
     @GetMapping
     public ResponseEntity<List<OptionResponse>> getAllOptions() {
         return ResponseEntity.ok(optionService.gelAllOptions());
     }
 
+    // get current user for profile
+    @Operation(summary = "Get all users (secured)",
+            security = { @SecurityRequirement(name = "bearerAuth") })
     @GetMapping("/questions/{questionId}")
     public ResponseEntity<List<OptionResponse>> getOptionsByQuestionId(@PathVariable String questionId) {
         return ResponseEntity.ok(optionService.getOptionsByQuestionId(questionId));
     }
 
+    // get current user for profile
+    @Operation(summary = "Get all users (secured)",
+            security = { @SecurityRequirement(name = "bearerAuth") })
     @PutMapping("/{optionId}")
     public ResponseEntity<OptionResponse> updateOption(
             @PathVariable String optionId,
@@ -47,6 +61,9 @@ public class OptionController {
         return ResponseEntity.ok(response);
     }
 
+    // get current user for profile
+    @Operation(summary = "Get all users (secured)",
+            security = { @SecurityRequirement(name = "bearerAuth") })
     @DeleteMapping("/{optionId}")
     public ResponseEntity<Void> deleteOption(@PathVariable String optionId) {
         optionService.deleteOptionById(optionId);
