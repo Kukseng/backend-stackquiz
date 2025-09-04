@@ -1,10 +1,6 @@
 package kh.edu.cstad.stackquizapi.domain;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -19,5 +15,13 @@ public class Report {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
+
+    @ManyToOne
+    @JoinColumn(name="user_id",nullable=false)
+    private User user;
+
+    @OneToOne
+    @JoinColumn(name = "session_id", nullable = false)
+    private QuizSession session;
 
 }
