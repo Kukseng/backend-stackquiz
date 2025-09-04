@@ -1,0 +1,64 @@
+name: Backend CI/CD
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build-test-deploy:
+    runs-on: ubuntu-latest
+
+    services:
+      # Postgres
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: stackquiz-user
+          POSTGRES_PASSWORD: stackquiz@123
+          POSTGRES_DB: stackquiz-db
+        ports: ["5432:5432"]
+
+      # Redis
+      redis:
+        image: redis:7
+        ports: ["6379:6379"]
+
+    steps:
+      # Checkout code
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # Setup Java
+      - name: Setup Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      # Make Gradle wrapper executable
+      - name: Make Gradle wrapper executable
+        run: chmod +x ./gradlew
+
+      # Build & Test (BUILD THE JAR HERE)
+      - name: Build & Test
+        run: |
+          ./gradlew test
+          ./gradlew bootJar --no-daemon
+        env:
+          SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/stackquiz-db
+          SPRING_DATASOURCE_USERNAME: stackquiz-user
+          SPRING_DATASOURCE_PASSWORD: stackquiz@123
+          REDIS_HOST: localhost
+          REDIS_PORT: 6379
+
+      # Build Docker Image (just package the JAR)
+      - name: Build Docker image
+        run: docker build -t stackquiz-backend:latest .
+
+      # Push Docker Image to DockerHub
+      - name: Push Docker image
+        run: |
+          echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+          docker tag stackquiz-backend:latest ${{ secrets.DOCKER_USERNAME }}/stackquiz-backend:latest
+          docker push ${{ secrets.DOCKER_USERNAME }}/stackquiz-backend:latest

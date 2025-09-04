@@ -1,0 +1,67 @@
+keycloak:
+  realm: stackquiz
+  server-url: https://keycloak-prod.rattanakmony.com
+  client-id: admin-cli
+  client-secret: i3DAFVHsFMXrM1S1rg7VgX55ue3kZnUo
+  tokenUri: https://keycloak-prod.rattanakmony.com/realms/stackquiz/protocol/openid-connect/token
+  client-id-2: nextjs
+  client-secret-2: azpLBVVq454Vzz22h004FbTqeMGFS8k7
+
+
+app:
+  default-role: ORGANIZER
+
+spring:
+  application:
+    name: stackquiz-api
+
+  threads:
+    virtual:
+      enabled: true
+
+  servlet:
+    multipart:
+      max-request-size: 20MB
+      max-file-size: 10MB
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/stack_quiz_db
+    username: aintantony
+    password: qwer
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+    properties:
+      hibernate:
+        format_sql: true
+
+  data:
+    redis:
+      host: https://stackquiz-api.stackquiz.me
+      port: 6379
+      database: 0
+      timeout: 60000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+          max-wait: -1ms
+        shutdown-timeout: 100ms
+  main:
+    allow-bean-definition-overriding: true
+  app:
+    api-url: https://stackquiz-api.stackquiz.me
+
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: https://keycloak-prod.rattanakmony.com/realms/stackquiz
+server:
+  port: 9999
