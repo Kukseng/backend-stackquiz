@@ -1,5 +1,7 @@
 package kh.edu.cstad.stackquizapi.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import kh.edu.cstad.stackquizapi.dto.request.CreateQuizRequest;
 import kh.edu.cstad.stackquizapi.dto.request.QuizUpdate;
 import kh.edu.cstad.stackquizapi.dto.response.QuizResponse;
@@ -19,6 +21,7 @@ public class QuizController {
 
     private final QuizService quizService;
 
+    @Operation(summary = "Create a new quiz", security = { @SecurityRequirement(name = "bearerAuth") })
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping
     public QuizResponse createQuiz(@RequestBody CreateQuizRequest createQuizRequest,
@@ -26,6 +29,7 @@ public class QuizController {
         return quizService.createQuiz(createQuizRequest, accessToken);
     }
 
+    @Operation(summary = "Update an existing quiz", security = { @SecurityRequirement(name = "bearerAuth") })
     @ResponseStatus(HttpStatus.OK)
     @PutMapping("/{quizId}")
     public QuizResponse updateQuiz(@PathVariable String quizId,
@@ -34,24 +38,29 @@ public class QuizController {
         return quizService.updateQuiz(quizId, quizUpdate, accessToken);
     }
 
+    @Operation(summary = "Get all quizzes (public)")
     @ResponseStatus(HttpStatus.OK)
     @GetMapping
     public List<QuizResponse> getAllQuizzes(@RequestParam(defaultValue = "true") boolean active) {
         return quizService.getAllQuiz(active);
     }
 
+    @Operation(summary = "Get a quiz by ID (public)")
     @ResponseStatus(HttpStatus.OK)
     @GetMapping("/{quizId}")
     public QuizResponse getQuizById(@PathVariable String quizId) {
         return quizService.getQuizById(quizId);
     }
 
+    @Operation(summary = "Delete a quiz by ID", security = { @SecurityRequirement(name = "bearerAuth") })
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping("/{quizId}")
-    public void deleteQuiz(@PathVariable String quizId) {
+    public void deleteQuiz(@PathVariable String quizId,
+                           @AuthenticationPrincipal Jwt accessToken) {
         quizService.deleteQuiz(quizId);
     }
 
+    @Operation(summary = "Get quizzes created by the authenticated user", security = { @SecurityRequirement(name = "bearerAuth") })
     @ResponseStatus(HttpStatus.OK)
     @GetMapping("/users/me")
     public List<QuizResponse> getQuizzesByUser(@AuthenticationPrincipal Jwt accessToken) {

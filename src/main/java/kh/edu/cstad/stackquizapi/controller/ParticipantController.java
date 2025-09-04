@@ -1,5 +1,7 @@
 package kh.edu.cstad.stackquizapi.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import kh.edu.cstad.stackquizapi.dto.request.JoinSessionRequest;
 import kh.edu.cstad.stackquizapi.dto.request.SubmitAnswerRequest;
 import kh.edu.cstad.stackquizapi.dto.response.ParticipantResponse;
@@ -46,6 +48,8 @@ public class ParticipantController {
      * Get all active participants in a session
      * @return List of active participants
      */
+    @Operation(summary = "Host get all participants in a session",
+            security = { @SecurityRequirement(name = "bearerAuth") })
     @ResponseStatus(HttpStatus.OK)
     @GetMapping("/session/{quizCode}")
     public List<ParticipantResponse> getSessionParticipants(@PathVariable String quizCode) {
@@ -56,6 +60,8 @@ public class ParticipantController {
      * Remove participant from session (mark as inactive)
      * @param participantId The participant ID to remove
      */
+    @Operation(summary = "Host Delete specify participants in a session",
+            security = { @SecurityRequirement(name = "bearerAuth") })
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping("/{participantId}")
     public void leaveSession(@PathVariable String participantId) {
