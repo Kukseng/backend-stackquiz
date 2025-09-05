@@ -73,6 +73,11 @@ public class QuizSessionServiceExtendedImpl implements QuizSessionServiceExtende
     }
 
     @Override
+    public List<QuizSession> getCurrentUserQuizSession(Jwt accessToken) {
+        return getSessions(accessToken.getSubject());
+    }
+
+    @Override
     public SessionResponse getSessionById(String sessionId) {
         QuizSession session = quizSessionRepository.findById(sessionId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Session not found"));

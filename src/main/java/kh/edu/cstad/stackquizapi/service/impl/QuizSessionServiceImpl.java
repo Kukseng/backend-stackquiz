@@ -196,6 +196,17 @@ public class QuizSessionServiceImpl implements QuizSessionService {
         return session;
     }
 
+    @Override
+    public List<QuizSession> getCurrentUserQuizSession(Jwt accessToken) {
+
+        String hostId = accessToken.getSubject();
+
+        List<QuizSession> sessions = quizSessionRepository.findByHostIdOrderByCreatedAtDesc(hostId);
+        log.info("Retrieved {} sessions for host {}", sessions.size(), hostId);
+        return sessions;
+
+    }
+
 
     public SessionResponse joinSession(String sessionCode, String nickname, String userId) {
         QuizSession session = quizSessionRepository.findBySessionCode(sessionCode)

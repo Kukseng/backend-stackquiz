@@ -29,4 +29,6 @@ public interface QuizSessionService {
 
     Optional<QuizSession> getSessionByCode(String sessionCode);
 
+    List<QuizSession> getCurrentUserQuizSession(Jwt accessToken);
+
 }
