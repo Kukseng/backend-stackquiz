@@ -89,11 +89,11 @@ public class KeycloakSecurityConfig {
                         .requestMatchers("/api/v1/auth/**").permitAll()
 
 //                        // Allow participant public endpoints (joining sessions, submitting answers)
-//                        .requestMatchers(HttpMethod.GET, "/api/v1/participants/session/*/can-join").permitAll()
-//                        .requestMatchers(HttpMethod.GET, "/api/v1/participants/session/*/nickname-available").permitAll()
-//                       .requestMatchers(HttpMethod.POST, "/api/v1/participants/join").permitAll()
-//                        .requestMatchers(HttpMethod.POST, "/api/v1/participants/submit-answer").permitAll()
-//
+                      .requestMatchers(HttpMethod.GET, "/api/v1/participants/session/*/can-join").permitAll()
+                      .requestMatchers(HttpMethod.GET, "/api/v1/participants/session/*/nickname-available").permitAll()
+                       .requestMatchers(HttpMethod.POST, "/api/v1/participants/join").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/v1/participants/submit-answer").permitAll()
+
 //                        // Allow session join checking (public)
 //                        .requestMatchers(HttpMethod.GET, "/api/v1/sessions/*/join").permitAll()
 //                        .requestMatchers(HttpMethod.GET, "/api/v1/sessions/*").permitAll()
@@ -103,7 +103,7 @@ public class KeycloakSecurityConfig {
                        .requestMatchers(HttpMethod.GET, "/api/v1/quizzes/*").permitAll()
 //
 //                        // Allow public category viewing
-//                        .requestMatchers(HttpMethod.GET, "/api/v1/categories").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/categories").permitAll()
 //
 //                        // Allow public leaderboard viewing
                         .requestMatchers(HttpMethod.GET, "/api/v1/leaderboard/session/**").permitAll()

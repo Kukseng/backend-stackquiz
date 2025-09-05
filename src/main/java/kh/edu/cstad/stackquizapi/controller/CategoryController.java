@@ -1,6 +1,8 @@
 package kh.edu.cstad.stackquizapi.controller;
 
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import kh.edu.cstad.stackquizapi.dto.request.CategoryRequest;
 import kh.edu.cstad.stackquizapi.dto.response.CategoryResponse;
 import kh.edu.cstad.stackquizapi.service.CategoryService;
@@ -16,13 +18,16 @@ import java.util.List;
 public class CategoryController {
     private final CategoryService categoryService;
 
-
+    @Operation(summary = "Create category quizzes",
+            security = { @SecurityRequirement(name = "bearerAuth") })
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping
     public CategoryResponse createCategory(@RequestBody  CategoryRequest categoryRequest) {
         return categoryService.createCategory(categoryRequest);
     }
 
+    @Operation(summary = "Create categories quizzes",
+            security = { @SecurityRequirement(name = "bearerAuth") })
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping("/batch")
     public List<CategoryResponse> createCategories(@RequestBody List<CategoryRequest> categoryRequests) {
