@@ -3,10 +3,6 @@ keycloak:
   server-url: https://keycloak-prod.rattanakmony.com
   client-id: admin-cli
   client-secret: i3DAFVHsFMXrM1S1rg7VgX55ue3kZnUo
-  tokenUri: https://keycloak-prod.rattanakmony.com/realms/stackquiz/protocol/openid-connect/token
-  client-id-2: nextjs
-  client-secret-2: azpLBVVq454Vzz22h004FbTqeMGFS8k7
-
 
 app:
   default-role: ORGANIZER
@@ -14,7 +10,6 @@ app:
 spring:
   application:
     name: stackquiz-api
-
   threads:
     virtual:
       enabled: true
@@ -41,8 +36,8 @@ spring:
 
   data:
     redis:
-      host: https://stackquiz-api.stackquiz.me
-      port: 6379
+      host: ${REDIS_HOST:redis}
+      port: ${REDIS_PORT:6379}
       database: 0
       timeout: 60000ms
       lettuce:
