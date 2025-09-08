@@ -122,6 +122,7 @@ public class KeycloakSecurityConfig {
 //
 //                        // Secure session management - ORGANIZER or ADMIN
                         .requestMatchers(HttpMethod.POST, "/api/v1/sessions").hasAnyRole("ORGANIZER", "ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/v1/sessions/me").hasAnyRole("ORGANIZER", "ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/v1/sessions/**").hasAnyRole("ORGANIZER", "ADMIN")
 //
 //                        // Secure user management - ADMIN only

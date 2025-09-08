@@ -126,7 +126,7 @@ public class QuizServiceImpl implements QuizService {
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found")
         );
 
-        return quizRepository.findByUserId(user.getId()).stream()
+        return quizRepository.findById(user.getId()).stream()
                 .map(quizMapper::toQuizResponse).toList();
     }
 }

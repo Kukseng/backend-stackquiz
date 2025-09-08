@@ -1,6 +1,10 @@
 package kh.edu.cstad.stackquizapi.service;
 
+import kh.edu.cstad.stackquizapi.domain.QuizSession;
 import kh.edu.cstad.stackquizapi.dto.response.SessionResponse;
+import org.springframework.security.oauth2.jwt.Jwt;
+
+import java.util.List;
 
 /**
  * Extended quiz session service providing additional functionality
@@ -58,6 +62,7 @@ public interface QuizSessionServiceExtended extends QuizSessionService {
      */
     boolean isSessionActive(String sessionId);
 
+    List<QuizSession> getCurrentUserQuizSession(Jwt accessToken);
     /**
      * Retrieves the total number of questions associated with the session.
      *

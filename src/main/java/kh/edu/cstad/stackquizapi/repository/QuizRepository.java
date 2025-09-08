@@ -12,7 +12,7 @@ public interface QuizRepository extends JpaRepository<Quiz, String> {
     Optional<Quiz> findByTitle(String title);
 
     Optional<Quiz> findByIsActive(Boolean isActive);
-    Optional<Quiz> findByUserId(String userId);
+    Optional<Quiz> findById(String Id);
 //    Optional<Quiz>   findUserById(String userId);
 }
 
