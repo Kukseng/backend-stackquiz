@@ -87,6 +87,7 @@ public class KeycloakSecurityConfig {
 
                         // Allow auth endpoints (public registration, login, etc.)
                         .requestMatchers("/api/v1/auth/**").permitAll()
+                            .requestMatchers("/ws/**").permitAll()
 
 //                        // Allow participant public endpoints (joining sessions, submitting answers)
                       .requestMatchers(HttpMethod.GET, "/api/v1/participants/session/*/can-join").permitAll()
