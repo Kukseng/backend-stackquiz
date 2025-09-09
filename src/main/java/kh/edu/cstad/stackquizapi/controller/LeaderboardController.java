@@ -32,9 +32,9 @@ public class LeaderboardController {
     }
 
     @ResponseStatus(HttpStatus.OK)
-    @GetMapping("/session/{sessionId}")
-    public LeaderboardResponse getLeaderboard(@PathVariable String sessionId) {
-        LeaderboardRequest request = new LeaderboardRequest(sessionId, 20, 0, false, null);
+    @GetMapping("/session/{sessionCode}")
+    public LeaderboardResponse getLeaderboard(@PathVariable String sessionCode) {
+        LeaderboardRequest request = new LeaderboardRequest(sessionCode, 20, 0, false, null);
         return leaderboardService.getRealTimeLeaderboard(request);
     }
 
@@ -49,17 +49,17 @@ public class LeaderboardController {
     }
 
     @ResponseStatus(HttpStatus.OK)
-    @GetMapping("/session/{sessionId}/podium")
-    public LeaderboardResponse getPodium(@PathVariable String sessionId) {
-        return leaderboardService.getPodium(sessionId);
+    @GetMapping("/session/{sessionCode}/podium")
+    public LeaderboardResponse getPodium(@PathVariable String sessionCode) {
+        return leaderboardService.getPodium(sessionCode);
     }
 
     @ResponseStatus(HttpStatus.OK)
-    @GetMapping("/session/{sessionId}/participant/{participantId}/rank")
+    @GetMapping("/session/{sessionCode}/participant/{participantId}/rank")
     public ParticipantRankResponse getParticipantRank(
-            @PathVariable String sessionId,
+            @PathVariable String sessionCode,
             @PathVariable String participantId) {
-        return leaderboardService.getParticipantRank(sessionId, participantId);
+        return leaderboardService.getParticipantRank(sessionCode, participantId);
     }
 
     @ResponseStatus(HttpStatus.OK)
@@ -87,9 +87,9 @@ public class LeaderboardController {
 
     @Operation(summary = "Initialize leaderboard for a session", security = { @SecurityRequirement(name = "bearerAuth") })
     @ResponseStatus(HttpStatus.CREATED)
-    @PostMapping("/session/{sessionId}/initialize")
-    public void initializeLeaderboard(@PathVariable String sessionId) {
-        leaderboardService.initializeSessionLeaderboard(sessionId);
+    @PostMapping("/session/{sessionCode}/initialize")
+    public void initializeLeaderboard(@PathVariable String sessionCode) {
+        leaderboardService.initializeSessionLeaderboard(sessionCode);
     }
 
     @Operation(summary = "Finalize leaderboard when session ends", security = { @SecurityRequirement(name = "bearerAuth") })
