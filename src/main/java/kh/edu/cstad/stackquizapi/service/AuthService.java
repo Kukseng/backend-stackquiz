@@ -46,4 +46,7 @@ public interface AuthService {
      * @param request the reset request containing token and new password
      */
     void resetPassword(ResetPasswordRequest request);
+
+//    
+    RegisterResponse oauthRegister(String email, String firstName, String lastName, String username);
 }
