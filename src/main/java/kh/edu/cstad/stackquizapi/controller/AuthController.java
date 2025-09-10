@@ -3,6 +3,7 @@ package kh.edu.cstad.stackquizapi.controller;
 import jakarta.validation.Valid;
 import kh.edu.cstad.stackquizapi.dto.request.LoginRequest;
 
+import kh.edu.cstad.stackquizapi.dto.request.OAuthRegisterRequest;
 import kh.edu.cstad.stackquizapi.dto.request.RegisterRequest;
 import kh.edu.cstad.stackquizapi.dto.request.ResetPasswordRequest;
 import kh.edu.cstad.stackquizapi.dto.response.LoginResponse;
@@ -90,10 +91,22 @@ public class AuthController {
         }
     }
 
+    @PostMapping("/oauth-register")
+    public RegisterResponse oauthRegister(@RequestBody OAuthRegisterRequest request) {
+        return authService.oauthRegister(
+                request.email(),
+                request.firstName(),
+                request.lastName(),
+                request.username()
+        );
+    }
+
+
 //    @PostMapping("/reset-password")
 //    public ResponseEntity<String> resetPassword(@RequestBody ResetPasswordRequest request) {
 //        authService.resetPassword(request);
 //        return ResponseEntity.ok("Password reset successfully");
 //    }
+
 
 }
