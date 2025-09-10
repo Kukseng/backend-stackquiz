@@ -241,4 +241,84 @@ public class AuthServiceImpl implements AuthService {
                     "Password reset failed");
         }
     }
+
+
+//
+@Override
+public RegisterResponse oauthRegister(String email, String firstName, String lastName, String username) {
+    log.info("Starting OAuth registration for user: {}", email);
+
+    // Check if user already exists in Keycloak
+    List<UserRepresentation> existingEmails = adminKeycloak.realm(realm)
+            .users()
+            .searchByEmail(email, true);
+
+    if (!existingEmails.isEmpty()) {
+        UserRepresentation existingUser = existingEmails.get(0);
+        log.info("User already exists in Keycloak: {}", existingUser.getId());
+        return RegisterResponse.builder()
+                .userId(existingUser.getId())
+                .username(existingUser.getUsername())
+                .email(existingUser.getEmail())
+                .firstName(existingUser.getFirstName())
+                .lastName(existingUser.getLastName())
+                .emailVerified(existingUser.isEmailVerified())
+                .build();
+    }
+
+    // Create user in Keycloak
+    UserRepresentation user = new UserRepresentation();
+    user.setUsername(username != null ? username : email);
+    user.setEmail(email);
+    user.setFirstName(firstName);
+    user.setLastName(lastName);
+    user.setEnabled(true);
+    user.setEmailVerified(true); // OAuth verified email
+
+    try (Response response = adminKeycloak.realm(realm).users().create(user)) {
+        if (response.getStatus() != HttpStatus.CREATED.value()) {
+            log.error("Keycloak user creation failed with status: {}", response.getStatus());
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Failed to create user in Keycloak. Status: " + response.getStatus());
+        }
+
+        String locationHeader = response.getHeaderString("Location");
+        String userId = locationHeader.substring(locationHeader.lastIndexOf('/') + 1);
+        log.info("Keycloak user created with ID: {}", userId);
+
+        // Save user to your database
+        CreateUserRequest createUserRequest = CreateUserRequest.builder()
+                .id(userId)
+                .username(username != null ? username : email)
+                .firstName(firstName)
+                .lastName(lastName)
+                .email(email)
+                .build();
+        UserResponse dbUser = userService.createUser(createUserRequest);
+        log.info("User saved to database with ID: {}", dbUser.id());
+
+        // Assign default role
+        try {
+            roleService.assignRole(userId, defaultRole);
+            log.info("Role {} assigned to user {}", defaultRole, userId);
+        } catch (Exception e) {
+            log.warn("Failed to assign role to user {}: {}", userId, e.getMessage());
+        }
+
+        return RegisterResponse.builder()
+                .userId(userId)
+                .username(username != null ? username : email)
+                .email(email)
+                .firstName(firstName)
+                .lastName(lastName)
+                .emailVerified(true)
+                .build();
+
+    } catch (Exception e) {
+        log.error("OAuth registration failed: {}", e.getMessage(), e);
+        throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                "OAuth registration failed: " + e.getMessage());
+    }
+}
+
 }
