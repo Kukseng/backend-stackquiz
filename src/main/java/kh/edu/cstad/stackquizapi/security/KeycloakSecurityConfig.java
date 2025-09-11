@@ -147,7 +147,13 @@ public class KeycloakSecurityConfig {
                        .requestMatchers(HttpMethod.POST, "/api/v1/leaderboard/session/*/initialize").hasAnyRole("ORGANIZER", "ADMIN")
                         .requestMatchers(HttpMethod.POST, "/api/v1/leaderboard/session/*/finalize").hasAnyRole("ORGANIZER", "ADMIN")
                        .requestMatchers(HttpMethod.POST, "/api/v1/leaderboard/history").hasAnyRole("ORGANIZER", "ADMIN")
-//
+
+                                // Feedback Summary management - ORGANIZER or ADMIN
+                                .requestMatchers(HttpMethod.POST, "/api/v1/feedback-summary")
+                                .hasAnyRole("ADMIN", "ORGANIZER")
+                                .requestMatchers(HttpMethod.GET, "/api/v1/feedback-summary/sessionId/**")
+                                .hasAnyRole("ADMIN", "ORGANIZER")
+
 //                        // Require authentication for all other requests
                         .anyRequest().authenticated()
 //                                .anyRequest().permitAll()

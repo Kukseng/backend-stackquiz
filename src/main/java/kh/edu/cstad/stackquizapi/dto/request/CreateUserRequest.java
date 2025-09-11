@@ -8,6 +8,9 @@ import lombok.Builder;
 @Builder
 public record CreateUserRequest(
 
+        @NotBlank(message = "User ID is required")
+        String id,
+
         @NotBlank(message = "Full name is required")
         @Size(min = 3, max = 50, message = "Full name must be between 3 and 50 characters")
         String username,
@@ -24,7 +27,6 @@ public record CreateUserRequest(
         @Email(message = "Invalid email format")
         String email,
 
-        @NotBlank(message = "Password is required")
         @Size(min = 6, message = "Password must be at least 6 characters long")
         String password,
 

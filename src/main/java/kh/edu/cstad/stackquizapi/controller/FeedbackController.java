@@ -18,6 +18,7 @@ public class FeedbackController {
 
     private final FeedbackService feedbackService;
 
+    // CREATE FEEDBACK FOR A SINGLE FEEDBACK
     @PostMapping("/quizId/{quizId}/sessionId/{sessionId}")
     @ResponseStatus(HttpStatus.CREATED)
     public FeedbackResponse submitFeedback(

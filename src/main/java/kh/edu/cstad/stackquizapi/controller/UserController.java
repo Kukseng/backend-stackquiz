@@ -29,12 +29,12 @@ public class UserController {
         return userService.createUser(createUserRequest);
     }
 
-//    @SecurityRequirement(name = "bearerAuth")
+    //    @SecurityRequirement(name = "bearerAuth")
 //    @Tag(name = "User", description = "The User API. Contains all the operations that can be performed on a user.")
 // get current user for profile
-@Operation(summary = "Get all users (secured)",
-        security = { @SecurityRequirement(name = "bearerAuth") })
-@ResponseStatus(HttpStatus.OK)
+    @Operation(summary = "Get all users (secured)",
+            security = { @SecurityRequirement(name = "bearerAuth") })
+    @ResponseStatus(HttpStatus.OK)
     @GetMapping
     public List<UserResponse> findAll() {
         return userService.findAll();

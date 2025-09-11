@@ -23,8 +23,7 @@ import java.util.List;
 public class User {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(name = "user_id")
+    @Column(name = "user_id", unique = true, nullable = false)
     private String id;
 
     @Column(nullable = false, unique = true, length = 255)
@@ -32,9 +31,6 @@ public class User {
 
     @Column(nullable = false, unique = true, length = 255)
     private String email;
-
-    @Column(nullable = false, length = 255, unique = true)
-    private String password;
 
     @Column(length = 250)
     private String avatarUrl;
@@ -69,4 +65,3 @@ public class User {
     private List<QuizSession> quizSessions;
 
 }
-
