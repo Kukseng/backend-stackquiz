@@ -29,6 +29,9 @@ public class KeycloakAdminConfig {
     @Value("${keycloak.client-secret:}")
     private String clientSecret;
 
+    @Value("${keycloak.client-id}")
+    private String clientId;
+
     @Bean
     public Keycloak keycloak() {
 
@@ -37,7 +40,7 @@ public class KeycloakAdminConfig {
                 .realm("stackquiz")
                 .serverUrl(serverUrl)
                 .grantType(OAuth2Constants.CLIENT_CREDENTIALS)
-                .clientId("admin-cli")
+                .clientId(clientId)
                 .clientSecret(clientSecret)
                 .build();
 

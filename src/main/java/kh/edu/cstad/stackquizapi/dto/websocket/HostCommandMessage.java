@@ -8,8 +8,11 @@ import lombok.NoArgsConstructor;
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 public class HostCommandMessage extends WebSocketMessage {
+
     private String command;
+
     private String hostId;
+
     private Object commandData;
 
     public HostCommandMessage(String sessionId, String senderId, String command, String hostId, Object commandData) {

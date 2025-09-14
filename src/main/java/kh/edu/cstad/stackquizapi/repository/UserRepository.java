@@ -8,23 +8,16 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface UserRepository
-        extends JpaRepository<User, String> {
+public interface UserRepository extends JpaRepository<User, String> {
 
     boolean existsByEmail(String email);
 
-
-
     Optional<User> findByIdAndIsActiveFalse(String  userId);
-
-//    Optional<User> findByIdAndIsActiveTrue(String userId);
 
     List<User> findAllByIsActiveFalse();
 
-//    List<User> findUserByUserId(Integer userId);
-
     Optional<User> findByIdAndIsActiveTrue (String userId);
-    List<User> findAllByIsActiveTrue ();
 
+    List<User> findAllByIsActiveTrue ();
 
 }

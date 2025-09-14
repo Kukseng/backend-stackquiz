@@ -12,5 +12,4 @@ public interface CategoryMapper {
 
     Category mapCategoryRequest(CategoryRequest categoryRequest);
 
-
 }

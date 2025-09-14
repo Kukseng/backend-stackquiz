@@ -1,7 +1,6 @@
 package kh.edu.cstad.stackquizapi.domain;
 
 import jakarta.persistence.*;
-import kh.edu.cstad.stackquizapi.util.CategoryUtil;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;

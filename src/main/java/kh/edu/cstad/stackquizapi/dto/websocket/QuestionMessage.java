@@ -9,10 +9,15 @@ import lombok.NoArgsConstructor;
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 public class QuestionMessage extends WebSocketMessage {
+
     private QuestionResponse question;
+
     private Integer questionNumber;
+
     private Integer totalQuestions;
+
     private Integer timeLimit;
+
     private String action;
 
     public QuestionMessage(String sessionId, String senderId, QuestionResponse question,

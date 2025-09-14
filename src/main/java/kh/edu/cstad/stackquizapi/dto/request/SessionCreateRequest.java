@@ -4,8 +4,6 @@ public record SessionCreateRequest(
 
         String quizId,
 
-        String accessToken, // -> hostID
-
         String sessionName
 
 ) {

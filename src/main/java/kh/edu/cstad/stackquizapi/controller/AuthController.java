@@ -3,6 +3,7 @@ package kh.edu.cstad.stackquizapi.controller;
 import jakarta.validation.Valid;
 import kh.edu.cstad.stackquizapi.dto.request.LoginRequest;
 
+import kh.edu.cstad.stackquizapi.dto.request.OAuthRegisterRequest;
 import kh.edu.cstad.stackquizapi.dto.request.RegisterRequest;
 import kh.edu.cstad.stackquizapi.dto.request.ResetPasswordRequest;
 import kh.edu.cstad.stackquizapi.dto.response.LoginResponse;
@@ -33,9 +34,9 @@ public class AuthController {
 
     private final AuthService authService;
     private final WebClient webClient;
+
     private final String keycloakTokenUrl =
             "https://keycloak-prod.rattanakmony.com/realms/stackquiz/protocol/openid-connect/token";
-
     private final String clientId = "nextjs";
     private final String clientSecret = "azpLBVVq454Vzz22h004FbTqeMGFS8k7";
 
@@ -82,7 +83,7 @@ public class AuthController {
 
         } catch (WebClientResponseException ex) {
             log.error("Keycloak login failed: {}", ex.getResponseBodyAsString());
-            return ResponseEntity.status(ex.getRawStatusCode())
+            return ResponseEntity.status(ex.getStatusCode())
                     .body(ApiResponse.<LoginResponse>builder()
                             .success(false)
                             .message("Login failed: " + ex.getResponseBodyAsString())
@@ -90,10 +91,11 @@ public class AuthController {
         }
     }
 
-//    @PostMapping("/reset-password")
-//    public ResponseEntity<String> resetPassword(@RequestBody ResetPasswordRequest request) {
-//        authService.resetPassword(request);
-//        return ResponseEntity.ok("Password reset successfully");
-//    }
+    @PostMapping("/oauth/register")
+    public ResponseEntity<RegisterResponse> oauthRegister(@Valid @RequestBody OAuthRegisterRequest request) {
+        log.info("OAuth registration request received for email: {}", request.email());
+        return authService.oauthRegister(request);
+    }
+
 
 }

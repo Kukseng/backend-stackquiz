@@ -30,7 +30,6 @@ public class Participant {
     @Column(name = "is_active", nullable = false)
     private Boolean isActive = true;
 
-
     @Column(nullable = false)
     private Boolean isConnected = true;
 
@@ -47,6 +46,10 @@ public class Participant {
     @ManyToOne
     @JoinColumn(name = "session_id", nullable = false)
     private QuizSession session;
+
+    @OneToOne
+    @JoinColumn(name = "avatar_id", nullable = false)
+    private Avatar avatar;
 
     @PrePersist
     public void prePersist() {

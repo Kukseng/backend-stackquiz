@@ -4,6 +4,7 @@ package kh.edu.cstad.stackquizapi.dto.response;
 public record ParticipantRankResponse(
 
         String participantId,
+
         String nickname,
 
         int currentScore,

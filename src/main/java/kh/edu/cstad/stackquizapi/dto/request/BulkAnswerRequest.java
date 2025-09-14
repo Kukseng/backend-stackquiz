@@ -1,6 +1,5 @@
 package kh.edu.cstad.stackquizapi.dto.request;
 
-import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 
@@ -15,6 +14,5 @@ public record BulkAnswerRequest(
         String sessionId,
 
         @NotEmpty(message = "Answers list cannot be empty")
-        @Valid
         List<SingleAnswerRequest> answers
 ) {}

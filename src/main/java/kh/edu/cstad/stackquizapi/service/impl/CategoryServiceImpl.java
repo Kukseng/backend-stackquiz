@@ -26,7 +26,6 @@ public class CategoryServiceImpl implements CategoryService {
     private final CategoryMapper categoryMapper;
 
 
-
     @Override
     public CategoryResponse createCategory(CategoryRequest categoryRequest) {
         if (categoryRequest.name() == null || categoryRequest.name().isBlank()) {

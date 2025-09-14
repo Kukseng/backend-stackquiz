@@ -15,6 +15,10 @@ public record RegisterResponse(
 
         String lastName,
 
+        String refreshToken,
+
+        String accessToken,
+
         boolean emailVerified
 
 ) {

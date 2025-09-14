@@ -3,6 +3,7 @@ package kh.edu.cstad.stackquizapi.service;
 import kh.edu.cstad.stackquizapi.dto.request.CreateUserRequest;
 import kh.edu.cstad.stackquizapi.dto.request.UpdateUserRequest;
 import kh.edu.cstad.stackquizapi.dto.response.UserResponse;
+import org.springframework.security.oauth2.jwt.Jwt;
 
 import java.util.List;
 
@@ -24,10 +25,9 @@ public interface UserService{
     /**
      * Retrieves a user by their unique ID.
      *
-     * @param userId the unique identifier of the user
      * @return the user response DTO if found
      */
-    UserResponse getUserById(String userId);
+    UserResponse getCurrentUser(Jwt accessToken);
 
     /**
      * Updates the details of a user by their ID.
@@ -36,7 +36,7 @@ public interface UserService{
      * @param updateUserRequest the request object containing updated user details
      * @return the updated user response DTO
      */
-    UserResponse updateUserByUserId(String userId, UpdateUserRequest updateUserRequest);
+    UserResponse updateUser(Jwt accessToken, UpdateUserRequest updateUserRequest);
 
     /**
      * Deletes a user by their ID.

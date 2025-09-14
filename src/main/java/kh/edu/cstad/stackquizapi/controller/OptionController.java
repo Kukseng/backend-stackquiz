@@ -21,7 +21,6 @@ public class OptionController {
 
     private final OptionService optionService;
 
-    // Host: Add new options to a question
     @Operation(summary = "Add options to a question (secured)",
             security = { @SecurityRequirement(name = "bearerAuth") })
     @PostMapping("/questions/{questionId}")
@@ -33,7 +32,6 @@ public class OptionController {
         return ResponseEntity.status(HttpStatus.CREATED).body(responses);
     }
 
-    // Host: Get all options (secured, admin use only)
     @Operation(summary = "Get all options (secured)",
             security = { @SecurityRequirement(name = "bearerAuth") })
     @GetMapping
@@ -41,14 +39,12 @@ public class OptionController {
         return ResponseEntity.ok(optionService.gelAllOptions());
     }
 
-    //  Public: Players fetch options for a question
     @Operation(summary = "Get options by questionId (public)")
     @GetMapping("/questions/{questionId}/public")
     public ResponseEntity<List<OptionResponse>> getOptionsByQuestionId(@PathVariable String questionId) {
         return ResponseEntity.ok(optionService.getOptionsByQuestionId(questionId));
     }
 
-    // Host: Update option
     @Operation(summary = "Update an option (secured)",
             security = { @SecurityRequirement(name = "bearerAuth") })
     @PutMapping("/{optionId}")
@@ -60,7 +56,6 @@ public class OptionController {
         return ResponseEntity.ok(response);
     }
 
-    // Host: Delete option
     @Operation(summary = "Delete an option (secured)",
             security = { @SecurityRequirement(name = "bearerAuth") })
     @DeleteMapping("/{optionId}")

@@ -13,6 +13,8 @@ public interface QuestionRepository extends JpaRepository<Question, String> {
 
     List<Question> findByQuizId(String s);
 
+    List<Question> findByQuizUserId(String userId);
+
     @Query("SELECT MAX(q.questionOrder) FROM Question q WHERE q.quiz.id = :quizId")
     Integer findMaxQuestionOrderByQuizId(@Param("quizId") String quizId);
 

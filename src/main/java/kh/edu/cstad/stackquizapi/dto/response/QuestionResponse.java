@@ -1,7 +1,10 @@
 
 package kh.edu.cstad.stackquizapi.dto.response;
 
+import kh.edu.cstad.stackquizapi.domain.Option;
 import kh.edu.cstad.stackquizapi.util.QuestionType;
+
+import java.util.List;
 
 public record QuestionResponse(
 
@@ -17,6 +20,8 @@ public record QuestionResponse(
 
         Integer points,
 
-        String imageUrl
+        String imageUrl,
+
+        List<Option> options
 ) {
 }

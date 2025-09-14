@@ -10,6 +10,8 @@ import kh.edu.cstad.stackquizapi.service.ParticipantService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -31,6 +33,14 @@ public class ParticipantController {
     @PostMapping("/join")
     public ParticipantResponse joinSession(@Valid @RequestBody JoinSessionRequest request) {
         return participantService.joinSession(request);
+    }
+
+    @Operation(summary = "Join quiz session as authenticated user",
+            security = { @SecurityRequirement(name = "bearerAuth") })
+    @ResponseStatus(HttpStatus.CREATED)
+    @PostMapping("/join/auth-user")
+    public ParticipantResponse joinSessionAsAuthenticatedUser(@Valid @AuthenticationPrincipal Jwt accessToken, JoinSessionRequest request) {
+        return participantService.joinSessionAsAuthenticatedUser(accessToken, request);
     }
 
     /**

@@ -74,6 +74,8 @@ public class QuizSessionController {
         return quizSessionService.getSessionByCode(quizCode);
     }
 
+    @Operation(summary = "Get all users (secured)",
+            security = { @SecurityRequirement(name = "bearerAuth") })
     @GetMapping("/me")
     public List<QuizSession> getCurrentUserQuizSessions(@AuthenticationPrincipal Jwt accessToken) {
         return quizSessionService.getCurrentUserQuizSession(accessToken);

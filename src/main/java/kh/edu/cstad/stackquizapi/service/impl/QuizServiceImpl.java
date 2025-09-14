@@ -6,6 +6,8 @@ import kh.edu.cstad.stackquizapi.domain.QuizCategory;
 import kh.edu.cstad.stackquizapi.domain.User;
 import kh.edu.cstad.stackquizapi.dto.request.CreateQuizRequest;
 import kh.edu.cstad.stackquizapi.dto.request.QuizUpdate;
+import kh.edu.cstad.stackquizapi.dto.response.OptionResponse;
+import kh.edu.cstad.stackquizapi.dto.response.QuestionResponse;
 import kh.edu.cstad.stackquizapi.dto.response.QuizResponse;
 import kh.edu.cstad.stackquizapi.mapper.QuizMapper;
 import kh.edu.cstad.stackquizapi.repository.CategoryRepository;
@@ -81,9 +83,11 @@ public class QuizServiceImpl implements QuizService {
     @Override
     public List<QuizResponse> getAllQuiz(Boolean active) {
         return quizRepository.findAll().stream()
-                .filter(quiz -> quiz.getIsActive() == active)
-                .map(quizMapper::toQuizResponse).toList();
+                .filter(quiz -> quiz.getIsActive().equals(active))
+                .map(quizMapper::toQuizResponse)
+                .toList();
     }
+
 
     @Override
     public QuizResponse updateQuiz(String QuizId, QuizUpdate quizUpdate, Jwt accessToken) {

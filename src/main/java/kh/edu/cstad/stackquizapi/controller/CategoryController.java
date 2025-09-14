@@ -36,6 +36,8 @@ public class CategoryController {
                 .toList();
     }
 
+    @Operation(summary = "Get all categories",
+            security = { @SecurityRequirement(name = "bearerAuth") })
     @ResponseStatus(HttpStatus.OK)
     @GetMapping
     public List<CategoryResponse> getAllCategories() {

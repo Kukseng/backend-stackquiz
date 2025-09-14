@@ -3,6 +3,9 @@ keycloak:
   server-url: https://keycloak-prod.rattanakmony.com
   client-id: admin-cli
   client-secret: i3DAFVHsFMXrM1S1rg7VgX55ue3kZnUo
+  #: client used for password grant when you really need it
+  token-client-id: nextjs
+  token-client-secret: azpLBVVq454Vzz22h004FbTqeMGFS8k7
 
 app:
   default-role: ORGANIZER
@@ -20,8 +23,6 @@ spring:
       max-file-size: 10MB
 
   datasource:
-    #    url: jdbc:postgresql://dpg-d2inormr433s73e0p820-a.oregon-postgres.render.com:5432/stack_quiz_db
-    #    username: stack_quiz_db_user    #    password: B30kvFA40SWgA3YQd2HkjPjDTkiU1srO    #    driver-class-name: org.postgresql.Driver    url: jdbc:postgresql://localhost:5432/stack_quiz_db
     url: jdbc:postgresql://35.247.128.230:5432/stackquiz-db
     username: stackquiz-user
     password: stackquiz@123

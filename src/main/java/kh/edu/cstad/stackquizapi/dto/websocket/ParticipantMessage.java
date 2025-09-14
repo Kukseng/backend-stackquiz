@@ -11,8 +11,11 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 public class ParticipantMessage extends WebSocketMessage {
+
     private List<ParticipantResponse> participants;
+
     private Integer totalParticipants;
+
     private String action;
 
     public ParticipantMessage(String sessionId, String senderId, List<ParticipantResponse> participants,

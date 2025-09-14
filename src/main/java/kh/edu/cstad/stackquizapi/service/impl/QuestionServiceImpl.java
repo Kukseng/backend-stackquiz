@@ -13,9 +13,8 @@ import kh.edu.cstad.stackquizapi.service.QuestionService;
 import kh.edu.cstad.stackquizapi.util.QuestionType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.DataAccessException;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -98,6 +97,34 @@ public class QuestionServiceImpl implements QuestionService {
 
         } catch (Exception exception) {
             log.error("Unexpected error while fetching all questions", exception);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                    "An unexpected error occurred while fetching questions");
+        }
+    }
+
+    @Override
+    public List<QuestionResponse> getCurrentUserQuestions(Jwt accessToken) {
+
+        String userId = accessToken.getSubject();
+        log.info("User ID from jwt access token: {}", userId);
+
+        try {
+
+            List<Question> questions = questionRepository.findByQuizUserId(userId);
+
+            if (questions.isEmpty()) {
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        "Question with this user ID not found");
+            }
+
+            log.info("Questions found {} questions", questions.size());
+
+            return questions
+                    .stream()
+                    .map(questionMapper::toQuestionResponse)
+                    .collect(Collectors.toList());
+
+        } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
                     "An unexpected error occurred while fetching questions");
         }

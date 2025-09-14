@@ -24,7 +24,8 @@ import java.util.List;
 @Configuration
 public class SwaggerConfig {
 
-    @Value("${spring.app.api-url:http://localhost:9999}")
+    @Value("${spring.app.api-url}")
+//@Value("http://localhost:9999")
     private String apiUrl;
 
     @Bean
@@ -42,7 +43,7 @@ public class SwaggerConfig {
                                 .url("https://stackquiz.me"))
                         .license(new License()
 
-                               ))
+                        ))
                 .servers(List.of(
                         new Server().url(apiUrl).description("Development server"),
                         new Server().url("https://stackquiz-api.stackquiz.me").description("Production server")))
@@ -56,6 +57,6 @@ public class SwaggerConfig {
                                         .scheme("bearer")
                                         .bearerFormat("JWT")
                                         .description("JWT Bearer token authentication. " +
-                                                "Get your token from the /api/v1/auth/login endpoint.")));
+                                                     "Get your token from the /api/v1/auth/login endpoint.")));
     }
 }

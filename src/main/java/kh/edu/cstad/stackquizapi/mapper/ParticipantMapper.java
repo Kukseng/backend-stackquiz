@@ -12,7 +12,6 @@ public interface ParticipantMapper {
 
     @Mapping(target = "sessionCode", source = "session.sessionCode")
     @Mapping(target = "sessionName", source = "session.sessionName")
-
     ParticipantResponse toParticipantResponse(Participant participant);
 
     Participant toParticipant(JoinSessionRequest joinSessionRequest);

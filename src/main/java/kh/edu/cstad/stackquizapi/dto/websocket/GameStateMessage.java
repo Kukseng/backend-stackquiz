@@ -9,15 +9,22 @@ import lombok.NoArgsConstructor;
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 public class GameStateMessage extends WebSocketMessage {
+
     private Status sessionStatus;
+
     private String action;
+
     private Integer currentQuestionIndex;
+
     private Integer totalQuestions;
+
     private Long remainingTime;
+
     private String hostMessage;
 
     public GameStateMessage(String sessionId, String senderId, Status sessionStatus, String action,
                             Integer currentQuestionIndex, Integer totalQuestions, Long remainingTime, String hostMessage) {
+
         super("GAME_STATE", sessionId, senderId);
         this.sessionStatus = sessionStatus;
         this.action = action;

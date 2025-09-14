@@ -8,11 +8,17 @@ import lombok.NoArgsConstructor;
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 public class AnswerSubmissionMessage extends WebSocketMessage {
+
     private String participantId;
+
     private String questionId;
+
     private String selectedOptionId;
+
     private Long responseTime;
+
     private Boolean isCorrect;
+
     private Integer pointsEarned;
 
     public AnswerSubmissionMessage(String sessionId, String senderId, String participantId,

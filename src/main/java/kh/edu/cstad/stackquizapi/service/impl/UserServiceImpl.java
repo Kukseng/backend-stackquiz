@@ -10,6 +10,7 @@ import kh.edu.cstad.stackquizapi.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -40,11 +41,6 @@ public class UserServiceImpl implements UserService {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email cannot be empty");
             }
 
-//            if (createUserRequest.password().length() < 8) {
-//                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-//                        "Password must be at least 8 characters");
-//            }
-
             User user = userMapper.fromCreateUserRequest(createUserRequest);
             user.setIsActive(true);
             user.setCreatedAt(LocalDateTime.now());
@@ -60,7 +56,11 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserResponse getUserById(String userId) {
+    public UserResponse getCurrentUser(Jwt accessToken) {
+
+        String userId = accessToken.getSubject();
+        log.info("User ID from access token: {}", userId);
+
         try {
             if (userId == null || userId.isEmpty()) {
                 throw new ResponseStatusException(
@@ -82,7 +82,11 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserResponse updateUserByUserId(String userId, UpdateUserRequest updateUserRequest) {
+    public UserResponse updateUser(Jwt accessToken, UpdateUserRequest updateUserRequest) {
+
+        String userId = accessToken.getSubject();
+        log.info("User ID form jwt access token: {}", userId);
+
         try {
             if (userId == null || userId.isEmpty()) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST,

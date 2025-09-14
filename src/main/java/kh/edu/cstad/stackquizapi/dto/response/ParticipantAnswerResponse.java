@@ -30,6 +30,7 @@ public record ParticipantAnswerResponse(
         Integer pointsEarned,
 
         LocalDateTime answeredAt,
+
         String sessionId
 
 ) {}

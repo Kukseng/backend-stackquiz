@@ -1,13 +1,10 @@
 package kh.edu.cstad.stackquizapi.service;
 
-import kh.edu.cstad.stackquizapi.dto.request.LoginRequest;
-import kh.edu.cstad.stackquizapi.dto.request.LogoutRequest;
-import kh.edu.cstad.stackquizapi.dto.request.RefreshTokenRequest;
-import kh.edu.cstad.stackquizapi.dto.request.RegisterRequest;
-import kh.edu.cstad.stackquizapi.dto.request.ResetPasswordRequest;
+import kh.edu.cstad.stackquizapi.dto.request.*;
 import kh.edu.cstad.stackquizapi.dto.response.LoginResponse;
 import kh.edu.cstad.stackquizapi.dto.response.RegisterResponse;
 import kh.edu.cstad.stackquizapi.dto.response.UserProfileResponse;
+import org.springframework.http.ResponseEntity;
 
 /**
  * Service interface for handling authentication-related operations.
@@ -46,4 +43,8 @@ public interface AuthService {
      * @param request the reset request containing token and new password
      */
     void resetPassword(ResetPasswordRequest request);
+
+    //
+    ResponseEntity<RegisterResponse> oauthRegister(OAuthRegisterRequest request);
+
 }

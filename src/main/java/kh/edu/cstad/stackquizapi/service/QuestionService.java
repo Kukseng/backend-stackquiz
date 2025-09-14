@@ -4,6 +4,7 @@ import kh.edu.cstad.stackquizapi.dto.request.CreateQuestionRequest;
 import kh.edu.cstad.stackquizapi.dto.request.UpdateQuestionRequest;
 import kh.edu.cstad.stackquizapi.dto.response.QuestionResponse;
 import kh.edu.cstad.stackquizapi.util.QuestionType;
+import org.springframework.security.oauth2.jwt.Jwt;
 
 import java.util.List;
 
@@ -28,6 +29,8 @@ public interface QuestionService {
      * @return a list of {@link QuestionResponse} objects representing all questions
      */
     List<QuestionResponse> getAllQuestions();
+
+    List<QuestionResponse> getCurrentUserQuestions(Jwt accessToken);
 
     /**
      * Retrieves questions filtered by its id.

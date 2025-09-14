@@ -1,6 +1,7 @@
 package kh.edu.cstad.stackquizapi.domain;
 
-import jakarta.persistence.CascadeType;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -11,7 +12,6 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
-import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import kh.edu.cstad.stackquizapi.util.QuestionType;
 import lombok.Getter;
@@ -19,9 +19,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.sql.Timestamp;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 @Entity
 @Table(name = "questions")
@@ -61,17 +59,16 @@ public class Question {
     private Timestamp updatedAt;
 
     @OneToMany(mappedBy = "question")
-    private List<Option> options = new ArrayList<>();
+    @JsonManagedReference
+    private List<Option> options;
 
     @OneToMany(mappedBy = "question")
+    @JsonIgnore // ignore in JSON output
     private List<ParticipantAnswer> participantAnswers;
 
     @ManyToOne
     @JoinColumn(name = "quiz_id")
+    @JsonIgnore
     private Quiz quiz;
-
-    @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "background_id", referencedColumnName = "template_id")
-    private BackgroundTemplate backgroundTemplate;
 
 }

@@ -1,11 +1,9 @@
 package kh.edu.cstad.stackquizapi.service.impl;
 
-import jakarta.mail.Session;
 import kh.edu.cstad.stackquizapi.domain.*;
 import kh.edu.cstad.stackquizapi.dto.request.JoinSessionRequest;
 import kh.edu.cstad.stackquizapi.dto.request.SubmitAnswerRequest;
 import kh.edu.cstad.stackquizapi.dto.response.ParticipantResponse;
-import kh.edu.cstad.stackquizapi.dto.response.LeaderboardResponse;
 import kh.edu.cstad.stackquizapi.dto.response.SubmitAnswerResponse;
 import kh.edu.cstad.stackquizapi.mapper.ParticipantMapper;
 import kh.edu.cstad.stackquizapi.repository.*;
@@ -14,6 +12,7 @@ import kh.edu.cstad.stackquizapi.service.ParticipantService;
 import kh.edu.cstad.stackquizapi.util.Status;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -32,6 +31,8 @@ public class ParticipantServiceImpl implements ParticipantService {
     private final OptionRepository optionRepository;
     private final ParticipantAnswerRepository participantAnswerRepository;
     private final ParticipantMapper participantMapper;
+    private final AvatarRepository avatarRepository;
+    private final UserRepository userRepository;
 
     private final LeaderboardService leaderboardService;
 
@@ -39,8 +40,10 @@ public class ParticipantServiceImpl implements ParticipantService {
     public ParticipantResponse joinSession(JoinSessionRequest request) {
 
         QuizSession getSessionByCode = quizSessionRepository.findBySessionCode(request.quizCode())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                        "Session not found with code: " + request.quizCode()));
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Session not found with code: " + request.quizCode()
+                ));
 
         if (getSessionByCode.getStatus() == Status.ENDED) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
@@ -52,33 +55,60 @@ public class ParticipantServiceImpl implements ParticipantService {
                     "Nickname '" + request.nickname() + "' is already taken in this session");
         }
 
+        Avatar avatar = avatarRepository.findById(request.avatarId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                        "Avatar with ID: " + request.avatarId() + " does not exist"));
 
-//         get session code
-//        Optional<QuizSession> sessionOpt = getSessionByCode(sessionCode);
-        // Join Quiz by SessionCode
         Participant participant = participantMapper.toParticipant(request);
-//        participant.setSession(request.quizCode());
-//        participant.getId();
-//        participant.setNickname(request.nickname());
-        participant.setSession(getSessionByCode);
 
+        return getParticipantResponse(getSessionByCode, avatar, participant);
+    }
+
+    @Override
+    public ParticipantResponse joinSessionAsAuthenticatedUser(Jwt accessToken, JoinSessionRequest request) {
+        String userId = accessToken.getSubject();
+
+        QuizSession getSessionByCode = quizSessionRepository.findBySessionCode(request.quizCode())
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Session not found with code: " + request.quizCode()
+                ));
+
+        if (getSessionByCode.getStatus() == Status.ENDED) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Cannot join session. Session has ended.");
+        }
+
+        if (participantRepository.existsBySessionIdAndNickname(getSessionByCode.getId(), request.nickname())) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "Nickname '" + request.nickname() + "' is already taken in this session");
+        }
+
+        Avatar avatar = avatarRepository.findById(request.avatarId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                        "Avatar with ID: " + request.avatarId() + " does not exist"));
+
+        Participant participant = participantMapper.toParticipant(request);
+
+        userRepository.findById(userId).ifPresent(participant::setUser);
+
+        return getParticipantResponse(getSessionByCode, avatar, participant);
+    }
+
+    private ParticipantResponse getParticipantResponse(QuizSession getSessionByCode, Avatar avatar, Participant participant) {
+        participant.setSession(getSessionByCode);
+        participant.setAvatar(avatar);
         participant.setJoinedAt(LocalDateTime.now());
         participant.setTotalScore(0);
         participant.setIsActive(true);
+        participant.setIsConnected(true);
 
         Participant savedParticipant = participantRepository.save(participant);
-        List<Participant> participantsOrderedByScore = participantRepository
-                .findBySessionIdOrderByTotalScoreDesc(getSessionByCode.getId());
-
-
-
-
 
         int currentCount = participantRepository.countBySessionIdAndIsActiveTrue(getSessionByCode.getId());
         getSessionByCode.setTotalParticipants(currentCount);
         quizSessionRepository.save(getSessionByCode);
 
-        // ADD PARTICIPANT TO REDIS LEADERBOARD
         leaderboardService.updateParticipantScore(
                 getSessionByCode.getId(),
                 savedParticipant.getId(),
@@ -174,6 +204,7 @@ public class ParticipantServiceImpl implements ParticipantService {
                 .newTotalScore(newTotalScore)
                 .build();
     }
+
     @Override
     public List<ParticipantResponse> getSessionParticipants(String sessionId) {
         List<Participant> participants = participantRepository.findBySessionIdAndIsActiveTrue(sessionId);

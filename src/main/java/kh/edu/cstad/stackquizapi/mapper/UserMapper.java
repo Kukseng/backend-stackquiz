@@ -9,18 +9,16 @@ import org.mapstruct.*;
 @Mapper(componentModel = "spring")
 public interface UserMapper {
 
+    UserResponse toUserResponse(User user);
+
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     void toCustomerPartially(
             UpdateUserRequest updateCustomerRequest,
             @MappingTarget User user
     );
 
-
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     User fromCreateUserRequest(CreateUserRequest dto);
-
-
-    UserResponse toUserResponse(User user);
 
 }

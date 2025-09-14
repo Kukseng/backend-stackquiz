@@ -1,9 +1,11 @@
 package kh.edu.cstad.stackquizapi.dto.response;
 
+import kh.edu.cstad.stackquizapi.domain.Question;
 import kh.edu.cstad.stackquizapi.util.QuizDifficultyType;
 import kh.edu.cstad.stackquizapi.util.VisibilityType;
-import java.sql.Timestamp;
+
 import java.time.LocalDateTime;
+import java.util.List;
 
 public record QuizResponse(
 
@@ -21,8 +23,9 @@ public record QuizResponse(
 
         QuizDifficultyType difficulty,
 
-        LocalDateTime updatedAt
+        LocalDateTime updatedAt,
 
+        List<Question> questions
 
 ) {
 }

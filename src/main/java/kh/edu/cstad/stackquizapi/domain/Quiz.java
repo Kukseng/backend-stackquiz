@@ -2,7 +2,6 @@ package kh.edu.cstad.stackquizapi.domain;
 
 import jakarta.persistence.*;
 import kh.edu.cstad.stackquizapi.util.QuizDifficultyType;
-import kh.edu.cstad.stackquizapi.util.VisibilityType;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;

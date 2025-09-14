@@ -10,9 +10,13 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public abstract class WebSocketMessage {
+
     private String messageType;
+
     private String sessionId;
+
     private LocalDateTime timestamp;
+
     private String senderId;
 
     public WebSocketMessage(String messageType, String sessionId, String senderId) {
