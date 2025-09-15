@@ -75,7 +75,10 @@ public class KeycloakSecurityConfig {
     public SecurityFilterChain apiSecurity(HttpSecurity http) throws Exception {
 
         return http
+                .cors(Customizer.withDefaults())  // <-- enable your CorsFilter
+                .csrf(AbstractHttpConfigurer::disable)  // <-- disable CSRF for REST & WebSocket
                 .authorizeHttpRequests(request -> request
+                                .requestMatchers("/ws/**", "/ws-native/**").permitAll()
                                 // Allow Swagger UI
                                 .requestMatchers(
                                         "/swagger-ui/**",
@@ -86,7 +89,7 @@ public class KeycloakSecurityConfig {
                                         "/actuator/health"
                                 ).permitAll()
 
-                                .requestMatchers("/ws/**").permitAll()
+//                                .requestMatchers("/ws/**").permitAll()
 
                                 .requestMatchers("/api/v1/auth/**").permitAll()
 
