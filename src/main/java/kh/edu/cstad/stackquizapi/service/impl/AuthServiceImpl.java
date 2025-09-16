@@ -1,10 +1,8 @@
 package kh.edu.cstad.stackquizapi.service.impl;
 
 import jakarta.ws.rs.core.Response;
-import kh.edu.cstad.stackquizapi.dto.request.CreateUserRequest;
-import kh.edu.cstad.stackquizapi.dto.request.OAuthRegisterRequest;
-import kh.edu.cstad.stackquizapi.dto.request.RegisterRequest;
-import kh.edu.cstad.stackquizapi.dto.request.ResetPasswordRequest;
+import kh.edu.cstad.stackquizapi.domain.User;
+import kh.edu.cstad.stackquizapi.dto.request.*;
 import kh.edu.cstad.stackquizapi.dto.response.RegisterResponse;
 import kh.edu.cstad.stackquizapi.dto.response.TokenResponse;
 import kh.edu.cstad.stackquizapi.dto.response.UserResponse;
@@ -14,24 +12,21 @@ import kh.edu.cstad.stackquizapi.service.RoleService;
 import kh.edu.cstad.stackquizapi.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.*;
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.resource.UserResource;
 import org.keycloak.representations.idm.CredentialRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Locale;
-import java.util.UUID;
+import java.time.Duration;
+import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -43,13 +38,15 @@ public class AuthServiceImpl implements AuthService {
     private final Keycloak adminKeycloak;
     private final RoleService roleService;
     private final UserService userService;
-    private final RestTemplate restTemplate;
-    private final UserRepository userRepository;
 
-    private static final Pattern SAFE_CHAR = Pattern.compile("[a-z0-9._-]");
+
 
     @Value("${keycloak.realm}")
     private String realm;
+
+    @Autowired
+    private RestTemplate restTemplate;
+
 
     @Value("${keycloak.server-url}")
     private String serverUrl;
@@ -62,12 +59,8 @@ public class AuthServiceImpl implements AuthService {
 
     @Value("${app.default-role}")
     private String defaultRole;
-
-    @Value("${keycloak.token-client-id}")
-    private String tokenClientId;
-
-    @Value("${keycloak.token-client-secret:}")
-    private String tokenClientSecret;
+    @Autowired
+    private UserRepository userRepository;
 
     @Override
     public RegisterResponse register(RegisterRequest request) {
@@ -201,69 +194,80 @@ public class AuthServiceImpl implements AuthService {
         }
     }
 
-    @Override
-    public void requestPasswordReset(String email) {
-        log.info("Password reset requested for email: {}", email);
+//    @Override
+//    public void requestPasswordReset(String email) {
+//        log.info("Password reset requested for email: {}", email);
+//
+//        try {
+//            UserRepresentation user = adminKeycloak.realm(realm)
+//                    .users()
+//                    .searchByEmail(email, true)
+//                    .stream()
+//                    .findFirst()
+//                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+//                            "No account found with this email"));
+//
+//            adminKeycloak.realm(realm)
+//                    .users()
+//                    .get(user.getId())
+//                    .executeActionsEmail(Collections.singletonList("UPDATE_PASSWORD"));
+//
+//            log.info("Password reset email sent for user: {}", user.getId());
+//
+//        } catch (ResponseStatusException e) {
+//            throw e;
+//        } catch (Exception e) {
+//            log.error("Failed to send password reset email: {}", e.getMessage());
+//            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+//                    "Failed to send password reset email");
+//        }
+//    }
 
-        try {
-            UserRepresentation user = adminKeycloak.realm(realm)
-                    .users()
-                    .searchByEmail(email, true)
-                    .stream()
-                    .findFirst()
-                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                            "No account found with this email"));
+//    @Override
+//    public void resetPassword(ResetPasswordRequest request) {
+//        log.info("Resetting password for email: {}", request.email());
+//
+//        try {
+//            UserRepresentation user = adminKeycloak.realm(realm)
+//                    .users()
+//                    .searchByEmail(request.email(), true)
+//                    .stream()
+//                    .findFirst()
+//                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+//                            "No account found with this email"));
+//
+//            CredentialRepresentation credential = new CredentialRepresentation();
+//            credential.setType(CredentialRepresentation.PASSWORD);
+//            credential.setValue(request.newPassword());
+//            credential.setTemporary(false);
+//
+//            adminKeycloak.realm(realm)
+//                    .users()
+//                    .get(user.getId())
+//                    .resetPassword(credential);
+//
+//            log.info("Password successfully reset for user: {}", user.getId());
+//
+//        } catch (ResponseStatusException e) {
+//            throw e;
+//        } catch (Exception e) {
+//            log.error("Password reset failed: {}", e.getMessage());
+//            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+//                    "Password reset failed");
+//        }
+//    }
 
-            adminKeycloak.realm(realm)
-                    .users()
-                    .get(user.getId())
-                    .executeActionsEmail(Collections.singletonList("UPDATE_PASSWORD"));
 
-            log.info("Password reset email sent for user: {}", user.getId());
 
-        } catch (ResponseStatusException e) {
-            throw e;
-        } catch (Exception e) {
-            log.error("Failed to send password reset email: {}", e.getMessage());
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
-                    "Failed to send password reset email");
-        }
-    }
+    @Value("${keycloak.token-client-id}")
+    private String tokenClientId;
 
-    @Override
-    public void resetPassword(ResetPasswordRequest request) {
-        log.info("Resetting password for email: {}", request.email());
+    @Value("${keycloak.token-client-secret:}")
+    private String tokenClientSecret;
 
-        try {
-            UserRepresentation user = adminKeycloak.realm(realm)
-                    .users()
-                    .searchByEmail(request.email(), true)
-                    .stream()
-                    .findFirst()
-                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                            "No account found with this email"));
+    // -------- Username helpers --------
 
-            CredentialRepresentation credential = new CredentialRepresentation();
-            credential.setType(CredentialRepresentation.PASSWORD);
-            credential.setValue(request.newPassword());
-            credential.setTemporary(false);
-
-            adminKeycloak.realm(realm)
-                    .users()
-                    .get(user.getId())
-                    .resetPassword(credential);
-
-            log.info("Password successfully reset for user: {}", user.getId());
-
-        } catch (ResponseStatusException e) {
-            throw e;
-        } catch (Exception e) {
-            log.error("Password reset failed: {}", e.getMessage());
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
-                    "Password reset failed");
-        }
-    }
-
+    private static final Pattern SAFE_CHAR = Pattern.compile("[a-z0-9._-]");
 
     /** Lowercase,  collapse repeats, trim */
     private String sanitizeUsername(String raw, String email) {
@@ -305,6 +309,8 @@ public class AuthServiceImpl implements AuthService {
         }
     }
 
+    // -------- OAuth register (idempotent) --------
+
     @Override
     public ResponseEntity<RegisterResponse> oauthRegister(OAuthRegisterRequest request) {
         if (request == null || request.email() == null || request.email().isBlank()) {
@@ -325,7 +331,7 @@ public class AuthServiceImpl implements AuthService {
 
         if (!existingUsers.isEmpty()) {
             // ===== EXISTING user in KC =====
-            UserRepresentation existingUser = existingUsers.getFirst();
+            UserRepresentation existingUser = existingUsers.get(0);
             userId = existingUser.getId();
             kcUsername = existingUser.getUsername();
             log.info("User already exists in Keycloak: {}", userId);
@@ -374,6 +380,8 @@ public class AuthServiceImpl implements AuthService {
                 log.error("Failed to reset password for KC user {}: {}", userId, e.getMessage());
                 throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to prepare user for token issuance");
             }
+
+            token = getTokenFromKeycloak(kcUsername, randomPassword);
 
         } else {
             // ===== NEW user in KC =====
@@ -436,8 +444,8 @@ public class AuthServiceImpl implements AuthService {
             }
 
             // finally fetch token
+            token = getTokenFromKeycloak(kcUsername, randomPassword);
         }
-        token = getTokenFromKeycloak(kcUsername, randomPassword);
 
         RegisterResponse body = RegisterResponse.builder()
                 .userId(userId)
@@ -446,8 +454,6 @@ public class AuthServiceImpl implements AuthService {
                 .firstName(request.firstName())
                 .lastName(request.lastName())
                 .emailVerified(true)
-                .accessToken(token.getAccessToken())
-                .refreshToken(token.getRefreshToken())
                 .build();
 
         return ResponseEntity.ok(body);
@@ -465,7 +471,16 @@ public class AuthServiceImpl implements AuthService {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 
-        HttpEntity<MultiValueMap<String, String>> req = getMultiValueMapHttpEntity(username, password, headers);
+        var form = new org.springframework.util.LinkedMultiValueMap<String, String>();
+        form.add("grant_type", "password");
+        form.add("client_id", tokenClientId);
+        if (tokenClientSecret != null && !tokenClientSecret.isBlank()) {
+            form.add("client_secret", tokenClientSecret);
+        }
+        form.add("username", username);
+        form.add("password", password);
+
+        HttpEntity<org.springframework.util.MultiValueMap<String, String>> req = new HttpEntity<>(form, headers);
 
         ResponseEntity<String> raw = restTemplate.postForEntity(tokenUrl, req, String.class);
 
@@ -480,19 +495,6 @@ public class AuthServiceImpl implements AuthService {
             log.error("Keycloak token parse error: {}", e.getMessage());
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Token retrieval error");
         }
-    }
-
-    private HttpEntity<MultiValueMap<String, String>> getMultiValueMapHttpEntity(String username, String password, HttpHeaders headers) {
-        var form = new LinkedMultiValueMap<String, String>();
-        form.add("grant_type", "password");
-        form.add("client_id", tokenClientId);
-        if (tokenClientSecret != null && !tokenClientSecret.isBlank()) {
-            form.add("client_secret", tokenClientSecret);
-        }
-        form.add("username", username);
-        form.add("password", password);
-
-        return new HttpEntity<>(form, headers);
     }
 
 }
