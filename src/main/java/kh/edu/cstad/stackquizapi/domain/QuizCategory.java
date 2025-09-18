@@ -21,7 +21,6 @@ public class QuizCategory {
     @JoinColumn(name = "quiz_id", nullable = false)
     private Quiz quiz;
 
-
     @ManyToOne
     @JoinColumn(name = "category_id")
     private Category category;

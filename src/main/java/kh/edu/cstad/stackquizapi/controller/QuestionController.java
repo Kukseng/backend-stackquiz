@@ -2,6 +2,7 @@ package kh.edu.cstad.stackquizapi.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import jakarta.validation.Valid;
 import kh.edu.cstad.stackquizapi.dto.request.CreateQuestionRequest;
 import kh.edu.cstad.stackquizapi.dto.request.UpdateQuestionRequest;
 import kh.edu.cstad.stackquizapi.dto.response.QuestionResponse;
@@ -32,7 +33,7 @@ public class QuestionController {
     @Operation(summary = "Create new question (secured)",
             security = { @SecurityRequirement(name = "bearerAuth") })
     @PostMapping
-    public ResponseEntity<QuestionResponse> createQuestion(@RequestBody CreateQuestionRequest request) {
+    public ResponseEntity<QuestionResponse> createQuestion(@Valid @RequestBody CreateQuestionRequest request) {
         QuestionResponse response = questionService.createNewQuestion(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
@@ -65,6 +66,7 @@ public class QuestionController {
     @Operation(summary = "Partially update question by ID")
     @PatchMapping("/{id}")
     public ResponseEntity<QuestionResponse> updateQuestion(
+            @Valid
             @PathVariable String id,
             @RequestBody UpdateQuestionRequest updateQuestionRequest) {
         QuestionResponse response = questionService.updateQuestionById(id, updateQuestionRequest);

@@ -6,6 +6,7 @@ keycloak:
   #: client used for password grant when you really need it
   token-client-id: nextjs
   token-client-secret: azpLBVVq454Vzz22h004FbTqeMGFS8k7
+  token-url: https://keycloak-prod.rattanakmony.com/realms/stackquiz/protocol/openid-connect/token
 
 app:
   default-role: ORGANIZER

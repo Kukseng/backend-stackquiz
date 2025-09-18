@@ -9,6 +9,7 @@ import kh.edu.cstad.stackquizapi.dto.response.QuestionResponse;
 import kh.edu.cstad.stackquizapi.mapper.QuestionMapper;
 import kh.edu.cstad.stackquizapi.repository.QuestionRepository;
 import kh.edu.cstad.stackquizapi.repository.QuizRepository;
+import kh.edu.cstad.stackquizapi.repository.QuizSessionRepository;
 import kh.edu.cstad.stackquizapi.service.QuestionService;
 import kh.edu.cstad.stackquizapi.util.QuestionType;
 import lombok.RequiredArgsConstructor;
@@ -34,6 +35,7 @@ public class QuestionServiceImpl implements QuestionService {
     private final QuizRepository quizRepository;
     private final QuestionRepository questionRepository;
     private final QuestionMapper questionMapper;
+    private final QuizSessionRepository quizSessionRepository;
 
     private static final Set<QuestionType> VALID_QUESTION_TYPES =
             EnumSet.of(QuestionType.TF, QuestionType.MCQ, QuestionType.FILL_THE_BLANK);
@@ -42,9 +44,12 @@ public class QuestionServiceImpl implements QuestionService {
     public QuestionResponse createNewQuestion(CreateQuestionRequest createQuestionRequest) {
 
         Quiz quiz = quizRepository.findById(createQuestionRequest.quizId()).orElseThrow(
-                ()-> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                        "Quiz Id not Found" )
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        "Quiz Id not Found")
         );
+
+        Integer timeLimit = quiz.getQuestionTimeLimit().getSeconds();
+        log.info("Time limit caught form quiz repo: {}", timeLimit);
 
         if (createQuestionRequest.type() == null || !VALID_QUESTION_TYPES.contains(createQuestionRequest.type())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
@@ -56,7 +61,9 @@ public class QuestionServiceImpl implements QuestionService {
             int nextOrder = (maxOrder != null) ? maxOrder + 1 : 1;
 
             Question question = questionMapper.fromCreateQuestionRequest(createQuestionRequest);
+
             question.setQuiz(quiz);
+            question.setTimeLimit(timeLimit);
             question.setQuestionOrder(nextOrder);
             question.setCreatedAt(Timestamp.valueOf(LocalDateTime.now()));
             question.setUpdatedAt(Timestamp.valueOf(LocalDateTime.now()));

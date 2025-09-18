@@ -4,8 +4,6 @@ public record AddOptionRequest(
 
         String optionText,
 
-        Integer optionOrder,
-
         Boolean isCorrected
 ){
 }

@@ -23,6 +23,9 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class KeycloakAdminConfig {
 
+    @Value("${keycloak.realm}")
+    private String realmName;
+
     @Value("${keycloak.server-url}")
     private String serverUrl;
 
@@ -37,7 +40,7 @@ public class KeycloakAdminConfig {
 
         return KeycloakBuilder
                 .builder()
-                .realm("stackquiz")
+                .realm(realmName)
                 .serverUrl(serverUrl)
                 .grantType(OAuth2Constants.CLIENT_CREDENTIALS)
                 .clientId(clientId)

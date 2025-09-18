@@ -35,10 +35,14 @@ public class AuthController {
     private final AuthService authService;
     private final WebClient webClient;
 
-    private final String keycloakTokenUrl =
-            "https://keycloak-prod.rattanakmony.com/realms/stackquiz/protocol/openid-connect/token";
-    private final String clientId = "nextjs";
-    private final String clientSecret = "azpLBVVq454Vzz22h004FbTqeMGFS8k7";
+    @Value("${keycloak.token-url}")
+    private String keycloakTokenUrl;
+
+    @Value("${keycloak.token-client-id}")
+    private String clientId;
+
+    @Value("${keycloak.token-client-secret}")
+    private String clientSecret;
 
     @PostMapping("/register")
     public ResponseEntity<ApiResponse<RegisterResponse>> register(

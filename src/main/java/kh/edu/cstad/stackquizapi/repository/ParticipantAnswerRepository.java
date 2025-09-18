@@ -20,8 +20,6 @@ public interface ParticipantAnswerRepository extends JpaRepository<ParticipantAn
 
     List<ParticipantAnswer> findByQuestionIdOrderByAnsweredAtAsc(String questionId);
 
-    long countByParticipantId(String participantId);
-
     @Query("SELECT COUNT(pa) FROM ParticipantAnswer pa " +
            "WHERE pa.participant.id = :participantId AND pa.isCorrect = true")
     long countCorrectAnswersByParticipantId(@Param("participantId") String participantId);

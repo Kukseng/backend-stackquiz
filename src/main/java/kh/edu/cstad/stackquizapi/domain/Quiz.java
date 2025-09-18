@@ -2,6 +2,7 @@ package kh.edu.cstad.stackquizapi.domain;
 
 import jakarta.persistence.*;
 import kh.edu.cstad.stackquizapi.util.QuizDifficultyType;
+import kh.edu.cstad.stackquizapi.util.TimeLimitRangeInSecond;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -25,7 +26,7 @@ public class Quiz {
     @Column(name = "quiz_id")
     private String id;
 
-    @Column(nullable = false, length = 255)
+    @Column(nullable = false, length = 100)
     private String title;
 
     @Column(columnDefinition = "TEXT")
@@ -36,6 +37,10 @@ public class Quiz {
 
     @Column(nullable = false)
     private String visibility;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private TimeLimitRangeInSecond questionTimeLimit;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

@@ -75,7 +75,10 @@ public class QuizServiceImpl implements QuizService {
     @Override
     public QuizResponse getQuizById(String quizId) {
 
-        return quizRepository.findById(quizId).map(quizMapper::toQuizResponse).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+        return quizRepository
+                .findById(quizId)
+                .map(quizMapper::toQuizResponse)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
                 "Quiz not found"));
 
     }

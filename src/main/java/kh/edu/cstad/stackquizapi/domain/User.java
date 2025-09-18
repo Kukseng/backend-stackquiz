@@ -44,6 +44,9 @@ public class User {
     @Column(nullable = false)
     private Boolean isActive = true;
 
+    @Column(nullable = false)
+    private Boolean isDeleted;
+
     @Column(updatable = false)
     private LocalDateTime createdAt;
 

@@ -131,6 +131,7 @@ public class AuthServiceImpl implements AuthService {
                             .firstName(request.firstName())
                             .lastName(request.lastName())
                             .email(request.email())
+                            .isDeleted(false)
                             .build();
 
                     UserResponse dbUser = userService.createUser(createUserRequest);

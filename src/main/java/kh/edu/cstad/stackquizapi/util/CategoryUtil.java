@@ -1,8 +1,5 @@
 package kh.edu.cstad.stackquizapi.util;
 
-import lombok.Data;
-
-
 public enum CategoryUtil {
 
     GENERAL_KNOWLEDGE,

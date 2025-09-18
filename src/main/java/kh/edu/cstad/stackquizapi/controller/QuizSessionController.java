@@ -3,6 +3,7 @@ package kh.edu.cstad.stackquizapi.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import jakarta.validation.Valid;
 import kh.edu.cstad.stackquizapi.domain.Question;
 import kh.edu.cstad.stackquizapi.domain.QuizSession;
 import kh.edu.cstad.stackquizapi.dto.request.SessionCreateRequest;
@@ -28,7 +29,7 @@ public class QuizSessionController {
             security = { @SecurityRequirement(name = "bearerAuth") })
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping
-    public SessionResponse createSession(@RequestBody SessionCreateRequest request,
+    public SessionResponse createSession(@Valid @RequestBody SessionCreateRequest request,
                                          @AuthenticationPrincipal Jwt accessToken) {
         return quizSessionService.createSession(request, accessToken);
     }

@@ -4,8 +4,6 @@ public enum RoleType {
 
     ADMIN,
 
-    USER,
-
     ORGANIZER,
 
     PARTICIPANT

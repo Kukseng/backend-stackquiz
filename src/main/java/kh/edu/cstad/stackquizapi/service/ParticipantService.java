@@ -27,7 +27,6 @@ public interface ParticipantService {
 
     Optional<Participant> getParticipantById(String participantId);
 
-
     boolean canJoinSession(String sessionCode);
 
     boolean isNicknameAvailable(String sessionId, String nickname);

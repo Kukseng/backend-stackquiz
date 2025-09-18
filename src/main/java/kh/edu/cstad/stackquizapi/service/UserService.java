@@ -32,7 +32,6 @@ public interface UserService{
     /**
      * Updates the details of a user by their ID.
      *
-     * @param userId the unique identifier of the user to update
      * @param updateUserRequest the request object containing updated user details
      * @return the updated user response DTO
      */
@@ -44,6 +43,8 @@ public interface UserService{
      * @param userId the unique identifier of the user to delete
      */
     void deleteUserByUserId(String userId);
+
+    void disableUserByUserId(String userId);
 
     /**
      * Retrieves all users in the system.

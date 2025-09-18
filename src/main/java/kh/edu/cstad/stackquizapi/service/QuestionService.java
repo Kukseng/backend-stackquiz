@@ -78,5 +78,13 @@ public interface QuestionService {
      */
     QuestionResponse getCurrentQuestionForSession(String sessionId);
 
+//    void resetSessionQuestions(String sessionId);
+//
+//    boolean hasMoreQuestions(String sessionId);
+//
+//    List<QuestionResponse> shuffleQuestionsForSession(String sessionId);
+//
+//    void recordAnswer(String sessionId, String questionId, String participantId, String answer);
+
 }
 

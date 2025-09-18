@@ -2,6 +2,7 @@ package kh.edu.cstad.stackquizapi.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import jakarta.validation.Valid;
 import kh.edu.cstad.stackquizapi.domain.Option;
 import kh.edu.cstad.stackquizapi.dto.request.AddOptionRequest;
 import kh.edu.cstad.stackquizapi.dto.request.UpdateOptionRequest;
@@ -25,6 +26,7 @@ public class OptionController {
             security = { @SecurityRequirement(name = "bearerAuth") })
     @PostMapping("/questions/{questionId}")
     public ResponseEntity<List<OptionResponse>> addNewOptions(
+            @Valid
             @PathVariable String questionId,
             @RequestBody List<AddOptionRequest> addOptionRequests) {
 
@@ -49,6 +51,7 @@ public class OptionController {
             security = { @SecurityRequirement(name = "bearerAuth") })
     @PutMapping("/{optionId}")
     public ResponseEntity<OptionResponse> updateOption(
+            @Valid
             @PathVariable String optionId,
             @RequestBody UpdateOptionRequest updateOptionRequest) {
 

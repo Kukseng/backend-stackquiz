@@ -2,6 +2,7 @@ package kh.edu.cstad.stackquizapi.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import jakarta.validation.Valid;
 import kh.edu.cstad.stackquizapi.dto.request.CreateQuizRequest;
 import kh.edu.cstad.stackquizapi.dto.request.QuizUpdate;
 import kh.edu.cstad.stackquizapi.dto.response.QuizResponse;
@@ -24,7 +25,7 @@ public class QuizController {
     @Operation(summary = "Create a new quiz", security = { @SecurityRequirement(name = "bearerAuth") })
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping
-    public QuizResponse createQuiz(@RequestBody CreateQuizRequest createQuizRequest,
+    public QuizResponse createQuiz(@Valid @RequestBody CreateQuizRequest createQuizRequest,
                                    @AuthenticationPrincipal Jwt accessToken) {
         return quizService.createQuiz(createQuizRequest, accessToken);
     }
@@ -32,7 +33,7 @@ public class QuizController {
     @Operation(summary = "Update an existing quiz", security = { @SecurityRequirement(name = "bearerAuth") })
     @ResponseStatus(HttpStatus.OK)
     @PutMapping("/{quizId}")
-    public QuizResponse updateQuiz(@PathVariable String quizId,
+    public QuizResponse updateQuiz(@Valid @PathVariable String quizId,
                                    @RequestBody QuizUpdate quizUpdate,
                                    @AuthenticationPrincipal Jwt accessToken) {
         return quizService.updateQuiz(quizId, quizUpdate, accessToken);

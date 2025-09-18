@@ -2,6 +2,7 @@ package kh.edu.cstad.stackquizapi.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import jakarta.validation.Valid;
 import kh.edu.cstad.stackquizapi.dto.request.UpdateUserRequest;
 import kh.edu.cstad.stackquizapi.dto.response.UserResponse;
 import kh.edu.cstad.stackquizapi.service.UserService;
@@ -20,18 +21,6 @@ public class UserController {
 
     private final UserService userService;
 
-    // get current user for profile
-//    @Operation(summary = "Get all users (secured)",
-//            security = {@SecurityRequirement(name = "bearerAuth")})
-//    @ResponseStatus(HttpStatus.CREATED)
-//    @PostMapping
-//    public UserResponse createUser(@RequestBody CreateUserRequest createUserRequest) {
-//        return userService.createUser(createUserRequest);
-//    }
-
-    //    @SecurityRequirement(name = "bearerAuth")
-//    @Tag(name = "User", description = "The User API. Contains all the operations that can be performed on a user.")
-// get current user for profile
     @Operation(summary = "Get all users (secured)",
             security = {@SecurityRequirement(name = "bearerAuth")})
     @ResponseStatus(HttpStatus.OK)
@@ -49,6 +38,11 @@ public class UserController {
         userService.deleteUserByUserId(userId);
     }
 
+    @PatchMapping("/{userId}")
+    public void disableUserByUserId(@PathVariable String userId) {
+        userService.disableUserByUserId(userId);
+    }
+
     // get current user for profile
     @Operation(summary = "Get current user profile (secured)",
             security = {@SecurityRequirement(name = "bearerAuth")})
@@ -62,7 +56,7 @@ public class UserController {
             security = {@SecurityRequirement(name = "bearerAuth")})
     @ResponseStatus(HttpStatus.CREATED)
     @PutMapping("/me")
-    public UserResponse updateUser(@AuthenticationPrincipal Jwt accessToken,
+    public UserResponse updateUser(@Valid @AuthenticationPrincipal Jwt accessToken,
                                            @RequestBody UpdateUserRequest updateUserRequest) {
         return userService.updateUser(accessToken, updateUserRequest);
     }

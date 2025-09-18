@@ -47,8 +47,6 @@ public class SessionReport {
     @Column(columnDefinition = "jsonb", name = "final_rankings")
     private JsonNode finalRankings;
 
-
-
     @PrePersist
     public void prePersist() {
         if (generatedAt == null) {

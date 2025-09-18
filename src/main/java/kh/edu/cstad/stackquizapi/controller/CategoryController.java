@@ -3,6 +3,7 @@ package kh.edu.cstad.stackquizapi.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import jakarta.validation.Valid;
 import kh.edu.cstad.stackquizapi.dto.request.CategoryRequest;
 import kh.edu.cstad.stackquizapi.dto.response.CategoryResponse;
 import kh.edu.cstad.stackquizapi.service.CategoryService;
@@ -22,7 +23,7 @@ public class CategoryController {
             security = { @SecurityRequirement(name = "bearerAuth") })
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping
-    public CategoryResponse createCategory(@RequestBody  CategoryRequest categoryRequest) {
+    public CategoryResponse createCategory(@Valid @RequestBody  CategoryRequest categoryRequest) {
         return categoryService.createCategory(categoryRequest);
     }
 
@@ -30,7 +31,7 @@ public class CategoryController {
             security = { @SecurityRequirement(name = "bearerAuth") })
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping("/batch")
-    public List<CategoryResponse> createCategories(@RequestBody List<CategoryRequest> categoryRequests) {
+    public List<CategoryResponse> createCategories(@Valid @RequestBody List<CategoryRequest> categoryRequests) {
         return categoryRequests.stream()
                 .map(categoryService::createCategory)
                 .toList();
