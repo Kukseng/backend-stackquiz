@@ -40,7 +40,6 @@ public class AuthServiceImpl implements AuthService {
     private final UserService userService;
 
 
-
     @Value("${keycloak.realm}")
     private String realm;
 
@@ -61,6 +60,7 @@ public class AuthServiceImpl implements AuthService {
     private String defaultRole;
     @Autowired
     private UserRepository userRepository;
+
 
     @Override
     public RegisterResponse register(RegisterRequest request) {
@@ -124,6 +124,7 @@ public class AuthServiceImpl implements AuthService {
                             .firstName(request.firstName())
                             .lastName(request.lastName())
                             .email(request.email())
+                            .isDeleted(false)
                             .build();
 
                     UserResponse dbUser = userService.createUser(createUserRequest);
@@ -258,7 +259,6 @@ public class AuthServiceImpl implements AuthService {
 //    }
 
 
-
     @Value("${keycloak.token-client-id}")
     private String tokenClientId;
 
@@ -269,7 +269,9 @@ public class AuthServiceImpl implements AuthService {
 
     private static final Pattern SAFE_CHAR = Pattern.compile("[a-z0-9._-]");
 
-    /** Lowercase,  collapse repeats, trim */
+    /**
+     * Lowercase,  collapse repeats, trim
+     */
     private String sanitizeUsername(String raw, String email) {
         String base = (raw != null && !raw.isBlank()) ? raw : (email != null ? email.split("@")[0] : "user");
 
@@ -292,7 +294,9 @@ public class AuthServiceImpl implements AuthService {
         return cleaned;
     }
 
-    /** Check KC for conflicts and append short suffix  */
+    /**
+     * Check KC for conflicts and append short suffix
+     */
     private String makeUniqueUsername(String base) {
         String candidate = base;
         int attempt = 0;
@@ -407,7 +411,11 @@ public class AuthServiceImpl implements AuthService {
             try (Response response = adminKeycloak.realm(realm).users().create(user)) {
                 if (response.getStatus() != HttpStatus.CREATED.value()) {
                     String body;
-                    try { body = response.readEntity(String.class); } catch (Exception ex) { body = "<no body>"; }
+                    try {
+                        body = response.readEntity(String.class);
+                    } catch (Exception ex) {
+                        body = "<no body>";
+                    }
                     log.error("KC create failed: status={}, body={}", response.getStatus(), body);
                     throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to create user in Keycloak");
                 }
@@ -438,8 +446,11 @@ public class AuthServiceImpl implements AuthService {
                 log.info("App DB user created with ID: {}", userId);
             } catch (Exception e) {
                 log.error("Failed to save user to DB for KC user {}: {}", userId, e.getMessage());
-                try { adminKeycloak.realm(realm).users().get(userId).remove(); }
-                catch (Exception ex) { log.error("Rollback KC user failed for {}: {}", userId, ex.getMessage()); }
+                try {
+                    adminKeycloak.realm(realm).users().get(userId).remove();
+                } catch (Exception ex) {
+                    log.error("Rollback KC user failed for {}: {}", userId, ex.getMessage());
+                }
                 throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to complete user registration");
             }
 
@@ -454,6 +465,8 @@ public class AuthServiceImpl implements AuthService {
                 .firstName(request.firstName())
                 .lastName(request.lastName())
                 .emailVerified(true)
+                .accessToken(token.getAccessToken())
+                .refreshToken(token.getRefreshToken())
                 .build();
 
         return ResponseEntity.ok(body);
