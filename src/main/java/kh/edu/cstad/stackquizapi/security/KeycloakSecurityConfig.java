@@ -130,6 +130,7 @@ public class KeycloakSecurityConfig {
                                 .requestMatchers(HttpMethod.POST, "/api/v1/users").hasRole("ADMIN")
                                 .requestMatchers(HttpMethod.PUT, "/api/v1/users/*").hasRole("ADMIN")
                                 .requestMatchers(HttpMethod.DELETE, "/api/v1/users/*").hasRole("ADMIN")
+                                .requestMatchers(HttpMethod.PATCH, "/api/v1/users/*").hasRole("ADMIN")
 //
 //                        // Secure category management - ORGANIZER or ADMIN
                                 .requestMatchers(HttpMethod.POST, "/api/v1/categories/**").hasAnyRole("ORGANIZER", "ADMIN")

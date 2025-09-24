@@ -38,6 +38,9 @@ public class UserController {
         userService.deleteUserByUserId(userId);
     }
 
+    @Operation(summary = "Disable user by ID (admin)",
+            security = {@SecurityRequirement(name = "bearerAuth")})
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     @PatchMapping("/{userId}")
     public void disableUserByUserId(@PathVariable String userId) {
         userService.disableUserByUserId(userId);
