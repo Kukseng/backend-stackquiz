@@ -31,6 +31,7 @@ When prompted, use the organization name `Org1` for development and testing.
 * **\[PUT]** `/api/v1/users/me` — Update current user 
 * **\[GET]** `/api/v1/users` — Get all users 
 * **\[DELETE]** `/api/v1/users/{userId}` — Delete user by ID 
+* **\[PATCH]** `/api/v1/users/{userId` — Disable user by ID (soft-delete)
 
 ---
 
@@ -185,5 +186,5 @@ When prompted, use the organization name `Org1` for development and testing.
 
 ---
 
-© 2025 Stack Quiz — API Documentation
+© 2025 StackQuiz — API Documentation
 
