@@ -69,7 +69,7 @@ public class UserServiceImpl implements UserService {
                         "User ID cannot be null or empty"
                 );
             }
-            return userRepository.findByIdAndIsActiveTrue(userId)
+            return userRepository.findByIdAndIsDeletedFalse(userId)
                     .map(userMapper::toUserResponse)
                     .orElseThrow(() ->
                             new ResponseStatusException(HttpStatus.NOT_FOUND, "User id not found")
@@ -154,7 +154,8 @@ public class UserServiceImpl implements UserService {
     @Override
     public List<UserResponse> findAll() {
         try {
-            List<User> users = userRepository.findAllByIsActiveTrue();
+            List<User> users = userRepository.findAllByIsDeletedFalse();
+
             if (users.isEmpty()) {
                 throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No users found");
             }

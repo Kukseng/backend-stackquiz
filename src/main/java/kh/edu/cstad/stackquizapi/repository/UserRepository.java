@@ -18,6 +18,10 @@ public interface UserRepository extends JpaRepository<User, String> {
 
     Optional<User> findByIdAndIsActiveTrue (String userId);
 
-    List<User> findAllByIsActiveTrue ();
+    List<User> findAllByIsActiveTrue();
+
+    List<User> findAllByIsDeletedFalse();
+
+    Optional<User> findByIdAndIsDeletedFalse(String id);
 
 }
