@@ -1,28 +1,21 @@
 package kh.edu.cstad.stackquizapi.dto.websocket;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
 import java.time.LocalDateTime;
 
 @Data
 @NoArgsConstructor
-@AllArgsConstructor
 public abstract class WebSocketMessage {
-
     private String messageType;
-
     private String sessionId;
-
+    private String senderNickname; // Change senderId to senderNickname for clarity
     private LocalDateTime timestamp;
 
-    private String senderId;
-
-    public WebSocketMessage(String messageType, String sessionId, String senderId) {
+    protected WebSocketMessage(String messageType, String sessionId, String senderNickname) {
         this.messageType = messageType;
         this.sessionId = sessionId;
-        this.senderId = senderId;
+        this.senderNickname = senderNickname;
         this.timestamp = LocalDateTime.now();
     }
 }

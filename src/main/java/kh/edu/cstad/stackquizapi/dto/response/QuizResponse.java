@@ -1,9 +1,10 @@
 package kh.edu.cstad.stackquizapi.dto.response;
 
-import kh.edu.cstad.stackquizapi.domain.Question;
+import jakarta.validation.constraints.NotBlank;
+import kh.edu.cstad.stackquizapi.domain.QuizCategory;
 import kh.edu.cstad.stackquizapi.util.QuizDifficultyType;
 import kh.edu.cstad.stackquizapi.util.VisibilityType;
-
+import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -17,6 +18,8 @@ public record QuizResponse(
 
         String thumbnailUrl,
 
+        List<CategoryResponse> categories,
+
         VisibilityType visibility,
 
         LocalDateTime createdAt,
@@ -24,8 +27,8 @@ public record QuizResponse(
         QuizDifficultyType difficulty,
 
         LocalDateTime updatedAt,
+        List<QuestionResponse> questions
 
-        List<Question> questions
 
 ) {
 }

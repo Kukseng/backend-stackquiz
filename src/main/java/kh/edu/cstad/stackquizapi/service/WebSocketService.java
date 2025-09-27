@@ -1,10 +1,6 @@
 package kh.edu.cstad.stackquizapi.service;
 
-import kh.edu.cstad.stackquizapi.dto.websocket.GameStateMessage;
-import kh.edu.cstad.stackquizapi.dto.websocket.LeaderboardMessage;
-import kh.edu.cstad.stackquizapi.dto.websocket.ParticipantMessage;
-import kh.edu.cstad.stackquizapi.dto.websocket.QuestionMessage;
-import kh.edu.cstad.stackquizapi.dto.websocket.WebSocketMessage;
+import kh.edu.cstad.stackquizapi.dto.websocket.*;
 
 /**
  * Service for managing WebSocket communication in quiz sessions.
@@ -12,34 +8,31 @@ import kh.edu.cstad.stackquizapi.dto.websocket.WebSocketMessage;
  * @author Pech Rattanakmony
  */
 public interface WebSocketService {
+    // Core broadcasting methods
 
-    /** Broadcast a message to all participants in a session. */
-    void broadcastToSession(String sessionId, WebSocketMessage message);
+    void broadcastGameState(String sessionCode, GameStateMessage msg);
+    void broadcastQuestion(String sessionCode, QuestionMessage msg);
+    void broadcastLeaderboard(String sessionCode, LeaderboardMessage msg);
+    void broadcastParticipantUpdate(String sessionCode, ParticipantMessage msg);
+    void broadcastAnswerResult(String sessionCode, AnswerSubmissionMessage msg);
+    void handleParticipantDisconnect(String sessionCode, String nickname);
+    void sendToParticipant(String nickname, String sessionCode, WebSocketMessage msg);
+    void sendToHost(String hostNickname, String sessionCode, WebSocketMessage msg);
+    void sendErrorToParticipant(String nickname, String sessionCode, String errorMessage);
+    // Direct messaging
 
-    /** Send a message to a specific participant. */
-    void sendToParticipant(String participantId, String sessionId, WebSocketMessage message);
 
-    /** Send a message to the session host. */
-    void sendToHost(String hostId, String sessionId, WebSocketMessage message);
-
-    /** Broadcast a question to all participants. */
-    void broadcastQuestion(String sessionId, QuestionMessage questionMessage);
-
-    /** Broadcast leaderboard updates to all participants. */
-    void broadcastLeaderboard(String sessionId, LeaderboardMessage leaderboardMessage);
-
-    /** Broadcast participant status updates to all participants. */
-    void broadcastParticipantUpdate(String sessionId, ParticipantMessage participantMessage);
-
-    /** Broadcast game state changes to all participants. */
-    void broadcastGameState(String sessionId, GameStateMessage gameStateMessage);
-
-    /** Handle participant connection event. */
-    void handleParticipantConnect(String sessionId, String participantId);
-
-    /** Handle participant disconnection event. */
-    void handleParticipantDisconnect(String sessionId, String participantId);
-
-    /** Get active connection count for a session. */
-    int getActiveConnectionCount(String sessionId);
+    //    // Connection management
+    void handleParticipantConnect(String sessionCode, String nickname);
+//    void handleParticipantDisconnect(String sessionCode, String nickname);
+//
+//    // Session lifecycle events
+//    void startSessionWithCountdown(String sessionCode, String hostNickname, int totalQuestions);
+//    void broadcastSessionLobby(String sessionCode, String hostNickname);
+//    void broadcastCountdown(String sessionCode, String hostNickname, int seconds);
+//    void endSession(String sessionCode, String hostNickname);
+//
+//    // Utility methods
+//    int getActiveConnectionCount(String sessionCode);
+//    void cleanupSession(String sessionCode);
 }

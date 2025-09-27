@@ -87,13 +87,13 @@ public class KeycloakSecurityConfig {
                                 ).permitAll()
 
                                 .requestMatchers("/ws/**").permitAll()
-
                                 .requestMatchers("/api/v1/auth/**").permitAll()
 
 //                        // Allow participant public endpoints (joining sessions, submitting answers)
                                 .requestMatchers(HttpMethod.GET, "/api/v1/participants/session/*/can-join").permitAll()
                                 .requestMatchers(HttpMethod.GET, "/api/v1/participants/session/*/nickname-available").permitAll()
                                 .requestMatchers(HttpMethod.POST, "/api/v1/participants/join").permitAll()
+                                .requestMatchers(HttpMethod.POST, "/api/v1/participants/join/").permitAll()
                                 .requestMatchers(HttpMethod.POST, "/api/v1/participants/submit-answer").permitAll()
 
                                 // Allow session join checking (public)
@@ -141,7 +141,7 @@ public class KeycloakSecurityConfig {
                                 .requestMatchers(HttpMethod.PUT, "/api/v1/options/*").hasAnyRole("ORGANIZER", "ADMIN")
                                 .requestMatchers(HttpMethod.DELETE, "/api/v1/options/*").hasAnyRole("ORGANIZER", "ADMIN")
 //
-//                        // Secure reports - ORGANIZER or ADMIN
+                        // Secure reports - ORGANIZER or ADMIN
                                 .requestMatchers("/api/v1/sessions/*/report").hasAnyRole("ORGANIZER", "ADMIN")
                                 .requestMatchers("/api/v1/sessions/reports/*").hasAnyRole("ORGANIZER", "ADMIN")
                                 .requestMatchers("/api/v1/sessions/*/generate-report").hasAnyRole("ORGANIZER", "ADMIN")

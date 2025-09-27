@@ -5,8 +5,12 @@ import kh.edu.cstad.stackquizapi.domain.*;
 import kh.edu.cstad.stackquizapi.dto.request.BulkAnswerRequest;
 import kh.edu.cstad.stackquizapi.dto.request.SubmitAnswerRequest;
 import kh.edu.cstad.stackquizapi.dto.response.ParticipantAnswerResponse;
+import kh.edu.cstad.stackquizapi.dto.websocket.AnswerSubmissionMessage;
+import kh.edu.cstad.stackquizapi.dto.websocket.LeaderboardMessage;
 import kh.edu.cstad.stackquizapi.repository.*;
+import kh.edu.cstad.stackquizapi.service.LeaderboardService;
 import kh.edu.cstad.stackquizapi.service.ParticipantAnswerService;
+import kh.edu.cstad.stackquizapi.service.WebSocketService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -26,43 +30,78 @@ public class ParticipantAnswerServiceImpl implements ParticipantAnswerService {
     private final ParticipantRepository participantRepository;
     private final QuestionRepository questionRepository;
     private final OptionRepository optionRepository;
+    private final LeaderboardService leaderboardService;
+    private final WebSocketService webSocketService;
 
     @Override
     @Transactional
     public ParticipantAnswerResponse submitAnswer(SubmitAnswerRequest request) {
-        log.info("Submitting answer for participant {} on question {}",
-                request.participantId(), request.questionId());
+        log.info("Submitting answer for participant {} on question {}", request.participantId(), request.questionId());
 
         Participant participant = participantRepository.findById(request.participantId())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                        "Participant not found"));
-
+                .orElseThrow(() -> {
+                    sendWsError(request, "Participant not found");
+                    return new ResponseStatusException(HttpStatus.NOT_FOUND, "Participant not found");
+                });
 
         Question question = questionRepository.findById(request.questionId())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                        "Question not found"));
-
+                .orElseThrow(() -> {
+                    sendWsError(request, "Question not found");
+                    return new ResponseStatusException(HttpStatus.NOT_FOUND, "Question not found");
+                });
 
         if (hasAnswered(request.participantId(), request.questionId())) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT,
-                    "Participant has already answered this question");
+            sendWsError(request, "You have already answered this question.");
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Participant has already answered this question");
         }
 
-
         ParticipantAnswer answer = createAnswer(request, participant, question);
-
-
         scoreAnswer(answer, question);
-
-
         ParticipantAnswer savedAnswer = participantAnswerRepository.save(answer);
-
 
         updateParticipantTotalScore(participant);
 
-        log.info("Answer submitted successfully: {}", savedAnswer.getId());
+        // Update leaderboard in real time
+        leaderboardService.updateParticipantScore(
+                participant.getSession().getId(),
+                participant.getId(),
+                participant.getNickname(),
+                participant.getTotalScore()
+        );
 
-        return mapToResponse(savedAnswer);
+        // Broadcast result only to this participant
+        ParticipantAnswerResponse response = mapToResponse(savedAnswer);
+
+        webSocketService.sendToParticipant(
+                participant.getNickname(),
+                participant.getSession().getSessionCode(),
+                new AnswerSubmissionMessage(
+                        participant.getSession().getSessionCode(),
+                        "SYSTEM",
+                        participant.getNickname(),
+                        question.getId(),
+                        answer.getSelectedAnswer() != null ? answer.getSelectedAnswer().getId() : null,
+                        request.timeTaken()
+                )
+        );
+
+        // Broadcast leaderboard update to all (after every answer)
+        webSocketService.broadcastLeaderboard(
+                participant.getSession().getSessionCode(),
+                new LeaderboardMessage(
+                        participant.getSession().getSessionCode(),
+                        "SYSTEM",
+                        leaderboardService.getRealTimeLeaderboard(
+                                // Supply session code and reasonable leaderboard page size
+                                new kh.edu.cstad.stackquizapi.dto.request.LeaderboardRequest(
+                                        participant.getSession().getSessionCode(), 10, 0, false, null)
+                        ),
+                        "SCORE_UPDATE"
+                )
+        );
+
+        log.info("Answer submitted successfully: {}", savedAnswer.getId());
+        return response;
     }
 
     @Override
@@ -72,8 +111,7 @@ public class ParticipantAnswerServiceImpl implements ParticipantAnswerService {
                 request.participantId(), request.sessionId());
 
         Participant participant = participantRepository.findById(request.participantId())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                        "Participant not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Participant not found"));
 
         List<ParticipantAnswerResponse> responses = request.answers().stream()
                 .map(singleAnswer -> {
@@ -88,6 +126,19 @@ public class ParticipantAnswerServiceImpl implements ParticipantAnswerService {
                     return submitAnswer(submitRequest);
                 })
                 .collect(Collectors.toList());
+
+        webSocketService.broadcastLeaderboard(
+                participant.getSession().getSessionCode(),
+                new LeaderboardMessage(
+                        participant.getSession().getSessionCode(),
+                        "SYSTEM",
+                        leaderboardService.getRealTimeLeaderboard(
+                                new kh.edu.cstad.stackquizapi.dto.request.LeaderboardRequest(
+                                        participant.getSession().getSessionCode(), 10, 0, false, null)
+                        ),
+                        "SCORE_UPDATE"
+                )
+        );
 
         log.info("Bulk submission completed: {} answers processed", responses.size());
         return responses;
@@ -107,14 +158,10 @@ public class ParticipantAnswerServiceImpl implements ParticipantAnswerService {
     @Transactional
     public ParticipantAnswerResponse updateAnswer(String answerId, SubmitAnswerRequest request) {
         ParticipantAnswer answer = participantAnswerRepository.findById(answerId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                        "Answer not found"));
-
-
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Answer not found"));
         if (request.optionId() != null) {
             Option option = optionRepository.findById(request.optionId())
-                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                            "Option not found"));
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Option not found"));
             answer.setSelectedAnswer(option);
         }
 
@@ -124,13 +171,10 @@ public class ParticipantAnswerServiceImpl implements ParticipantAnswerService {
 
         answer.setTimeTaken(request.timeTaken());
         answer.setAnsweredAt(LocalDateTime.now());
-
         scoreAnswer(answer, answer.getQuestion());
-
         ParticipantAnswer updatedAnswer = participantAnswerRepository.save(answer);
 
         updateParticipantTotalScore(answer.getParticipant());
-
         return mapToResponse(updatedAnswer);
     }
 
@@ -138,13 +182,32 @@ public class ParticipantAnswerServiceImpl implements ParticipantAnswerService {
     @Transactional
     public void deleteAnswer(String answerId) {
         ParticipantAnswer answer = participantAnswerRepository.findById(answerId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                        "Answer not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Answer not found"));
 
         Participant participant = answer.getParticipant();
         participantAnswerRepository.delete(answer);
 
         updateParticipantTotalScore(participant);
+
+        // After deletion, update leaderboard in real time
+        leaderboardService.updateParticipantScore(
+                participant.getSession().getId(),
+                participant.getId(),
+                participant.getNickname(),
+                participant.getTotalScore()
+        );
+        webSocketService.broadcastLeaderboard(
+                participant.getSession().getSessionCode(),
+                new LeaderboardMessage(
+                        participant.getSession().getSessionCode(),
+                        "SYSTEM",
+                        leaderboardService.getRealTimeLeaderboard(
+                                new kh.edu.cstad.stackquizapi.dto.request.LeaderboardRequest(
+                                        participant.getSession().getSessionCode(), 10, 0, false, null)
+                        ),
+                        "SCORE_UPDATE"
+                )
+        );
 
         log.info("Answer deleted: {}", answerId);
     }
@@ -158,9 +221,7 @@ public class ParticipantAnswerServiceImpl implements ParticipantAnswerService {
     public ParticipantAnswerResponse getParticipantQuestionAnswer(String participantId, String questionId) {
         ParticipantAnswer answer = participantAnswerRepository
                 .findByParticipantIdAndQuestionId(participantId, questionId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                        "Answer not found"));
-
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Answer not found"));
         return mapToResponse(answer);
     }
 
@@ -174,7 +235,6 @@ public class ParticipantAnswerServiceImpl implements ParticipantAnswerService {
                 .sum();
     }
 
-
     private ParticipantAnswer createAnswer(SubmitAnswerRequest request, Participant participant, Question question) {
         ParticipantAnswer answer = new ParticipantAnswer();
         answer.setParticipant(participant);
@@ -182,18 +242,15 @@ public class ParticipantAnswerServiceImpl implements ParticipantAnswerService {
         answer.setTimeTaken(request.timeTaken());
         answer.setAnsweredAt(LocalDateTime.now());
 
-
         if (request.optionId() != null) {
             Option option = optionRepository.findById(request.optionId())
-                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                            "Option not found"));
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Option not found"));
             answer.setSelectedAnswer(option);
         }
 
         if (request.answerText() != null && !request.answerText().trim().isEmpty()) {
             answer.setAnswerText(request.answerText().trim());
         }
-
         return answer;
     }
 
@@ -212,7 +269,6 @@ public class ParticipantAnswerServiceImpl implements ParticipantAnswerService {
             }
             case FILL_THE_BLANK -> {
                 if (answer.getAnswerText() != null && !answer.getAnswerText().trim().isEmpty()) {
-
                     isCorrect = checkFillInTheBlankAnswer(answer.getAnswerText(), question);
                     if (isCorrect) {
                         pointsEarned = question.getPoints();
@@ -220,18 +276,13 @@ public class ParticipantAnswerServiceImpl implements ParticipantAnswerService {
                 }
             }
         }
-
         answer.setIsCorrect(isCorrect);
         answer.setPointsEarned(pointsEarned);
     }
 
     private boolean checkFillInTheBlankAnswer(String answerText, Question question) {
         // Implement your fill-in-the-blank validation logic here
-        // This could involve checking against stored correct answers,
-        // fuzzy matching, or other validation rules
-
         // For now, this is a placeholder that always returns false
-        // You should implement proper validation based on your requirements
         return false;
     }
 
@@ -258,5 +309,19 @@ public class ParticipantAnswerServiceImpl implements ParticipantAnswerService {
                 .answeredAt(answer.getAnsweredAt())
                 .sessionId(answer.getParticipant().getSession().getId())
                 .build();
+    }
+
+    // Helper to send error via websocket for REST error flows
+    private void sendWsError(SubmitAnswerRequest request, String errorMessage) {
+        try {
+            Participant participant = participantRepository.findById(request.participantId()).orElse(null);
+            if (participant != null) {
+                webSocketService.sendErrorToParticipant(
+                        participant.getNickname(),
+                        participant.getSession().getSessionCode(),
+                        errorMessage
+                );
+            }
+        } catch (Exception ignored) { }
     }
 }

@@ -11,18 +11,16 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 public class ParticipantMessage extends WebSocketMessage {
-
     private List<ParticipantResponse> participants;
-
     private Integer totalParticipants;
-
     private String action;
 
-    public ParticipantMessage(String sessionId, String senderId, List<ParticipantResponse> participants,
+    public ParticipantMessage(String sessionId, String senderNickname, List<ParticipantResponse> participants,
                               Integer totalParticipants, String action) {
-        super("PARTICIPANT", sessionId, senderId);
+        super("PARTICIPANT", sessionId, senderNickname);
         this.participants = participants;
         this.totalParticipants = totalParticipants;
         this.action = action;
     }
 }
+

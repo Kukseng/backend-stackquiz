@@ -1,5 +1,6 @@
 package kh.edu.cstad.stackquizapi.dto.websocket;
 
+import kh.edu.cstad.stackquizapi.domain.Question;
 import kh.edu.cstad.stackquizapi.dto.response.QuestionResponse;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -9,15 +10,10 @@ import lombok.NoArgsConstructor;
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 public class QuestionMessage extends WebSocketMessage {
-
     private QuestionResponse question;
-
     private Integer questionNumber;
-
     private Integer totalQuestions;
-
     private Integer timeLimit;
-
     private String action;
 
     public QuestionMessage(String sessionId, String senderId, QuestionResponse question,
@@ -28,5 +24,8 @@ public class QuestionMessage extends WebSocketMessage {
         this.totalQuestions = totalQuestions;
         this.timeLimit = timeLimit;
         this.action = action;
+    }
+
+    public QuestionMessage(String sessionId, String hostName, Question question, int questionNumber, int totalQuestions, int timeLimit, String startQuestion) {
     }
 }

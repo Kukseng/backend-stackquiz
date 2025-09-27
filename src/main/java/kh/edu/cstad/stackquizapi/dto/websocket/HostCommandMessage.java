@@ -1,3 +1,4 @@
+
 package kh.edu.cstad.stackquizapi.dto.websocket;
 
 import lombok.Data;
@@ -8,17 +9,15 @@ import lombok.NoArgsConstructor;
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 public class HostCommandMessage extends WebSocketMessage {
-
     private String command;
-
-    private String hostId;
-
+    private String hostNickname;
     private Object commandData;
 
-    public HostCommandMessage(String sessionId, String senderId, String command, String hostId, Object commandData) {
-        super("HOST_COMMAND", sessionId, senderId);
+    public HostCommandMessage(String sessionId, String senderNickname, String command, String hostNickname, Object commandData) {
+        super("HOST_COMMAND", sessionId, senderNickname);
         this.command = command;
-        this.hostId = hostId;
+        this.hostNickname = hostNickname;
         this.commandData = commandData;
     }
 }
+

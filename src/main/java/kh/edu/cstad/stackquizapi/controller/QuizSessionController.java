@@ -3,12 +3,12 @@ package kh.edu.cstad.stackquizapi.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
-import jakarta.validation.Valid;
 import kh.edu.cstad.stackquizapi.domain.Question;
 import kh.edu.cstad.stackquizapi.domain.QuizSession;
 import kh.edu.cstad.stackquizapi.dto.request.SessionCreateRequest;
 import kh.edu.cstad.stackquizapi.dto.response.SessionResponse;
 import kh.edu.cstad.stackquizapi.service.QuizSessionService;
+//import kh.edu.cstad.stackquizapi.service.QuizSessionServiceExtended;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -24,12 +24,13 @@ import java.util.Optional;
 public class QuizSessionController {
 
     private final QuizSessionService quizSessionService;
+//    private final QuizSessionServiceExtended quizSessionServiceExtended;
 
     @Operation(summary = "Get all users (secured)",
             security = { @SecurityRequirement(name = "bearerAuth") })
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping
-    public SessionResponse createSession(@Valid @RequestBody SessionCreateRequest request,
+    public SessionResponse createSession(@RequestBody SessionCreateRequest request,
                                          @AuthenticationPrincipal Jwt accessToken) {
         return quizSessionService.createSession(request, accessToken);
     }

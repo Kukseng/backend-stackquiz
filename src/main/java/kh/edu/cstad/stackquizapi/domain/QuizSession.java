@@ -19,6 +19,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.Type;
 
+import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -45,6 +46,8 @@ public class QuizSession {
 
     @Column(nullable = false, length = 10)
     private String sessionCode;
+
+    private Boolean allowJoinInProgress = false;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

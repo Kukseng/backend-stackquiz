@@ -22,6 +22,6 @@ public record QuestionResponse(
 
         String imageUrl,
 
-        List<Option> options
+        List<OptionResponse> options
 ) {
 }

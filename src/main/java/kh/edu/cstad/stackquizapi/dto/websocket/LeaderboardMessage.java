@@ -9,13 +9,11 @@ import lombok.NoArgsConstructor;
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 public class LeaderboardMessage extends WebSocketMessage {
-
     private LeaderboardResponse leaderboard;
-
     private String updateType;
 
-    public LeaderboardMessage(String sessionId, String senderId, LeaderboardResponse leaderboard, String updateType) {
-        super("LEADERBOARD", sessionId, senderId);
+    public LeaderboardMessage(String sessionId, String senderNickname, LeaderboardResponse leaderboard, String updateType) {
+        super("LEADERBOARD", sessionId, senderNickname);
         this.leaderboard = leaderboard;
         this.updateType = updateType;
     }
