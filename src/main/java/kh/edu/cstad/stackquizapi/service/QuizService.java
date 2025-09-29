@@ -17,7 +17,7 @@ public interface QuizService {
 
     QuizResponse updateQuiz(String QuizId, QuizUpdate quizUpdate, Jwt accessToken);
 
-    boolean deleteQuiz(String quizId);
+    void deleteQuiz(String quizId, Jwt accessToken);
 
     List<QuizResponse> getQuizByUser(Jwt accessToken);
 

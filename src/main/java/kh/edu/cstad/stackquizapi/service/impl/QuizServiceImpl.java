@@ -115,8 +115,16 @@ public class QuizServiceImpl implements QuizService {
     }
 
     @Override
-    public boolean deleteQuiz(String quizId) {
+    public boolean deleteQuiz(String quizId, Jwt accessToken) {
+
+        String userId = accessToken.getSubject();
+
+        if (!userRepository.existsById(userId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "User not found");
+        }
+
         return quizRepository.findById(quizId)
+                .filter(quiz -> quiz.getUser().getId().equals(userId))
                 .map(quiz -> {
                     quiz.setIsActive(false);
                     quizRepository.save(quiz);

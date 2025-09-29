@@ -58,7 +58,7 @@ public class QuizController {
     @DeleteMapping("/{quizId}")
     public void deleteQuiz(@PathVariable String quizId,
                            @AuthenticationPrincipal Jwt accessToken) {
-        quizService.deleteQuiz(quizId);
+        quizService.deleteQuiz(quizId, accessToken);
     }
 
     @Operation(summary = "Get quizzes created by the authenticated user", security = { @SecurityRequirement(name = "bearerAuth") })
