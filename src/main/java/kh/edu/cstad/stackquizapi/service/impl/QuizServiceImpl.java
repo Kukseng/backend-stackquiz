@@ -23,6 +23,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.List;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -79,7 +80,7 @@ public class QuizServiceImpl implements QuizService {
                 .findById(quizId)
                 .map(quizMapper::toQuizResponse)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                "Quiz not found"));
+                        "Quiz not found"));
 
     }
 
@@ -115,7 +116,7 @@ public class QuizServiceImpl implements QuizService {
     }
 
     @Override
-    public boolean deleteQuiz(String quizId, Jwt accessToken) {
+    public void deleteQuiz(String quizId, Jwt accessToken) {
 
         String userId = accessToken.getSubject();
 
@@ -123,7 +124,7 @@ public class QuizServiceImpl implements QuizService {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "User not found");
         }
 
-        return quizRepository.findById(quizId)
+        quizRepository.findById(quizId)
                 .filter(quiz -> quiz.getUser().getId().equals(userId))
                 .map(quiz -> {
                     quiz.setIsActive(false);
@@ -144,4 +145,5 @@ public class QuizServiceImpl implements QuizService {
         return quizRepository.findByUserId(user.getId()).stream()
                 .map(quizMapper::toQuizResponse).toList();
     }
+
 }
