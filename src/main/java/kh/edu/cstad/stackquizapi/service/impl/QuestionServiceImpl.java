@@ -63,6 +63,7 @@ public class QuestionServiceImpl implements QuestionService {
             Question question = questionMapper.fromCreateQuestionRequest(createQuestionRequest);
 
             question.setQuiz(quiz);
+            question.setPoints(10);
             question.setTimeLimit(timeLimit);
             question.setQuestionOrder(nextOrder);
             question.setCreatedAt(Timestamp.valueOf(LocalDateTime.now()));

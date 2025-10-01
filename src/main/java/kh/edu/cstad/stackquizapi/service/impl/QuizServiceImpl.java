@@ -6,8 +6,6 @@ import kh.edu.cstad.stackquizapi.domain.QuizCategory;
 import kh.edu.cstad.stackquizapi.domain.User;
 import kh.edu.cstad.stackquizapi.dto.request.CreateQuizRequest;
 import kh.edu.cstad.stackquizapi.dto.request.QuizUpdate;
-import kh.edu.cstad.stackquizapi.dto.response.OptionResponse;
-import kh.edu.cstad.stackquizapi.dto.response.QuestionResponse;
 import kh.edu.cstad.stackquizapi.dto.response.QuizResponse;
 import kh.edu.cstad.stackquizapi.mapper.QuizMapper;
 import kh.edu.cstad.stackquizapi.repository.CategoryRepository;
@@ -145,5 +143,4 @@ public class QuizServiceImpl implements QuizService {
         return quizRepository.findByUserId(user.getId()).stream()
                 .map(quizMapper::toQuizResponse).toList();
     }
-
 }
