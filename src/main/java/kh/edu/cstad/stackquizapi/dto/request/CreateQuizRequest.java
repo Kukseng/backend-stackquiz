@@ -2,6 +2,7 @@ package kh.edu.cstad.stackquizapi.dto.request;
 
 import jakarta.validation.constraints.*;
 import kh.edu.cstad.stackquizapi.util.QuizDifficultyType;
+import kh.edu.cstad.stackquizapi.util.QuizStatus;
 import kh.edu.cstad.stackquizapi.util.TimeLimitRangeInSecond;
 
 import java.util.List;
@@ -20,6 +21,9 @@ public record CreateQuizRequest(
         @NotBlank(message = "Visibility is required")
         @Pattern(regexp = "PUBLIC|UNLISTED|PRIVATE", message = "Visibility must be either PUBLIC, UNLISTED or PRIVATE")
         String visibility,
+
+        @NotNull(message = "Status is required")
+        QuizStatus status,
 
         @NotNull(message = "Question time limit must be provided")
         TimeLimitRangeInSecond questionTimeLimit,

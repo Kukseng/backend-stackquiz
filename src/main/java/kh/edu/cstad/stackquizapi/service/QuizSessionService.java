@@ -30,7 +30,7 @@ public interface QuizSessionService {
     Optional<QuizSession> getSessionByCode(String sessionCode);
 
     List<QuizSession> getCurrentUserQuizSession(Jwt accessToken);
-    void pauseSession(String sessionId);
 
+    void pauseSession(String sessionId);
 
 }

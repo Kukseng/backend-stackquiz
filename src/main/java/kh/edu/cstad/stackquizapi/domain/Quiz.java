@@ -2,6 +2,7 @@ package kh.edu.cstad.stackquizapi.domain;
 
 import jakarta.persistence.*;
 import kh.edu.cstad.stackquizapi.util.QuizDifficultyType;
+import kh.edu.cstad.stackquizapi.util.QuizStatus;
 import kh.edu.cstad.stackquizapi.util.TimeLimitRangeInSecond;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -46,6 +47,10 @@ public class Quiz {
     @Column(nullable = false)
     private QuizDifficultyType difficulty;
 
+//    @Enumerated(EnumType.STRING)
+//    @Column(nullable=false)
+    private QuizStatus status;
+
     @Column(nullable = false)
     private Boolean isActive = true;
 
@@ -55,7 +60,6 @@ public class Quiz {
 
     @LastModifiedDate
     private LocalDateTime updatedAt;
-
 
     @OneToMany(mappedBy = "quiz", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private List<QuizCategory> quizCategories = new ArrayList<>();

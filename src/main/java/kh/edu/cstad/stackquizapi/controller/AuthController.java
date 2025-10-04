@@ -5,10 +5,10 @@ import kh.edu.cstad.stackquizapi.dto.request.LoginRequest;
 
 import kh.edu.cstad.stackquizapi.dto.request.OAuthRegisterRequest;
 import kh.edu.cstad.stackquizapi.dto.request.RegisterRequest;
-import kh.edu.cstad.stackquizapi.dto.request.ResetPasswordRequest;
 import kh.edu.cstad.stackquizapi.dto.response.LoginResponse;
 import kh.edu.cstad.stackquizapi.dto.response.RegisterResponse;
 import kh.edu.cstad.stackquizapi.exception.ApiResponse;
+import kh.edu.cstad.stackquizapi.repository.UserRepository;
 import kh.edu.cstad.stackquizapi.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,9 +22,8 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
+import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Mono;
-
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -34,6 +33,8 @@ public class AuthController {
 
     private final AuthService authService;
     private final WebClient webClient;
+
+    private final UserRepository userRepository;
 
     @Value("${keycloak.token-url}")
     private String keycloakTokenUrl;
@@ -63,6 +64,11 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<LoginResponse>> login(
             @Valid @RequestBody LoginRequest request) {
+
+        if (!userRepository.existsByUsernameAndIsDeletedFalse(request.username())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                    "Your account has been disabled. Please contact support.");
+        }
 
         try {
             Mono<LoginResponse> tokenMono = webClient.post()

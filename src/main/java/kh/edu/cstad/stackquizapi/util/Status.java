@@ -9,6 +9,8 @@ public enum Status {
     ENDED,
 
     LIVE,
+
     PAUSED,
+
     COMPLETED
 }
