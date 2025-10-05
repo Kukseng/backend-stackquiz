@@ -65,7 +65,7 @@ public class AuthController {
     public ResponseEntity<ApiResponse<LoginResponse>> login(
             @Valid @RequestBody LoginRequest request) {
 
-        if (!userRepository.existsByUsernameAndIsDeletedFalse(request.username())) {
+        if (userRepository.existsByUsernameAndIsDeletedTrue(request.username())) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN,
                     "Your account has been disabled. Please contact support.");
         }
