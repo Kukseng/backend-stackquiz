@@ -1,10 +1,9 @@
 package kh.edu.cstad.stackquizapi.dto.response;
 
-import jakarta.validation.constraints.NotBlank;
-import kh.edu.cstad.stackquizapi.domain.QuizCategory;
 import kh.edu.cstad.stackquizapi.util.QuizDifficultyType;
+import kh.edu.cstad.stackquizapi.util.QuizStatus;
+import kh.edu.cstad.stackquizapi.util.TimeLimitRangeInSecond;
 import kh.edu.cstad.stackquizapi.util.VisibilityType;
-import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -22,13 +21,17 @@ public record QuizResponse(
 
         VisibilityType visibility,
 
+        QuizStatus status,
+
+        TimeLimitRangeInSecond questionTimeLimit,
+
         LocalDateTime createdAt,
 
         QuizDifficultyType difficulty,
 
         LocalDateTime updatedAt,
-        List<QuestionResponse> questions
 
+        List<QuestionResponse> questions
 
 ) {
 }
