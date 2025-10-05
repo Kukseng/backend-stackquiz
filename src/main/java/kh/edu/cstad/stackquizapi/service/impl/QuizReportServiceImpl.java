@@ -51,7 +51,7 @@ public class QuizReportServiceImpl implements QuizReportService {
         quizReportRepository.save(report);
 
         long reportCount = quizReportRepository.countByQuiz(quiz);
-        long REPORT_THRESHOLD = 3;
+        long REPORT_THRESHOLD = 5;
 
         if (reportCount >= REPORT_THRESHOLD) {
             quiz.setFlagged(true);
