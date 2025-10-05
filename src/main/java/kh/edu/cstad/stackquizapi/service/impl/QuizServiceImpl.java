@@ -50,6 +50,7 @@ public class QuizServiceImpl implements QuizService {
 
         Quiz quiz = quizMapper.toQuizRequest(createQuizRequest);
         quiz.setUser(user);
+        quiz.setFlagged(false);
         quiz.setCreatedAt(LocalDateTime.now());
         quiz.setUpdatedAt(LocalDateTime.now());
         quiz.setIsActive(true);

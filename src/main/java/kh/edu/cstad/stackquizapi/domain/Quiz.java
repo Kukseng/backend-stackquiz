@@ -16,7 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "quiz")
+@Table(name = "quizzes")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -47,12 +47,15 @@ public class Quiz {
     @Column(nullable = false)
     private QuizDifficultyType difficulty;
 
-//    @Enumerated(EnumType.STRING)
-//    @Column(nullable=false)
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private QuizStatus status;
 
     @Column(nullable = false)
     private Boolean isActive = true;
+
+    @Column(nullable = false)
+    private Boolean flagged;
 
     @CreatedDate
     @Column(updatable = false)
@@ -76,5 +79,8 @@ public class Quiz {
 
     @OneToMany
     private List<Rating> ratings;
+
+    @OneToMany(mappedBy = "quiz")
+    private List<QuizReport> quizReports;
 
 }

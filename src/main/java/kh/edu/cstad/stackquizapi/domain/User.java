@@ -64,5 +64,8 @@ public class User {
     @OneToMany(mappedBy = "host")
     private List<QuizSession> quizSessions;
 
+    @OneToMany(mappedBy = "user")
+    private List<QuizReport> quizReports;
+
 }
 
