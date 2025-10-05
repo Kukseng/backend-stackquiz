@@ -111,8 +111,13 @@ public class RatingServiceImpl implements RatingService {
 
     @Override
     public void deleteRating(String quizId, Jwt accessToken) {
-
         String userId = accessToken.getSubject();
+
+        if(!quizRepository.existsById(quizId)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+                    "Quiz ID not exist");
+        }
+
         ratingRepository.deleteByQuizIdAndUserId(quizId, userId);
     }
 }

@@ -12,6 +12,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import kh.edu.cstad.stackquizapi.util.QuizMode;
 import kh.edu.cstad.stackquizapi.util.Status;
 import io.hypersistence.utils.hibernate.type.json.JsonType;
 import lombok.Getter;
@@ -47,8 +48,6 @@ public class QuizSession {
     @Column(nullable = false, length = 10)
     private String sessionCode;
 
-    private Boolean allowJoinInProgress = false;
-
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Status status;
@@ -70,6 +69,9 @@ public class QuizSession {
     @OneToMany(mappedBy = "session")
     private List<Participant> participants;
 
+    @Enumerated(EnumType.STRING)
+    private QuizMode mode;
+
     @ManyToOne
     @JoinColumn(name = "host_id", nullable = false)
     private User host;
@@ -78,4 +80,94 @@ public class QuizSession {
     @Column(columnDefinition = "jsonb")
     private JsonNode leaderboardData;
 
+    @Column(name = "scheduled_start_time")
+    private LocalDateTime scheduledStartTime;
+
+    @Column(name = "scheduled_end_time")
+    private LocalDateTime scheduledEndTime;
+
+    @Column(name = "default_question_time_limit")
+    private Integer defaultQuestionTimeLimit = 30;
+
+    @Column(name = "session_time_limit")
+    private Integer sessionTimeLimit; // Total session time limit in minutes
+
+    // Participation Settings
+    @Column(name = "max_attempts")
+    private Integer maxAttempts = 1;
+
+    @Column(name = "max_participants")
+    private Integer maxParticipants = 100;
+
+    @Column(name = "allow_join_in_progress")
+    private Boolean allowJoinInProgress = false;
+
+    // Quiz Behavior Settings
+    @Column(name = "shuffle_questions")
+    private Boolean shuffleQuestions = false;
+
+    @Column(name = "show_correct_answers")
+    private Boolean showCorrectAnswers = true;
+
+
+    // Display Settings
+    @Column(name = "show_leaderboard")
+    private Boolean showLeaderboard = true;
+
+    @Column(name = "show_progress")
+    private Boolean showProgress = true;
+
+    @Column(name = "play_sound")
+    private Boolean playSound = true;
+
+    @Column(name = "is_public")
+    private Boolean isPublic = true;
+
+    @Column(name = "completion_rate")
+    private Double completionRate = 0.0;
+
+    @Column(name = "average_score")
+    private Double averageScore = 0.0;
+
+    // Session Statistics (calculated fields)
+    @Column(name = "total_answers")
+    private Integer totalAnswers = 0;
+
+    @Column(name = "correct_answers")
+    private Integer correctAnswers = 0;
+
+    // Convenience methods for business logic
+    public boolean isScheduled() {
+        return scheduledStartTime != null;
+    }
+
+    public boolean canStart() {
+        if (scheduledStartTime == null) return true;
+        return LocalDateTime.now().isAfter(scheduledStartTime) || LocalDateTime.now().isEqual(scheduledStartTime);
+    }
+
+    public boolean isExpired() {
+        if (scheduledEndTime == null) return false;
+        return LocalDateTime.now().isAfter(scheduledEndTime);
+    }
+
+    public boolean canJoin() {
+        return status == Status.WAITING ||
+                (status == Status.IN_PROGRESS && Boolean.TRUE.equals(allowJoinInProgress));
+    }
+
+    public boolean isAtCapacity() {
+        return totalParticipants >= maxParticipants;
+    }
+
+    public void updateStatistics(int totalAnswers, int correctAnswers, double averageScore) {
+        this.totalAnswers = totalAnswers;
+        this.correctAnswers = correctAnswers;
+        this.averageScore = averageScore;
+
+        if (totalQuestions != null && totalParticipants > 0) {
+            int expectedAnswers = totalQuestions * totalParticipants;
+            this.completionRate = expectedAnswers > 0 ? (double) totalAnswers / expectedAnswers * 100 : 0.0;
+        }
+    }
 }

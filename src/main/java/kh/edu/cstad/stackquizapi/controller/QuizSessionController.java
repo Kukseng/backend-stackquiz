@@ -38,27 +38,26 @@ public class QuizSessionController {
     @Operation(summary = "Get all users (secured)",
             security = { @SecurityRequirement(name = "bearerAuth") })
     @ResponseStatus(HttpStatus.CREATED)
-    @PutMapping("/{sessionId}/start")
-    public SessionResponse startSession(@PathVariable String sessionId) {
-        return quizSessionService.startSession(sessionId);
+    @PutMapping("/{sessionCode}/start")
+    public void startSession(@PathVariable String sessionCode) {
+        quizSessionService.startSession(sessionCode);
     }
 
     @Operation(summary = "Get all users (secured)",
             security = { @SecurityRequirement(name = "bearerAuth") })
     @ResponseStatus(HttpStatus.CREATED)
-    @PutMapping("/{sessionId}/end")
-    SessionResponse endSession(@PathVariable String sessionId) {
-        return quizSessionService.endSession(sessionId);
+    @PutMapping("/{sessionCode}/end")
+    SessionResponse endSession(@PathVariable String sessionCode) {
+        return quizSessionService.endSession(sessionCode);
     }
 
     @Operation(summary = "Get all users (secured)",
             security = { @SecurityRequirement(name = "bearerAuth") })
     @ResponseStatus(HttpStatus.CREATED)
-    @PutMapping("/{sessionId}/next-question")
-    public Question toNextQuestion(@PathVariable String sessionId) {
-        return quizSessionService.advanceToNextQuestion(sessionId);
+    @PutMapping("/{sessionCode}/next-question")
+    public Question toNextQuestion(@PathVariable String sessionCode) {
+        return quizSessionService.advanceToNextQuestion(sessionCode);
     }
-
 
     @Operation(summary = "Get all users (secured)",
             security = { @SecurityRequirement(name = "bearerAuth") })

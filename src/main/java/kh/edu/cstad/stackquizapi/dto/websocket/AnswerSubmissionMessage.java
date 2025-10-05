@@ -8,25 +8,49 @@ import lombok.NoArgsConstructor;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
-
 @NoArgsConstructor
 public class AnswerSubmissionMessage extends WebSocketMessage {
-    private String participantNickname;
+
+    @NotNull
+    private String participantId; // Backend uses this for unique identification
+
+    private String participantNickname; // Optional, for display in frontend
+
+    @NotNull
     private String questionId;
+
+    @NotNull
     private String selectedOptionId;
+
+    @NotNull
+    @Min(value = 0, message = "Response time must be non-negative")
     private Long responseTime;
+
     private Boolean isCorrect;
     private Integer pointsEarned;
 
-    public AnswerSubmissionMessage(String sessionId, String senderNickname, String participantNickname,
-                                   String questionId, String selectedOptionId, Long responseTime) {
+    public AnswerSubmissionMessage(String sessionId, String senderNickname, String participantId,
+                                   String participantNickname, String questionId,
+                                   String selectedOptionId, Long responseTime) {
         super("ANSWER_SUBMISSION", sessionId, senderNickname);
+        this.participantId = participantId;
         this.participantNickname = participantNickname;
         this.questionId = questionId;
         this.selectedOptionId = selectedOptionId;
         this.responseTime = responseTime;
     }
 
-    public AnswerSubmissionMessage(String sessionCode, String system, String nickname, String id, String selectedOptionId, @NotNull(message = "Time taken is required") @Min(value = 0, message = "Time taken must be non-negative") Integer integer) {
+    public AnswerSubmissionMessage(String sessionId, String senderNickname, String participantId,
+                                   String participantNickname, String questionId,
+                                   String selectedOptionId, Long responseTime,
+                                   Boolean isCorrect, Integer pointsEarned) {
+        super("ANSWER_SUBMISSION", sessionId, senderNickname);
+        this.participantId = participantId;
+        this.participantNickname = participantNickname;
+        this.questionId = questionId;
+        this.selectedOptionId = selectedOptionId;
+        this.responseTime = responseTime;
+        this.isCorrect = isCorrect;
+        this.pointsEarned = pointsEarned;
     }
 }

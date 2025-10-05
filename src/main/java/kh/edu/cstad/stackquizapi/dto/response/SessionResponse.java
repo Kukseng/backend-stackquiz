@@ -4,28 +4,28 @@ import java.time.LocalDateTime;
 
 public record SessionResponse(
 
-         String id,
+        String id,
 
-         String sessionName,
+        String sessionName,
 
-         String sessionCode,
+        String sessionCode,
 
-         String status,
+        String status,
 
-         Integer currentQuestion,
+        Integer currentQuestion,
 
-         LocalDateTime startTime,
+        LocalDateTime startTime,
 
-         LocalDateTime endTime,
+        LocalDateTime endTime,
 
-         LocalDateTime createdAt,
+        LocalDateTime createdAt,
 
-         String quizTitle,
+        String quizTitle,
 
-         Integer totalQuestions,
+        Integer totalQuestions,
 
-         String hostName,
+        String hostName,
 
-         Integer participantCount
+        Integer participantCount
 ) {
 }

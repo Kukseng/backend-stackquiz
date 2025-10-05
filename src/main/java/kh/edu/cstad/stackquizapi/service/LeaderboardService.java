@@ -16,9 +16,6 @@ public interface LeaderboardService {
 
     LeaderboardResponse getPodium(String sessionId);
 
-    void updateParticipantScore(String sessionId, String participantId,
-                                String nickname, int newScore);
-
     void removeParticipant(String sessionId, String participantId);
 
     // Historical operations (Database-based)
@@ -32,7 +29,7 @@ public interface LeaderboardService {
     void finalizeSessionLeaderboard(String sessionId);
 
     void clearSessionLeaderboard(String sessionId);
-
+    void updateParticipantScore(String sessionId, String participantId, String nickname, int newScore);
     // Analytics
     SessionStats getSessionStatistics(String sessionId);
 }

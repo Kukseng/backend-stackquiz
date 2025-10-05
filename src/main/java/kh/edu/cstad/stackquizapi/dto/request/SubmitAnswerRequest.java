@@ -18,7 +18,7 @@ public record SubmitAnswerRequest(
 
         @NotNull(message = "Time taken is required")
         @Min(value = 0, message = "Time taken must be non-negative")
-        Integer timeTaken,
+        Long timeTaken,
 
         String sessionId
 

@@ -1,28 +1,25 @@
 package kh.edu.cstad.stackquizapi.service.impl;
 
-import kh.edu.cstad.stackquizapi.domain.Participant;
-import kh.edu.cstad.stackquizapi.domain.Question;
-import kh.edu.cstad.stackquizapi.domain.Quiz;
-import kh.edu.cstad.stackquizapi.domain.QuizSession;
-import kh.edu.cstad.stackquizapi.domain.User;
+import jakarta.ws.rs.NotFoundException;
+import kh.edu.cstad.stackquizapi.domain.*;
 import kh.edu.cstad.stackquizapi.dto.request.LeaderboardRequest;
 import kh.edu.cstad.stackquizapi.dto.request.SessionCreateRequest;
 import kh.edu.cstad.stackquizapi.dto.response.LeaderboardResponse;
 import kh.edu.cstad.stackquizapi.dto.response.ParticipantResponse;
 import kh.edu.cstad.stackquizapi.dto.response.SessionResponse;
-import kh.edu.cstad.stackquizapi.dto.websocket.GameStateMessage;
-import kh.edu.cstad.stackquizapi.dto.websocket.LeaderboardMessage;
-import kh.edu.cstad.stackquizapi.dto.websocket.ParticipantMessage;
-import kh.edu.cstad.stackquizapi.dto.websocket.QuestionMessage;
+import kh.edu.cstad.stackquizapi.dto.websocket.*;
 import kh.edu.cstad.stackquizapi.mapper.ParticipantMapper;
 import kh.edu.cstad.stackquizapi.mapper.QuizSessionMapper;
 import kh.edu.cstad.stackquizapi.repository.*;
 import kh.edu.cstad.stackquizapi.service.LeaderboardService;
 import kh.edu.cstad.stackquizapi.service.QuizSessionService;
 import kh.edu.cstad.stackquizapi.service.WebSocketService;
+import kh.edu.cstad.stackquizapi.util.QuizMode;
 import kh.edu.cstad.stackquizapi.util.Status;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -31,10 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -43,153 +37,44 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class QuizSessionServiceImpl implements QuizSessionService {
+public class QuizSessionServiceImpl implements QuizSessionService, DisposableBean {
 
     private final QuizSessionRepository quizSessionRepository;
     private final QuizRepository quizRepository;
     private final QuestionRepository questionRepository;
+    private final ParticipantAnswerRepository participantAnswerRepository;
     private final ParticipantRepository participantRepository;
     private final UserRepository userRepository;
     private final QuizSessionMapper quizSessionMapper;
     private final ParticipantMapper participantMapper;
     private final LeaderboardService leaderboardService;
-    private final WebSocketService webSocketService;;
+    private final WebSocketService webSocketService;
+    private final AvatarRepository avatarRepository;
     private final RedisTemplate<String, String> redisTemplate;
 
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(8);
 
-    private static final String ANSWERS_KEY_PREFIX = "quiz:answers:";
-    private static final String TIMER_KEY_PREFIX = "quiz:timer:";
+    @Value("${quiz.default.time-limit:30}")
+    private int defaultTimeLimit;
 
-    private final boolean autoPlayEnabled = true;
+    private static final String PARTICIPANT_PROGRESS_PREFIX = "participant:progress:";
+    private static final String SESSION_QUESTIONS_PREFIX = "session:questions:";
+    private static final String QUESTION_START_TIME_PREFIX = "question:start:";
+    private static final String SESSION_ACTIVE_PREFIX = "session:active:";
 
-    @Transactional
-    public void showQuestionAndStartTimer(String sessionId, String questionId, int questionNumber, int totalQuestions, String hostName, Question question) {
-        String answersKey = ANSWERS_KEY_PREFIX + sessionId + ":" + questionId;
-        redisTemplate.delete(answersKey);
-
-        int timeLimit = question.getTimeLimit() != null ? question.getTimeLimit() : 30;
-
-        // Broadcast question via WebSocket
-        QuestionMessage qMsg = new QuestionMessage(
-                sessionId,
-                hostName,
-                question,
-                questionNumber,
-                totalQuestions,
-                timeLimit,
-                "START_QUESTION"
-        );
-        webSocketService.broadcastQuestion(sessionId, qMsg);
-
-        // Arm timer for this question
-        if (autoPlayEnabled) {
-            String timerKey = TIMER_KEY_PREFIX + sessionId + ":" + questionId;
-            redisTemplate.opsForValue().set(timerKey, "active", timeLimit, TimeUnit.SECONDS);
-
-            scheduler.schedule(() -> {
-                String status = redisTemplate.opsForValue().get(timerKey);
-                if ("active".equals(status)) {
-                    autoAdvanceToNextQuestion(sessionId);
-                    redisTemplate.delete(timerKey);
-                }
-            }, timeLimit, TimeUnit.SECONDS);
-        }
-    }
-
-    @Transactional
-    public void trackAnswerAndAutoAdvance(String sessionId, String questionId, String participantId) {
-        String answersKey = ANSWERS_KEY_PREFIX + sessionId + ":" + questionId;
-        redisTemplate.opsForSet().add(answersKey, participantId);
-
-        long answered = redisTemplate.opsForSet().size(answersKey);
-        long participantCount = participantRepository.countBySessionIdAndIsActiveTrue(sessionId);
-
-        if (autoPlayEnabled && answered >= participantCount) {
-            String timerKey = TIMER_KEY_PREFIX + sessionId + ":" + questionId;
-            redisTemplate.delete(timerKey); // stops timer
-            autoAdvanceToNextQuestion(sessionId);
-        }
-    }
-
-    // Synchronized to prevent concurrent triggers
-    @Transactional
-    public synchronized void autoAdvanceToNextQuestion(String sessionId) {
-        QuizSession session = quizSessionRepository.findById(sessionId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Session not found"));
-
-        if (session.getStatus() != Status.IN_PROGRESS) return;
-
-        List<Question> questions = session.getQuiz().getQuestions().stream()
-                .sorted(Comparator.comparingInt(Question::getQuestionOrder))
-                .toList();
-
-        int curr = session.getCurrentQuestion();
-        if (curr >= questions.size()) {
-            endSession(sessionId);
-            return;
-        }
-
-        session.setCurrentQuestion(curr + 1);
-        quizSessionRepository.save(session);
-
-        Question nextQuestion = questions.get(curr);
-        showQuestionAndStartTimer(
-                sessionId, nextQuestion.getId(), curr + 1, questions.size(),
-                session.getHostName(), nextQuestion
-        );
+    @Override
+    public void destroy() {
+        scheduler.shutdownNow();
     }
 
     @Override
-    public SessionResponse endSession(String sessionId) {
-        QuizSession session = quizSessionRepository.findById(sessionId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Session not found"));
-
-        if (session.getStatus() == Status.ENDED) return null;
-
-        session.setStatus(Status.ENDED);
-        session.setEndTime(LocalDateTime.now());
-        quizSessionRepository.save(session);
-
-        leaderboardService.finalizeSessionLeaderboard(sessionId);
-
-        webSocketService.broadcastGameState(
-                session.getSessionCode(),
-                new GameStateMessage(
-                        session.getSessionCode(),
-                        session.getHostName(),
-                        Status.ENDED,
-                        "SESSION_ENDED",
-                        session.getCurrentQuestion(),
-                        session.getTotalQuestions(),
-                        null,
-                        "Quiz session has ended!"
-                )
-        );
-
-        webSocketService.broadcastLeaderboard(
-                session.getSessionCode(),
-                new LeaderboardMessage(
-                        session.getSessionCode(),
-                        "SYSTEM",
-                        leaderboardService.getPodium(session.getSessionCode()),
-                        "FINAL_RESULTS"
-                )
-        );
-
-        // Optionally cleanup keys
-        redisTemplate.delete(ANSWERS_KEY_PREFIX + sessionId + ":*");
-        redisTemplate.delete(TIMER_KEY_PREFIX + sessionId + ":*");
-        return null;
-    }
-
-    @Override
+    @Transactional
     public SessionResponse createSession(SessionCreateRequest request, Jwt accessToken) {
         String hostId = accessToken.getSubject();
         User user = userRepository.findById(hostId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+                .orElseThrow(() -> new NotFoundException("User not found"));
         Quiz quiz = quizRepository.findById(request.quizId())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Quiz not found"));
+                .orElseThrow(() -> new NotFoundException("Quiz not found"));
 
         QuizSession quizSession = quizSessionMapper.toSessionRequest(request);
         quizSession.setHost(user);
@@ -203,13 +88,20 @@ public class QuizSessionServiceImpl implements QuizSessionService {
         quizSession.setStatus(Status.WAITING);
         quizSession.setSessionCode(generateUniqueSessionCode());
 
+        // Ensure mode default (backwards compatibility)
+        if (quizSession.getMode() == null) {
+            quizSession.setMode(QuizMode.ASYNC);
+        }
+
         QuizSession savedSession = quizSessionRepository.save(quizSession);
+
+        // Cache questions for this session
+        cacheSessionQuestions(savedSession);
+
         leaderboardService.initializeSessionLeaderboard(savedSession.getId());
 
-        log.info("Created quiz session with ID: {}, Code: {}, Participants: {}",
-                savedSession.getId(), savedSession.getSessionCode(), savedSession.getTotalParticipants());
+        log.info("Created quiz session {} (Code: {}) mode={}", savedSession.getId(), savedSession.getSessionCode(), savedSession.getMode());
 
-        // Start lobby (Kahoot-style)
         webSocketService.broadcastGameState(
                 savedSession.getSessionCode(),
                 new GameStateMessage(
@@ -220,248 +112,377 @@ public class QuizSessionServiceImpl implements QuizSessionService {
                         0,
                         savedSession.getTotalQuestions(),
                         null,
-                        "Lobby opened! Get ready..."
+                        "Lobby opened! Waiting for participants..."
                 )
         );
 
         return quizSessionMapper.toSessionResponse(savedSession);
     }
 
+    private void cacheSessionQuestions(QuizSession session) {
+        List<Question> questions = session.getQuiz().getQuestions().stream()
+                .sorted(Comparator.comparingInt(Question::getQuestionOrder))
+                .toList();
+
+        String questionsKey = SESSION_QUESTIONS_PREFIX + session.getId();
+        // Clear any existing list first (defensive)
+        redisTemplate.delete(questionsKey);
+        for (Question q : questions) {
+            // q.getId() is a String (UUID). Store it directly.
+            redisTemplate.opsForList().rightPush(questionsKey, q.getId());
+        }
+        redisTemplate.expire(questionsKey, java.time.Duration.ofHours(24));
+
+        log.info("Cached {} questions for session {}", questions.size(), session.getId());
+    }
+
     @Override
-    public SessionResponse startSession(String sessionCode) {
-        QuizSession quizSession = quizSessionRepository.findBySessionCode(sessionCode)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Session not found with id: " + sessionCode));
+    public void sendNextQuestionToParticipant(String participantId, String sessionId, int questionNumber) {
+        try {
+            QuizSession session = quizSessionRepository.findById(sessionId)
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                            "Session not found with id: " + sessionId));
+            Quiz quiz = quizRepository.findByIdWithQuestions(session.getQuiz().getId())
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                            "Quiz not found with id: " + session.getQuiz().getId()));
+            List<Question> questions = quiz.getQuestions().stream()
+                    .sorted(Comparator.comparingInt(Question::getQuestionOrder))
+                    .toList();
 
-        if (quizSession.getStatus() != Status.WAITING) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Session is not in waiting status.");
-        }
+            // Completed all questions
+            if (questionNumber < 1 || questionNumber > questions.size()) {
+                log.info("Participant {} completed quiz in session {}", participantId, session.getSessionCode());
 
-        quizSession.setStatus(Status.IN_PROGRESS);
-        quizSession.setStartTime(LocalDateTime.now());
-        QuizSession updatedSession = quizSessionRepository.save(quizSession);
+                // mark progress as completed so completion checker picks it up
+                String progressKey = PARTICIPANT_PROGRESS_PREFIX + participantId;
+                redisTemplate.opsForValue().set(progressKey, String.valueOf(questions.size() + 1));
+                redisTemplate.expire(progressKey, java.time.Duration.ofHours(24));
 
-        log.info("Started session with ID: {}", sessionCode);
+                GameStateMessage completionMsg = new GameStateMessage(
+                        session.getSessionCode(),
+                        session.getHostName(),
+                        Status.IN_PROGRESS,
+                        "PARTICIPANT_COMPLETED",
+                        session.getTotalQuestions(),
+                        session.getTotalQuestions(),
+                        null,
+                        "You’ve completed the quiz!"
+                );
 
-        // Kahoot-style countdown (if needed, keep or remove)
-        for (int i = 5; i > 0; i--) {
-            webSocketService.broadcastGameState(
-                    updatedSession.getSessionCode(),
-                    new GameStateMessage(
-                            updatedSession.getSessionCode(),
-                            updatedSession.getHostName(),
-                            Status.WAITING,
-                            "COUNTDOWN",
-                            null,
-                            updatedSession.getTotalQuestions(),
-                            (long) i,
-                            "Starting in " + i + " seconds..."
-                    )
+                webSocketService.sendCompletionToParticipant(session.getSessionCode(), participantId, completionMsg);
+                // schedule completion check if necessary
+                scheduler.schedule(() -> checkSessionCompletion(session), 3, TimeUnit.SECONDS);
+                return;
+            }
+
+            Question question = questions.get(questionNumber - 1);
+
+            QuestionMessage qMsg = new QuestionMessage(
+                    session.getSessionCode(),
+                    session.getHostName(),
+                    question,
+                    questionNumber,
+                    session.getTotalQuestions(),
+                    question.getTimeLimit() != null ? question.getTimeLimit().intValue() : defaultTimeLimit,
+                    "NEXT_QUESTION"
             );
-            try { Thread.sleep(1000); } catch (InterruptedException ignored) {}
+
+            // Send ONLY to this participant
+            webSocketService.sendQuestionToParticipant(session.getSessionCode(), participantId, qMsg);
+
+            // Store participant progress in Redis (use the shared prefix constant)
+            String progressKey = PARTICIPANT_PROGRESS_PREFIX + participantId;
+            redisTemplate.opsForValue().set(progressKey, String.valueOf(questionNumber));
+            redisTemplate.expire(progressKey, java.time.Duration.ofHours(24));
+
+            // Store question start-time for this participant (used to calculate time taken)
+            // Use the same key format calculateParticipantTimeTaken expects
+            String startTimeKey = QUESTION_START_TIME_PREFIX + participantId + ":" + question.getId();
+            redisTemplate.opsForValue().set(startTimeKey, String.valueOf(System.currentTimeMillis()));
+            redisTemplate.expire(startTimeKey, java.time.Duration.ofHours(1));
+
+            log.info("Sent question {} (id={}) to participant {} in session {}",
+                    questionNumber, question.getId(), participantId, session.getSessionCode());
+
+            // Optionally notify host about participant progress (keeps host UI in sync)
+            try {
+                ParticipantProgressMessage progressMsg = ParticipantProgressMessage.builder()
+                        .sessionCode(session.getSessionCode())
+                        .participantId(participantId)
+                        .participantNickname(participantRepository.findById(participantId).map(Participant::getNickname).orElse("UNKNOWN"))
+                        .currentQuestion(questionNumber)
+                        .totalQuestions(session.getTotalQuestions())
+                        .totalScore(participantRepository.findById(participantId).map(Participant::getTotalScore).orElse(0))
+                        .isCompleted(false)
+                        .action("QUESTION_STARTED")
+                        .timestamp(System.currentTimeMillis())
+                        .build();
+                webSocketService.notifyHostParticipantProgress(session.getSessionCode(), progressMsg);
+            } catch (Exception e) {
+                log.debug("Failed to notify host of participant progress for {}: {}", participantId, e.getMessage());
+            }
+
+        } catch (Exception e) {
+            log.error("Error sending question to participant {} in session {}: {}", participantId, sessionId, e.getMessage(), e);
+        }
+    }
+
+    private void sendParticipantCompletion(Participant participant, QuizSession session) {
+        log.info("Participant {} completed all questions in session {}",
+                participant.getNickname(), session.getSessionCode());
+
+        String progressKey = PARTICIPANT_PROGRESS_PREFIX + participant.getId();
+        redisTemplate.opsForValue().set(progressKey, String.valueOf(session.getTotalQuestions() + 1));
+        redisTemplate.expire(progressKey, java.time.Duration.ofHours(24));
+
+        // Send completion message to participant
+        GameStateMessage completionMsg = new GameStateMessage(
+                session.getSessionCode(),
+                "SYSTEM",
+                Status.IN_PROGRESS,
+                "PARTICIPANT_COMPLETED",
+                session.getTotalQuestions(),
+                session.getTotalQuestions(),
+                null,
+                "Congratulations! You've completed all questions. Waiting for other participants..."
+        );
+
+        webSocketService.sendCompletionToParticipant(session.getSessionCode(), participant.getId(), completionMsg);
+
+        // Schedule completion check
+        scheduler.schedule(() -> checkSessionCompletion(session), 5, TimeUnit.SECONDS);
+    }
+
+    private int calculateParticipantTimeTaken(String participantId, String questionId) {
+        try {
+            // This is the same key format we set in sendNextQuestionToParticipant
+            String startTimeKey = QUESTION_START_TIME_PREFIX + participantId + ":" + questionId;
+            String startTimeStr = redisTemplate.opsForValue().get(startTimeKey);
+
+            if (startTimeStr != null) {
+                long startTime = Long.parseLong(startTimeStr);
+                long currentTime = System.currentTimeMillis();
+                int seconds = (int) ((currentTime - startTime) / 1000);
+                // remove start time after reading (optional)
+                redisTemplate.delete(startTimeKey);
+                return Math.max(0, seconds);
+            }
+        } catch (Exception e) {
+            log.error("Error calculating time taken for participant {} question {}: {}", participantId, questionId, e.getMessage());
         }
 
-        // Broadcast session started
+        return defaultTimeLimit;
+    }
+
+    @Override
+    @Transactional
+    public SessionResponse startSession(String sessionCode) {
+        QuizSession session = quizSessionRepository.findBySessionCode(sessionCode)
+                .orElseThrow(() -> new NotFoundException("Session not found for code: " + sessionCode));
+
+        if (session.getStatus() != Status.WAITING)
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Session is not in waiting status.");
+
+        session.setStatus(Status.IN_PROGRESS);
+        session.setStartTime(LocalDateTime.now());
+        // Always reset question pointer at start
+        session.setCurrentQuestion(0);
+        quizSessionRepository.save(session);
+
+        // Mark active
+        String activeKey = SESSION_ACTIVE_PREFIX + session.getId();
+        redisTemplate.opsForValue().set(activeKey, "true");
+        redisTemplate.expire(activeKey, java.time.Duration.ofHours(24));
+
+        log.info("Started session {} (Code: {}) in {} mode", session.getId(), sessionCode, session.getMode());
+
         webSocketService.broadcastGameState(
-                updatedSession.getSessionCode(),
+                session.getSessionCode(),
                 new GameStateMessage(
-                        updatedSession.getSessionCode(),
-                        updatedSession.getHostName(),
+                        session.getSessionCode(),
+                        session.getHostName(),
                         Status.IN_PROGRESS,
                         "SESSION_STARTED",
-                        1,
-                        updatedSession.getTotalQuestions(),
+                        0,
+                        session.getTotalQuestions(),
                         null,
-                        "Quiz started! Good luck!"
+                        "Quiz started! Get ready!"
                 )
         );
 
-        // Broadcast leaderboard immediately after SESSION_STARTED
+        if (session.getMode() == QuizMode.SYNC) {
+            log.info("Session {} is SYNC mode — waiting for host to advance questions", sessionCode);
+        } else {
+            // ASYNC mode → send Q1 to participants
+            scheduler.schedule(() -> {
+                List<Participant> participants = participantRepository.findBySessionIdAndIsActiveTrue(session.getId());
+                log.info("ASYNC: Sending first question to {} participants in session {}", participants.size(), sessionCode);
+                for (Participant participant : participants) {
+                    sendNextQuestionToParticipant(participant.getId(), session.getId(), 1);
+                }
+            }, 2, TimeUnit.SECONDS);
+        }
+
+        return quizSessionMapper.toSessionResponse(session);
+    }
+
+    private void checkSessionCompletion(QuizSession session) {
+        try {
+            String activeKey = SESSION_ACTIVE_PREFIX + session.getId();
+            String isActive = redisTemplate.opsForValue().get(activeKey);
+
+            if (!"true".equals(isActive)) {
+                log.debug("Session {} is not marked as active, skipping completion check", session.getId());
+                return;
+            }
+
+            List<Participant> participants = participantRepository.findBySessionIdAndIsActiveTrue(session.getId());
+
+            if (participants.isEmpty()) {
+                log.debug("No participants in session {}, not ending session", session.getId());
+                return;
+            }
+
+            boolean allCompleted = participants.stream().allMatch(participant -> {
+                String progressKey = PARTICIPANT_PROGRESS_PREFIX + participant.getId();
+                String progress = redisTemplate.opsForValue().get(progressKey);
+                int currentQuestion = progress != null ? Integer.parseInt(progress) : 0;
+                return currentQuestion > session.getTotalQuestions();
+            });
+
+            log.debug("Session {} completion check: {} participants, all completed: {}",
+                    session.getId(), participants.size(), allCompleted);
+
+            if (allCompleted) {
+                log.info("All participants completed session {}, ending session", session.getId());
+                endSession(session.getSessionCode());
+            }
+        } catch (Exception e) {
+            log.error("Error checking session completion for session {}", session.getId(), e);
+        }
+    }
+
+    // =================== SUBMIT ANSWER ===================
+    @Override
+    @Transactional
+    public void submitAnswer(String sessionCode, String participantId, String selectedOptionId) {
+        log.info("Processing answer submission: session={}, participant={}, option={}",
+                sessionCode, participantId, selectedOptionId);
+
+        Participant participant = participantRepository.findById(participantId)
+                .orElseThrow(() -> new NotFoundException("Participant not found"));
+
+        if (!participant.getSession().getSessionCode().equals(sessionCode)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Participant does not belong to this session.");
+        }
+
+        // Get participant's current question number
+        String progressKey = PARTICIPANT_PROGRESS_PREFIX + participantId;
+        String progressStr = redisTemplate.opsForValue().get(progressKey);
+        int currentQuestionNumber = progressStr != null ? Integer.parseInt(progressStr) : 1;
+
+        // Get the question ID for this participant's current question
+        String questionsKey = SESSION_QUESTIONS_PREFIX + participant.getSession().getId();
+        String questionId = redisTemplate.opsForList().index(questionsKey, currentQuestionNumber - 1);
+
+        if (questionId == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "No current question for participant");
+        }
+
+        Question currentQuestion = questionRepository.findById(questionId)
+                .orElseThrow(() -> new NotFoundException("Question not found"));
+
+        // Check if participant already answered this question
+        if (participantAnswerRepository.existsByParticipantIdAndQuestionId(participantId, currentQuestion.getId())) {
+            log.warn("Participant {} already answered question {}", participantId, currentQuestion.getId());
+            return;
+        }
+
+        Option selectedOption = currentQuestion.getOptions().stream()
+                .filter(o -> o.getId().equals(selectedOptionId))
+                .findFirst()
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Option not found"));
+
+        boolean isCorrect = Boolean.TRUE.equals(selectedOption.getIsCorrected());
+        int points = isCorrect ? currentQuestion.getPoints() : 0;
+
+        // Calculate time taken for this specific participant
+        int timeTaken = calculateParticipantTimeTaken(participantId, currentQuestion.getId());
+
+        // Save the answer
+        ParticipantAnswer answer = new ParticipantAnswer();
+        answer.setParticipant(participant);
+        answer.setQuestion(currentQuestion);
+        answer.setSelectedAnswer(selectedOption);
+        answer.setIsCorrect(isCorrect);
+        answer.setPointsEarned(points);
+        answer.setTimeTaken(timeTaken);
+        participantAnswerRepository.save(answer);
+
+        // Update participant's total score in database
+        int newTotalScore = participant.getTotalScore() + points;
+        participant.setTotalScore(newTotalScore);
+        participantRepository.save(participant);
+
+        log.info("Answer saved and score updated: participant={}, question={}, correct={}, points={}, totalScore={}",
+                participant.getNickname(), currentQuestionNumber, isCorrect, points, newTotalScore);
+
+        // Update leaderboard
+        QuizSession session = participant.getSession();
+        leaderboardService.updateParticipantScore(session.getId(), participantId, participant.getNickname(), newTotalScore);
+
+        // Send answer feedback to participant
+        AnswerSubmissionMessage feedback = new AnswerSubmissionMessage(
+                sessionCode,
+                "SYSTEM",
+                participant.getId(),
+                participant.getNickname(),
+                currentQuestion.getId(),
+                selectedOptionId,
+                (long) timeTaken,
+                isCorrect,
+                points
+        );
+        webSocketService.sendFeedbackToParticipant(sessionCode, participantId, feedback);
+
+        // Broadcast updated leaderboard to all
         LeaderboardResponse leaderboard = leaderboardService.getRealTimeLeaderboard(
-                new LeaderboardRequest(updatedSession.getSessionCode(), 10, 0, false, null)
+                new LeaderboardRequest(session.getId(), 10, 0, false, null)
         );
         webSocketService.broadcastLeaderboard(
-                updatedSession.getSessionCode(),
+                sessionCode,
                 new LeaderboardMessage(
-                        updatedSession.getSessionCode(),
+                        sessionCode,
                         "SYSTEM",
                         leaderboard,
                         "SCORE_UPDATE"
                 )
         );
 
-        return quizSessionMapper.toSessionResponse(updatedSession);
+        // If ASYNC: immediately send next question to this participant
+        if (session.getMode() == QuizMode.ASYNC) {
+            scheduler.schedule(() -> sendNextQuestionToParticipant(participantId, session.getId(), currentQuestionNumber + 1),
+                    2, TimeUnit.SECONDS);
+        } else {
+            // SYNC: host controls progression; do not auto-send next question
+            log.debug("Participant {} answered in SYNC mode - waiting for host to advance question", participantId);
+        }
     }
 
     @Transactional
-    public Question advanceToNextQuestion(String sessionId) {
-        QuizSession session = quizSessionRepository.findBySessionCode(sessionId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Session not found with id: " + sessionId));
-
-        if (session.getStatus() != Status.IN_PROGRESS) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Session is not in progress status.");
-        }
-
-        List<Question> questions = session.getQuiz().getQuestions().stream()
-                .sorted(Comparator.comparingInt(Question::getQuestionOrder))
-                .toList();
-
-        int currentIndex = session.getCurrentQuestion();
-        if (currentIndex >= questions.size()) {
-            // ...session end logic
-        }
-
-        // increment first!
-        session.setCurrentQuestion(currentIndex + 1);
-        quizSessionRepository.save(session);
-
-        Question nextQuestion = questions.get(currentIndex); // get Qn for this turn
-
-        // ...broadcast logic
-        return nextQuestion;
-    }
-
-
-
-
-//    @Override
-//    public SessionResponse endSession(String sessionId) {
-//        QuizSession session = quizSessionRepository.findById(sessionId)
-//                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Session not found with id: " + sessionId));
-//        if (session.getStatus() == Status.ENDED) {
-//            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Session is already ended");
-//        }
-//
-//        session.setStatus(Status.ENDED);
-//        session.setEndTime(LocalDateTime.now());
-//        QuizSession updatedSession = quizSessionRepository.save(session);
-//        leaderboardService.finalizeSessionLeaderboard(sessionId);
-//
-//        webSocketService.broadcastGameState(
-//                session.getSessionCode(),
-//                new GameStateMessage(
-//                        session.getSessionCode(),
-//                        session.getHostName(),
-//                        Status.ENDED,
-//                        "SESSION_ENDED",
-//                        session.getCurrentQuestion(),
-//                        session.getTotalQuestions(),
-//                        null,
-//                        "Quiz session has ended!"
-//                )
-//        );
-//
-//        webSocketService.broadcastLeaderboard(
-//                session.getSessionCode(),
-//                new LeaderboardMessage(
-//                        session.getSessionCode(),
-//                        "SYSTEM",
-//                        leaderboardService.getPodium(session.getSessionCode()),
-//                        "FINAL_RESULTS"
-//                )
-//        );
-//
-//        log.info("Ended session with ID: {}", sessionId);
-//        return quizSessionMapper.toSessionResponse(updatedSession);
-//    }
-
-    @Override
-    public Question getCurrentQuestion(String sessionId) {
-        QuizSession session = quizSessionRepository.findById(sessionId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Session not found with id: " + sessionId));
-
-        if (session.getStatus() != Status.IN_PROGRESS) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Session is not in progress status.");
-        }
-
-        List<Question> questions = session.getQuiz().getQuestions().stream()
-                .sorted((q1, q2) -> q1.getQuestionOrder().compareTo(q2.getQuestionOrder()))
-                .toList();
-
-        int currentQuestionIndex = session.getCurrentQuestion() - 1;
-        if (currentQuestionIndex < 0 || currentQuestionIndex >= questions.size()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "No current question available.");
-        }
-
-        return questions.get(currentQuestionIndex);
-    }
-
-    @Override
-    public boolean canJoinSession(String sessionCode) {
-        Optional<QuizSession> sessionOpt = quizSessionRepository.findBySessionCode(sessionCode);
-        boolean canJoin = sessionOpt.isPresent() && sessionOpt.get().getStatus() == Status.WAITING;
-        log.info("Checked joinability for session code {}: {}", sessionCode, canJoin);
-        return canJoin;
-    }
-
-    @Override
-    public List<QuizSession> getActiveSession() {
-        List<QuizSession> activeSessions = quizSessionRepository.findByStatusIn(List.of(Status.WAITING, Status.IN_PROGRESS));
-        log.info("Retrieved {} active sessions", activeSessions.size());
-        return activeSessions;
-    }
-
-    @Override
-    public void pauseSession(String sessionId) {
-        QuizSession session = quizSessionRepository.findById(sessionId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Session not found"));
-        if (session.getStatus() != Status.IN_PROGRESS) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Session is not in progress and cannot be paused.");
-        }
-        session.setStatus(Status.PAUSED);
-        quizSessionRepository.save(session);
-
-        // Broadcast pause event to frontend
-        webSocketService.broadcastGameState(
-                session.getSessionCode(),
-                new GameStateMessage(
-                        session.getSessionCode(),
-                        session.getHostName(),
-                        Status.PAUSED,
-                        "SESSION_PAUSED",
-                        session.getCurrentQuestion(),
-                        session.getTotalQuestions(),
-                        null,
-                        "Session paused by host."
-                )
-        );
-    }
-
-
-    @Override
-    public List<QuizSession> getSessions(String hostId) {
-        List<QuizSession> sessions = quizSessionRepository.findByHostIdOrderByCreatedAtDesc(hostId);
-        log.info("Retrieved {} sessions for host {}", sessions.size(), hostId);
-        return sessions;
-    }
-
-    @Override
-    public Optional<QuizSession> getSessionByCode(String sessionCode) {
-        Optional<QuizSession> session = quizSessionRepository.findBySessionCode(sessionCode);
-        log.info("Looked up session by code {}: {}", sessionCode, session.isPresent() ? "Found" : "Not found");
-        return session;
-    }
-
-    public SessionResponse setAllowJoinInProgress(String sessionId, boolean allow) {
-        QuizSession session = quizSessionRepository.findById(sessionId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Session not found"));
-        session.setAllowJoinInProgress(allow);
-        quizSessionRepository.save(session);
-        // Optionally, broadcast state to all participants/host
-        return quizSessionMapper.toSessionResponse(session);
-    }
-
-
-    // Add WebSocket broadcast for participant join
-    public SessionResponse joinSession(String sessionCode, String nickname, String userId) {
+    public SessionResponse joinSession(String sessionCode, String nickname, String userId, String avatarId) {
         QuizSession session = quizSessionRepository.findBySessionCode(sessionCode)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Session not found with code: " + sessionCode));
-        if (!(session.getStatus() == Status.WAITING ||
-                (session.getStatus() == Status.IN_PROGRESS && Boolean.TRUE.equals(session.getAllowJoinInProgress())))) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Session is not joinable at this time.");
-        }
-        if (participantRepository.existsBySessionIdAndNickname(session.getId(), nickname)) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Nickname " + nickname + " is already taken in this session.");
-        }
+                .orElseThrow(() -> new NotFoundException("Session not found for code: " + sessionCode));
+
+        if (!(session.getStatus() == Status.WAITING || session.getStatus() == Status.IN_PROGRESS))
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Session is not joinable now");
+
+        if (participantRepository.existsBySessionIdAndNickname(session.getId(), nickname))
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Nickname taken");
+
+        Avatar avatar = avatarRepository.findById(Long.valueOf(avatarId))
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                        "Avatar with ID: " + avatarId + " does not exist"));
 
         Participant participant = new Participant();
         participant.setNickname(nickname);
@@ -470,9 +491,11 @@ public class QuizSessionServiceImpl implements QuizSessionService {
         participant.setIsConnected(true);
         participant.setTotalScore(0);
         participant.setJoinedAt(LocalDateTime.now());
+        participant.setAvatar(avatar);
+
         if (userId != null) {
             User user = userRepository.findById(userId)
-                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+                    .orElseThrow(() -> new NotFoundException("User not found"));
             participant.setUser(user);
         }
         participantRepository.save(participant);
@@ -482,45 +505,210 @@ public class QuizSessionServiceImpl implements QuizSessionService {
 
         leaderboardService.updateParticipantScore(session.getId(), participant.getId(), nickname, 0);
 
-        // WebSocket: broadcast participant update
-        List<ParticipantResponse> participantResponses = participantRepository
-                .findBySessionIdAndIsActiveTrue(session.getId())
-                .stream()
-                .map(participantMapper::toParticipantResponse)
+        log.info("Participant {} joined session {} with avatar {}", nickname, sessionCode, avatarId);
+
+        // If session is in progress AND ASYNC: send first question to this joining participant
+        if (session.getStatus() == Status.IN_PROGRESS && session.getMode() == QuizMode.ASYNC) {
+            scheduler.schedule(() -> sendNextQuestionToParticipant(participant.getId(), session.getId(), 1), 1, TimeUnit.SECONDS);
+        }
+
+        // Broadcast participants
+        List<ParticipantResponse> participants = participantRepository.findBySessionIdAndIsActiveTrue(session.getId())
+                .stream().map(participantMapper::toParticipantResponse)
                 .collect(Collectors.toList());
 
-        webSocketService.broadcastParticipantUpdate(
-                session.getSessionCode(),
+        webSocketService.broadcastParticipantUpdate(session.getSessionCode(),
                 new ParticipantMessage(
                         session.getSessionCode(),
                         "SYSTEM",
-                        participantResponses,
+                        participants,
                         session.getTotalParticipants(),
                         "PARTICIPANT_JOINED"
                 )
         );
 
-        log.info("Participant {} joined session {} (ID: {})", nickname, sessionCode, session.getId());
         return quizSessionMapper.toSessionResponse(session);
     }
+
     @Override
-    public List<QuizSession> getCurrentUserQuizSession(Jwt accessToken) {
-        return getSessions(accessToken.getSubject());
+    @Transactional
+    public SessionResponse endSession(String sessionCode) {
+        QuizSession session = quizSessionRepository.findBySessionCode(sessionCode)
+                .orElseThrow(() -> new NotFoundException("Session not found for code: " + sessionCode));
+
+        if (session.getStatus() == Status.ENDED) return null;
+
+        session.setStatus(Status.ENDED);
+        session.setEndTime(LocalDateTime.now());
+        quizSessionRepository.save(session);
+
+        // Mark session inactive
+        String activeKey = SESSION_ACTIVE_PREFIX + session.getId();
+        redisTemplate.delete(activeKey);
+
+        leaderboardService.finalizeSessionLeaderboard(session.getId());
+
+        log.info("Session {} ended", sessionCode);
+
+        webSocketService.broadcastGameState(
+                session.getSessionCode(),
+                new GameStateMessage(
+                        session.getSessionCode(),
+                        session.getHostName(),
+                        Status.ENDED,
+                        "SESSION_ENDED",
+                        session.getCurrentQuestion(),
+                        session.getTotalQuestions(),
+                        null,
+                        "Quiz ended! Thanks for playing!"
+                )
+        );
+
+        webSocketService.broadcastLeaderboard(
+                session.getSessionCode(),
+                new LeaderboardMessage(
+                        session.getSessionCode(),
+                        "SYSTEM",
+                        leaderboardService.getPodium(session.getSessionCode()),
+                        "FINAL_RESULTS"
+                )
+        );
+
+        cleanupSessionKeys(sessionCode, session.getId());
+
+        return quizSessionMapper.toSessionResponse(session);
     }
 
+    private void cleanupSessionKeys(String sessionCode, String sessionId) {
+        try {
+            // Clean up participant progress
+            List<Participant> participants = participantRepository.findBySessionId(sessionId);
+            for (Participant participant : participants) {
+                String progressKey = PARTICIPANT_PROGRESS_PREFIX + participant.getId();
+                redisTemplate.delete(progressKey);
+
+                // Clean up question start times (SCAN would be preferable in prod)
+                Set<String> startTimeKeys = redisTemplate.keys(QUESTION_START_TIME_PREFIX + participant.getId() + ":*");
+                if (!startTimeKeys.isEmpty()) {
+                    redisTemplate.delete(startTimeKeys);
+                }
+            }
+
+            // Clean up session questions
+            String questionsKey = SESSION_QUESTIONS_PREFIX + sessionId;
+            redisTemplate.delete(questionsKey);
+
+            // Clean up session active flag
+            String activeKey = SESSION_ACTIVE_PREFIX + sessionId;
+            redisTemplate.delete(activeKey);
+
+        } catch (Exception e) {
+            log.error("Error cleaning up Redis keys for session {}", sessionCode, e);
+        }
+    }
 
     private String generateUniqueSessionCode() {
-        String code;
-        do {
-            code = generateRandomCode();
-        } while (quizSessionRepository.findBySessionCode(code).isPresent());
-        return code;
+        return UUID.randomUUID().toString().substring(0, 6).toUpperCase();
     }
 
-    private String generateRandomCode() {
-        return UUID.randomUUID().toString()
-                .replaceAll("-", "")
-                .substring(0, 6)
-                .toUpperCase();
+    @Override
+    @Transactional
+    public Question advanceToNextQuestion(String sessionCode) {
+        QuizSession session = quizSessionRepository.findBySessionCode(sessionCode)
+                .orElseThrow(() -> new NotFoundException("Session not found for code: " + sessionCode));
+
+        if (session.getMode() == QuizMode.ASYNC) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Async mode - participants advance individually");
+        }
+
+        if (session.getStatus() != Status.IN_PROGRESS) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Session is not in progress.");
+        }
+
+        // Advance session-level question counter
+        int nextQuestionNum = session.getCurrentQuestion() + 1;
+        session.setCurrentQuestion(nextQuestionNum);
+        quizSessionRepository.save(session);
+
+        // Retrieve question ID from cached list
+        String questionsKey = SESSION_QUESTIONS_PREFIX + session.getId();
+        String questionId = redisTemplate.opsForList().index(questionsKey, nextQuestionNum - 1);
+
+        if (questionId == null) {
+            // No more questions → end session
+            endSession(sessionCode);
+            return null;
+        }
+
+        Question question = questionRepository.findById(questionId)
+                .orElseThrow(() -> new NotFoundException("Question not found"));
+
+        int timeLimit = question.getTimeLimit() != null ? question.getTimeLimit() : defaultTimeLimit;
+
+        QuestionMessage qMsg = new QuestionMessage(
+                session.getSessionCode(),
+                session.getHostName(),
+                question,
+                nextQuestionNum,
+                session.getTotalQuestions(),
+                timeLimit,
+                "NEXT_QUESTION"
+        );
+
+        webSocketService.broadcastQuestion(session.getSessionCode(), qMsg);
+
+        return question;
+    }
+
+    @Override
+    public Question getCurrentQuestion(String sessionCode) {
+        throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                "Use participant-specific questions or advanceToNextQuestion for SYNC mode");
+    }
+
+    @Override
+    public void pauseSession(String sessionCode) {
+        log.info("Pause session requested for: {}", sessionCode);
+    }
+
+    @Override
+    public boolean canJoinSession(String sessionCode) {
+        try {
+            QuizSession session = quizSessionRepository.findBySessionCode(sessionCode).orElse(null);
+            return session != null && (session.getStatus() == Status.WAITING || session.getStatus() == Status.IN_PROGRESS);
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    @Override
+    public List<QuizSession> getActiveSession() {
+        return quizSessionRepository.findByStatusIn(Arrays.asList(Status.WAITING, Status.IN_PROGRESS));
+    }
+
+    @Override
+    public List<QuizSession> getSessions(String hostId) {
+        return quizSessionRepository.findByHostIdOrderByCreatedAtDesc(hostId);
+    }
+
+    @Override
+    public Optional<QuizSession> getSessionByCode(String sessionCode) {
+        return quizSessionRepository.findBySessionCode(sessionCode);
+    }
+
+    @Override
+    public List<QuizSession> getCurrentUserQuizSession(Jwt accessToken) {
+        String hostId = accessToken.getSubject();
+        return quizSessionRepository.findByHostIdOrderByCreatedAtDesc(hostId);
+    }
+
+    @Override
+    public SessionResponse setAllowJoinInProgress(String sessionCode, boolean allow) {
+        QuizSession session = quizSessionRepository.findBySessionCode(sessionCode)
+                .orElseThrow(() -> new NotFoundException("Session not found"));
+        session.setAllowJoinInProgress(allow);
+        quizSessionRepository.save(session);
+        return quizSessionMapper.toSessionResponse(session);
     }
 }

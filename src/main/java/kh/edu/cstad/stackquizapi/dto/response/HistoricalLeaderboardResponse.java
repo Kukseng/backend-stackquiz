@@ -7,15 +7,25 @@ public record HistoricalLeaderboardResponse(
 
         String sessionId,
 
+        String sessionCode,
+
         String sessionName,
 
         String hostName,
 
-        java.time.LocalDateTime sessionEndTime,
+        java.time.LocalDateTime startTime,
 
-        LeaderboardResponse finalLeaderboard,
+        java.time.LocalDateTime endTime,
 
-        SessionStats stats
+        Integer totalParticipants,
+
+        Integer totalQuestions,
+
+        String status,
+
+        LeaderboardResponse leaderboard,
+
+        Long lastUpdated
 
 ) {
 }

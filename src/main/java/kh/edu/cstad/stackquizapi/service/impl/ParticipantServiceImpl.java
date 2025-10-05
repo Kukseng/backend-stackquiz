@@ -238,14 +238,14 @@ public class ParticipantServiceImpl implements ParticipantService {
         }
 
         boolean isCorrect = selectedAnswer.getIsCorrected();
-        int pointsEarned = calculatePoints(isCorrect, request.timeTaken(), question.getTimeLimit());
+        int pointsEarned = calculatePoints(isCorrect, request.timeTaken().intValue(), question.getTimeLimit());
 
         ParticipantAnswer answer = new ParticipantAnswer();
         answer.setParticipant(participant);
         answer.setQuestion(question);
         answer.setSelectedAnswer(selectedAnswer);
         answer.setAnsweredAt(LocalDateTime.now());
-        answer.setTimeTaken(request.timeTaken());
+        answer.setTimeTaken(request.timeTaken().intValue());
         answer.setIsCorrect(isCorrect);
         answer.setPointsEarned(pointsEarned);
 
@@ -272,7 +272,7 @@ public class ParticipantServiceImpl implements ParticipantService {
                 .selectedAnswerId(selectedAnswer.getId())
                 .isCorrect(isCorrect)
                 .pointsEarned(pointsEarned)
-                .timeTaken(request.timeTaken())
+                .timeTaken(request.timeTaken().intValue())
                 .answeredAt(savedAnswer.getAnsweredAt())
                 .newTotalScore(newTotalScore)
                 .build();

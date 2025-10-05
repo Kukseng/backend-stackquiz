@@ -1,11 +1,11 @@
 package kh.edu.cstad.stackquizapi.service.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import kh.edu.cstad.stackquizapi.domain.*;
 import kh.edu.cstad.stackquizapi.dto.request.HistoricalLeaderboardRequest;
 import kh.edu.cstad.stackquizapi.dto.request.LeaderboardRequest;
+import kh.edu.cstad.stackquizapi.dto.request.ParticipantRedisData;
 import kh.edu.cstad.stackquizapi.dto.response.*;
 import kh.edu.cstad.stackquizapi.repository.*;
 import kh.edu.cstad.stackquizapi.service.LeaderboardService;
@@ -43,18 +43,12 @@ public class LeaderboardServiceImpl implements LeaderboardService {
 
     @Override
     public LeaderboardResponse getRealTimeLeaderboard(LeaderboardRequest request) {
+        log.info("Getting real-time leaderboard for session: {}", request.sessionId());
 
-        String actualSessionId = request.sessionId();
-
-
-        if (request.sessionId().length() <= 10) {
-            QuizSession session = quizSessionRepository.findBySessionCode(request.sessionId())
-                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                            "Session not found"));
-            actualSessionId = session.getId();
-        }
-
+        String actualSessionId = resolveSessionId(request.sessionId());
         String leaderboardKey = LEADERBOARD_KEY_PREFIX + actualSessionId;
+
+        log.info("Using session ID: {} for leaderboard key: {}", actualSessionId, leaderboardKey);
 
         long start = request.offset();
         long end = start + request.limit() - 1;
@@ -64,15 +58,20 @@ public class LeaderboardServiceImpl implements LeaderboardService {
 
         List<LeaderboardResponse.LeaderboardEntry> entries = new ArrayList<>();
 
-        if (participantTuples != null) {
+        if (participantTuples != null && !participantTuples.isEmpty()) {
+            log.info("Found {} participants in Redis leaderboard", participantTuples.size());
+
             int position = request.offset() + 1;
             for (ZSetOperations.TypedTuple<String> tuple : participantTuples) {
                 String participantKey = tuple.getValue();
                 Double score = tuple.getScore();
 
                 if (participantKey != null && score != null) {
-                    String participantJson = redisTemplate.opsForValue()
-                            .get(participantKey + ":" + actualSessionId);
+                    String participantDataKey = participantKey + ":" + actualSessionId;
+                    String participantJson = redisTemplate.opsForValue().get(participantDataKey);
+
+                    log.debug("Participant key: {}, Score: {}, Data found: {}",
+                            participantKey, score, participantJson != null);
 
                     if (participantJson != null) {
                         try {
@@ -89,7 +88,6 @@ public class LeaderboardServiceImpl implements LeaderboardService {
                                             .nickname(nickname)
                                             .totalScore(score.intValue())
                                             .position(position)
-
                                             .rank((long) position)
                                             .isCurrentUser(participantId.equals(request.currentParticipantId()))
                                             .build();
@@ -102,15 +100,36 @@ public class LeaderboardServiceImpl implements LeaderboardService {
                     }
                 }
             }
+        } else {
+            log.warn("No participants found in Redis leaderboard for session: {}", actualSessionId);
+
+            // Fallback to database if Redis is empty
+            List<Participant> dbParticipants = participantRepository.findBySessionIdAndIsActiveTrueOrderByTotalScoreDesc(actualSessionId);
+            log.info("Fallback: Found {} participants in database", dbParticipants.size());
+
+            int position = 1;
+            for (Participant participant : dbParticipants) {
+                LeaderboardResponse.LeaderboardEntry entry =
+                        LeaderboardResponse.LeaderboardEntry.builder()
+                                .participantId(participant.getId())
+                                .nickname(participant.getNickname())
+                                .totalScore(participant.getTotalScore())
+                                .position(position)
+                                .rank((long) position)
+                                .isCurrentUser(participant.getId().equals(request.currentParticipantId()))
+                                .build();
+                entries.add(entry);
+                position++;
+            }
         }
 
-
         int totalParticipants = (int) participantRepository.countBySessionIdAndIsActiveTrue(actualSessionId);
-
         String leaderboardStatus = determineLeaderboardStatus(actualSessionId);
 
+        log.info("Returning leaderboard with {} entries, total participants: {}", entries.size(), totalParticipants);
+
         return LeaderboardResponse.builder()
-                .sessionId(request.sessionId())
+                .sessionId(request.sessionId()) // Return original session identifier
                 .entries(entries)
                 .totalParticipants(totalParticipants)
                 .lastUpdated(System.currentTimeMillis())
@@ -120,28 +139,15 @@ public class LeaderboardServiceImpl implements LeaderboardService {
 
     @Override
     public ParticipantRankResponse getParticipantRank(String sessionId, String participantId) {
+        log.info("Getting participant rank for participant: {} in session: {}", participantId, sessionId);
 
-        String actualSessionId = sessionId;
-
-        if (sessionId.length() <= 10) {
-            QuizSession session = quizSessionRepository.findBySessionCode(sessionId)
-                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                            "Session not found"));
-            actualSessionId = session.getId();
-        }
-
+        String actualSessionId = resolveSessionId(sessionId);
         String leaderboardKey = LEADERBOARD_KEY_PREFIX + actualSessionId;
         String participantKey = PARTICIPANT_DATA_PREFIX + participantId;
 
-
         Long rank = redisTemplate.opsForZSet().reverseRank(leaderboardKey, participantKey);
-
-        // Get participant's score
         Double score = redisTemplate.opsForZSet().score(leaderboardKey, participantKey);
-
-        // Get participant details
-        String participantJson = redisTemplate.opsForValue()
-                .get(participantKey + ":" + actualSessionId);
+        String participantJson = redisTemplate.opsForValue().get(participantKey + ":" + actualSessionId);
 
         log.info("Redis data - Rank: {}, Score: {}, ParticipantJson: {}", rank, score, participantJson != null ? "found" : "null");
 
@@ -149,19 +155,22 @@ public class LeaderboardServiceImpl implements LeaderboardService {
         if (participantJson != null) {
             try {
                 @SuppressWarnings("unchecked")
-                Map<String, Object> participantData = objectMapper.readValue(
-                        participantJson, Map.class);
+                Map<String, Object> participantData = objectMapper.readValue(participantJson, Map.class);
                 nickname = (String) participantData.get("nickname");
             } catch (JsonProcessingException e) {
                 log.error("Error parsing participant data", e);
             }
+        } else {
+            // Fallback to database
+            Participant participant = participantRepository.findById(participantId).orElse(null);
+            if (participant != null) {
+                nickname = participant.getNickname();
+                score = (double) participant.getTotalScore();
+                log.info("Fallback to database - Nickname: {}, Score: {}", nickname, score);
+            }
         }
 
-
         int totalParticipants = (int) participantRepository.countBySessionIdAndIsActiveTrue(actualSessionId);
-
-        log.info("Final result - Nickname: {}, Rank: {}, Score: {}, TotalParticipants: {}",
-                nickname, rank, score, totalParticipants);
 
         return new ParticipantRankResponse(
                 participantId,
@@ -189,65 +198,29 @@ public class LeaderboardServiceImpl implements LeaderboardService {
     }
 
     @Override
-    public void updateParticipantScore(String sessionId, String participantId, String nickname, int newScore) {
-        String leaderboardKey = LEADERBOARD_KEY_PREFIX + sessionId;
-        String participantKey = PARTICIPANT_DATA_PREFIX + participantId;
-
-        try {
-            // Store participant data
-            Map<String, Object> participantData = Map.of(
-                    "participantId", participantId,
-                    "nickname", nickname,
-                    "score", newScore,
-                    "lastUpdated", System.currentTimeMillis()
-            );
-
-            String participantJson = objectMapper.writeValueAsString(participantData);
-
-            // Update score in sorted set
-            redisTemplate.opsForZSet().add(leaderboardKey, participantKey, newScore);
-
-            // Store participant details
-            redisTemplate.opsForValue().set(participantKey + ":" + sessionId, participantJson);
-
-            // Set TTL
-            redisTemplate.expire(leaderboardKey, java.time.Duration.ofHours(24));
-            redisTemplate.expire(participantKey + ":" + sessionId, java.time.Duration.ofHours(24));
-
-            log.debug("Updated participant {} score to {} in session {}", nickname, newScore, sessionId);
-
-        } catch (JsonProcessingException e) {
-            log.error("Error updating participant score in Redis", e);
-        }
-    }
-
-    @Override
     public void removeParticipant(String sessionId, String participantId) {
-        String leaderboardKey = LEADERBOARD_KEY_PREFIX + sessionId;
+        String actualSessionId = resolveSessionId(sessionId);
+        String leaderboardKey = LEADERBOARD_KEY_PREFIX + actualSessionId;
         String participantKey = PARTICIPANT_DATA_PREFIX + participantId;
 
         redisTemplate.opsForZSet().remove(leaderboardKey, participantKey);
-        redisTemplate.delete(participantKey + ":" + sessionId);
+        redisTemplate.delete(participantKey + ":" + actualSessionId);
 
-        log.debug("Removed participant {} from session {}", participantId, sessionId);
+        log.info("Removed participant {} from session {}", participantId, actualSessionId);
     }
 
     @Override
     public List<HistoricalLeaderboardResponse> getHistoricalLeaderboards(HistoricalLeaderboardRequest request, Jwt accessToken) {
-
         String hostId = accessToken.getSubject();
-
         Pageable pageable = PageRequest.of(request.page() - 1, request.size());
 
         List<QuizSession> sessions;
 
         if (request.sessionId() != null) {
-
             sessions = quizSessionRepository.findById(request.sessionId())
                     .map(List::of)
                     .orElse(List.of());
         } else {
-
             if (hostId != null) {
                 sessions = quizSessionRepository.findByHostIdAndStatusOrderByCreatedAtDesc(
                         hostId, Status.ENDED, pageable).getContent();
@@ -256,7 +229,6 @@ public class LeaderboardServiceImpl implements LeaderboardService {
                         Status.ENDED, pageable).getContent();
             }
 
-            // Apply date filters if provided
             if (request.startDate() != null || request.endDate() != null) {
                 sessions = sessions.stream()
                         .filter(session -> {
@@ -264,9 +236,9 @@ public class LeaderboardServiceImpl implements LeaderboardService {
                             if (sessionTime == null) return false;
 
                             boolean afterStart = request.startDate() == null ||
-                                                 sessionTime.isAfter(request.startDate());
+                                    sessionTime.isAfter(request.startDate());
                             boolean beforeEnd = request.endDate() == null ||
-                                                sessionTime.isBefore(request.endDate());
+                                    sessionTime.isBefore(request.endDate());
 
                             return afterStart && beforeEnd;
                         })
@@ -289,6 +261,7 @@ public class LeaderboardServiceImpl implements LeaderboardService {
 
     @Override
     public void initializeSessionLeaderboard(String sessionId) {
+        log.info("Initializing leaderboard for session: {}", sessionId);
 
         List<Participant> participants = participantRepository.findBySessionIdAndIsActiveTrue(sessionId);
 
@@ -303,43 +276,44 @@ public class LeaderboardServiceImpl implements LeaderboardService {
 
     @Override
     public void finalizeSessionLeaderboard(String sessionId) {
+        String actualSessionId = resolveSessionId(sessionId);
+        String leaderboardKey = LEADERBOARD_KEY_PREFIX + actualSessionId;
 
-        String leaderboardKey = LEADERBOARD_KEY_PREFIX + sessionId;
-        redisTemplate.expire(leaderboardKey, java.time.Duration.ofDays(7)); // Keep for 7 days
+        redisTemplate.expire(leaderboardKey, Duration.ofDays(7));
 
-        // Get all participant keys and extend their TTL too
         Set<String> participantKeys = redisTemplate.opsForZSet().range(leaderboardKey, 0, -1);
         if (participantKeys != null) {
             participantKeys.forEach(key ->
-                    redisTemplate.expire(key + ":" + sessionId, java.time.Duration.ofDays(7)));
+                    redisTemplate.expire(key + ":" + actualSessionId, Duration.ofDays(7)));
         }
 
-        log.info("Finalized leaderboard for session {} - extended TTL to 7 days", sessionId);
+        log.info("Finalized leaderboard for session {} - extended TTL to 7 days", actualSessionId);
     }
 
     @Override
     public void clearSessionLeaderboard(String sessionId) {
-        String leaderboardKey = LEADERBOARD_KEY_PREFIX + sessionId;
+        String actualSessionId = resolveSessionId(sessionId);
+        String leaderboardKey = LEADERBOARD_KEY_PREFIX + actualSessionId;
 
-        // Get all participant keys first
         Set<String> participantKeys = redisTemplate.opsForZSet().range(leaderboardKey, 0, -1);
 
         if (participantKeys != null) {
-            participantKeys.forEach(key -> redisTemplate.delete(key + ":" + sessionId));
+            participantKeys.forEach(key -> redisTemplate.delete(key + ":" + actualSessionId));
         }
 
         redisTemplate.delete(leaderboardKey);
 
-        log.info("Cleared leaderboard for session {}", sessionId);
+        log.info("Cleared leaderboard for session {}", actualSessionId);
     }
 
     @Override
     public SessionStats getSessionStatistics(String sessionId) {
-        QuizSession session = quizSessionRepository.findById(sessionId)
+        String actualSessionId = resolveSessionId(sessionId);
+        QuizSession session = quizSessionRepository.findById(actualSessionId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Session not found"));
 
-        List<Participant> participants = participantRepository.findBySessionId(sessionId);
-        List<ParticipantAnswer> answers = participantAnswerRepository.findByParticipantSessionId(sessionId);
+        List<Participant> participants = participantRepository.findBySessionId(actualSessionId);
+        List<ParticipantAnswer> answers = participantAnswerRepository.findByParticipantSessionId(actualSessionId);
 
         if (participants.isEmpty()) {
             return SessionStats.builder()
@@ -368,13 +342,11 @@ public class LeaderboardServiceImpl implements LeaderboardService {
                 .min()
                 .orElse(0);
 
-        // Calculate completion rate
         int totalQuestions = session.getTotalQuestions() != null ? session.getTotalQuestions() : 0;
         long expectedAnswers = (long) participants.size() * totalQuestions;
         double completionRate = expectedAnswers > 0 ? (double) answers.size() / expectedAnswers * 100 : 0;
 
-
-        String duration = "Time";
+        String duration = "PT0S";
         if (session.getStartTime() != null && session.getEndTime() != null) {
             Duration sessionDuration = Duration.between(session.getStartTime(), session.getEndTime());
             duration = sessionDuration.toString();
@@ -386,129 +358,128 @@ public class LeaderboardServiceImpl implements LeaderboardService {
                 .completionRate(Math.round(completionRate * 100.0) / 100.0)
                 .duration(duration)
                 .totalParticipants(participants.size())
-                .highestScore(highestScore)
-                .lowestScore(lowestScore)
+                .highestScore((double) highestScore)
+                .lowestScore((double) lowestScore)
                 .build();
     }
 
-    private int getTotalParticipants(String sessionId) {
-
-        String actualSessionId = sessionId;
-
-        if (sessionId.length() <= 10) {
-            QuizSession session = quizSessionRepository.findBySessionCode(sessionId)
-                    .orElse(null);
-            if (session != null) {
-                actualSessionId = session.getId();
-            }
+    /**
+     * Resolves session identifier to actual session ID
+     * If the identifier is a session code (short), converts it to session ID
+     * If it's already a session ID (UUID), returns as is
+     */
+    private String resolveSessionId(String sessionIdentifier) {
+        if (sessionIdentifier == null) {
+            throw new IllegalArgumentException("Session identifier cannot be null");
         }
 
-        // Try Redis first
+        // If it looks like a session code (short string), convert to session ID
+        if (sessionIdentifier.length() <= 10) {
+            QuizSession session = quizSessionRepository.findBySessionCode(sessionIdentifier)
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                            "Session not found for code: " + sessionIdentifier));
+            return session.getId();
+        }
+
+        // Otherwise, assume it's already a session ID
+        return sessionIdentifier;
+    }
+
+    @Override
+    public void updateParticipantScore(String sessionId, String participantId, String nickname, int newScore) {
+        log.info("Updating participant score: session={}, participant={}, nickname={}, score={}",
+                sessionId, participantId, nickname, newScore);
+
+        String actualSessionId = resolveSessionId(sessionId);
         String leaderboardKey = LEADERBOARD_KEY_PREFIX + actualSessionId;
-        Long redisCount = redisTemplate.opsForZSet().zCard(leaderboardKey);
+        String participantKey = PARTICIPANT_DATA_PREFIX + participantId;
 
-        if (redisCount != null && redisCount > 0) {
-            return redisCount.intValue();
-        }
-
-        // Fallback to database
-        return (int) participantRepository.countBySessionIdAndIsActiveTrue(actualSessionId);
-    }
-
-    private String getBadge(int position) {
-        return switch (position) {
-            case 1 -> "🥇";
-            case 2 -> "🥈";
-            case 3 -> "🥉";
-            default -> null;
-        };
-    }
-
-    private HistoricalLeaderboardResponse convertToHistoricalResponse(QuizSession session) {
-        LeaderboardResponse finalLeaderboard = null;
-
-
-        if (session.getLeaderboardData() != null) {
-            finalLeaderboard = convertJsonToLeaderboardResponse(session.getLeaderboardData(), session.getId());
-        } else {
-            // Fallback: generate from database
-            List<Participant> participants = participantRepository
-                    .findBySessionIdOrderByTotalScoreDesc(session.getId());
-
-            List<LeaderboardResponse.LeaderboardEntry> entries = new ArrayList<>();
-            for (int i = 0; i < participants.size(); i++) {
-                Participant p = participants.get(i);
-                entries.add(LeaderboardResponse.LeaderboardEntry.builder()
-                        .participantId(p.getId())
-                        .nickname(p.getNickname())
-                        .totalScore(p.getTotalScore())
-                        .position(i + 1)
-
-                        .rank((long) i + 1)
-                        .isCurrentUser(false)
-                        .build());
-            }
-
-            finalLeaderboard = LeaderboardResponse.builder()
-                    .sessionId(session.getId())
-                    .entries(entries)
-                    .totalParticipants(participants.size())
+        try {
+            ParticipantRedisData participantData = ParticipantRedisData.builder()
+                    .participantId(participantId)
+                    .nickname(nickname)
+                    .score(newScore)
                     .lastUpdated(System.currentTimeMillis())
-                    .status("FINAL")
                     .build();
-        }
 
-        return HistoricalLeaderboardResponse.builder()
-                .sessionId(session.getId())
-                .sessionName(session.getSessionName())
-                .hostName(session.getHostName())
-                .sessionEndTime(session.getEndTime())
-                .finalLeaderboard(finalLeaderboard)
-                .stats(getSessionStatistics(session.getId()))
-                .build();
+            String participantJson = objectMapper.writeValueAsString(participantData);
+
+            // Update score in sorted set
+            redisTemplate.opsForZSet().add(leaderboardKey, participantKey, newScore);
+
+            // Store participant details
+            String participantDataKey = participantKey + ":" + actualSessionId;
+            redisTemplate.opsForValue().set(participantDataKey, participantJson);
+
+            // Set TTL
+            redisTemplate.expire(leaderboardKey, Duration.ofHours(24));
+            redisTemplate.expire(participantDataKey, Duration.ofHours(24));
+
+            log.info("Successfully updated participant {} score to {} in session {} (Redis key: {})",
+                    nickname, newScore, actualSessionId, leaderboardKey);
+
+        } catch (JsonProcessingException e) {
+            log.error("Error updating participant score in Redis", e);
+        }
     }
 
     private String determineLeaderboardStatus(String sessionId) {
         try {
             QuizSession session = quizSessionRepository.findById(sessionId).orElse(null);
-
-            if (session == null) {
-                return "ERROR";
-            }
+            if (session == null) return "UNKNOWN";
 
             return switch (session.getStatus()) {
-                case LIVE, WAITING, IN_PROGRESS -> "LIVE";
-                case ENDED, COMPLETED -> "FINAL";
-//                case PAUSED -> "PAUSED";
-//                case CANCELLED -> "CANCELLED";
+                case WAITING -> "LOBBY";
+                case IN_PROGRESS -> "LIVE";
+                case ENDED -> "FINAL";
+                case PAUSED -> "PAUSED";
                 default -> "UNKNOWN";
             };
-
         } catch (Exception e) {
-            log.error("Error determining session status", e);
+            log.error("Error determining leaderboard status", e);
             return "ERROR";
         }
     }
 
-    private LeaderboardResponse convertJsonToLeaderboardResponse(JsonNode leaderboardJson, String sessionId) {
+    private HistoricalLeaderboardResponse convertToHistoricalResponse(QuizSession session) {
         try {
+            LeaderboardResponse currentLeaderboard = getRealTimeLeaderboard(
+                    new LeaderboardRequest(session.getId(), 100, 0, false, null)
+            );
 
-            LeaderboardResponse response = objectMapper.treeToValue(leaderboardJson, LeaderboardResponse.class);
-            return LeaderboardResponse.builder()
-                    .sessionId(sessionId)
-                    .entries(response.entries())
-                    .totalParticipants(response.totalParticipants())
-                    .lastUpdated(response.lastUpdated())
-                    .status("FINAL")
+            return HistoricalLeaderboardResponse.builder()
+                    .sessionId(session.getId())
+                    .sessionName(session.getSessionName())
+                    .sessionCode(session.getSessionCode())
+                    .hostName(session.getHostName())
+                    .startTime(session.getStartTime())
+                    .endTime(session.getEndTime())
+                    .totalParticipants(session.getTotalParticipants())
+                    .totalQuestions(session.getTotalQuestions())
+                    .status(session.getStatus().name())
+                    .leaderboard(currentLeaderboard)
+                    .lastUpdated(currentLeaderboard.lastUpdated())
                     .build();
-        } catch (JsonProcessingException e) {
-            log.error("Error converting JSONB to LeaderboardResponse", e);
-            return LeaderboardResponse.builder()
-                    .sessionId(sessionId)
-                    .entries(List.of())
-                    .totalParticipants(participantRepository.countBySessionId(sessionId))
-                    .lastUpdated(System.currentTimeMillis())
+        } catch (Exception e) {
+            log.error("Error converting session to historical response", e);
+            return HistoricalLeaderboardResponse.builder()
+                    .sessionId(session.getId())
+                    .sessionName(session.getSessionName())
+                    .sessionCode(session.getSessionCode())
+                    .hostName(session.getHostName())
+                    .startTime(session.getStartTime())
+                    .endTime(session.getEndTime())
+                    .totalParticipants(session.getTotalParticipants())
+                    .totalQuestions(session.getTotalQuestions())
                     .status("ERROR")
+                    .leaderboard(LeaderboardResponse.builder()
+                            .sessionId(session.getId())
+                            .entries(List.of())
+                            .totalParticipants(0)
+                            .lastUpdated(System.currentTimeMillis())
+                            .status("ERROR")
+                            .build())
+                    .lastUpdated(System.currentTimeMillis())
                     .build();
         }
     }

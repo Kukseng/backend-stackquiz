@@ -1,9 +1,12 @@
 package kh.edu.cstad.stackquizapi.service;
 
+import kh.edu.cstad.stackquizapi.domain.Participant;
 import kh.edu.cstad.stackquizapi.domain.Question;
 import kh.edu.cstad.stackquizapi.domain.QuizSession;
 import kh.edu.cstad.stackquizapi.dto.request.SessionCreateRequest;
+import kh.edu.cstad.stackquizapi.dto.request.SubmitAnswerRequest;
 import kh.edu.cstad.stackquizapi.dto.response.SessionResponse;
+import kh.edu.cstad.stackquizapi.dto.response.SubmitAnswerResponse;
 import org.springframework.security.oauth2.jwt.Jwt;
 
 import java.util.List;
@@ -11,16 +14,28 @@ import java.util.Optional;
 
 public interface QuizSessionService {
 
+    //  Session management
     SessionResponse createSession(SessionCreateRequest request, Jwt accessToken);
 
     SessionResponse startSession(String sessionId);
 
-    Question advanceToNextQuestion(String sessionId);
-
     SessionResponse endSession(String sessionId);
+
+    void pauseSession(String sessionId);
+
+    void submitAnswer(String sessionCode, String participantId, String selectedOptionId);
+
+    //  Question flow
+    Question advanceToNextQuestion(String sessionId);
 
     Question getCurrentQuestion(String sessionId);
 
+    //  Participant management
+    //  SessionResponse joinSession(String sessionCode, String nickname, String userId);
+    //  void submitAnswer(String sessionId, String participantId, String selectedOptionId);
+    SessionResponse joinSession(String sessionCode, String nickname, String userId, String avatarId);
+
+    // ✅ Session queries
     boolean canJoinSession(String sessionCode);
 
     List<QuizSession> getActiveSession();
@@ -31,6 +46,8 @@ public interface QuizSessionService {
 
     List<QuizSession> getCurrentUserQuizSession(Jwt accessToken);
 
-    void pauseSession(String sessionId);
+    void sendNextQuestionToParticipant(String participantId, String sessionId, int questionNumber);
+
+    SessionResponse setAllowJoinInProgress(String sessionId, boolean allow);
 
 }

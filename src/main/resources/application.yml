@@ -10,7 +10,13 @@ keycloak:
 
 app:
   default-role: ORGANIZER
-
+quiz:
+  autoplay:
+    enabled: true
+  default:
+    time-limit: 30
+  advance:
+    delay: 3
 spring:
   application:
     name: stackquiz-api
@@ -32,7 +38,7 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update
-    show-sql: true
+    show-sql: false
 
     properties:
       hibernate:
@@ -40,8 +46,8 @@ spring:
 
   data:
     redis:
-      host: ${REDIS_HOST:redis}
-      port: ${REDIS_PORT:6379}
+      host: localhost
+      port: 6379
       database: 0
       timeout: 60000ms
       lettuce:

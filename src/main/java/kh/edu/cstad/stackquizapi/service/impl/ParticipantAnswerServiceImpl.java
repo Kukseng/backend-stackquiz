@@ -73,17 +73,19 @@ public class ParticipantAnswerServiceImpl implements ParticipantAnswerService {
         ParticipantAnswerResponse response = mapToResponse(savedAnswer);
 
         webSocketService.sendToParticipant(
-                participant.getNickname(),
+                participant.getNickname(), // Used to identify recipient
                 participant.getSession().getSessionCode(),
                 new AnswerSubmissionMessage(
                         participant.getSession().getSessionCode(),
                         "SYSTEM",
+                        participant.getNickname(),
                         participant.getNickname(),
                         question.getId(),
                         answer.getSelectedAnswer() != null ? answer.getSelectedAnswer().getId() : null,
                         request.timeTaken()
                 )
         );
+
 
         // Broadcast leaderboard update to all (after every answer)
         webSocketService.broadcastLeaderboard(
@@ -120,7 +122,7 @@ public class ParticipantAnswerServiceImpl implements ParticipantAnswerService {
                             singleAnswer.questionId(),
                             singleAnswer.optionId(),
                             singleAnswer.answerText(),
-                            singleAnswer.timeTaken(),
+                            singleAnswer.timeTaken().longValue(),
                             request.sessionId()
                     );
                     return submitAnswer(submitRequest);
@@ -169,7 +171,7 @@ public class ParticipantAnswerServiceImpl implements ParticipantAnswerService {
             answer.setAnswerText(request.answerText());
         }
 
-        answer.setTimeTaken(request.timeTaken());
+        answer.setTimeTaken(Math.toIntExact(request.timeTaken()));
         answer.setAnsweredAt(LocalDateTime.now());
         scoreAnswer(answer, answer.getQuestion());
         ParticipantAnswer updatedAnswer = participantAnswerRepository.save(answer);
@@ -239,7 +241,7 @@ public class ParticipantAnswerServiceImpl implements ParticipantAnswerService {
         ParticipantAnswer answer = new ParticipantAnswer();
         answer.setParticipant(participant);
         answer.setQuestion(question);
-        answer.setTimeTaken(request.timeTaken());
+        answer.setTimeTaken(Math.toIntExact(request.timeTaken()));
         answer.setAnsweredAt(LocalDateTime.now());
 
         if (request.optionId() != null) {
@@ -263,16 +265,30 @@ public class ParticipantAnswerServiceImpl implements ParticipantAnswerService {
                 if (answer.getSelectedAnswer() != null) {
                     isCorrect = answer.getSelectedAnswer().getIsCorrected();
                     if (isCorrect) {
-                        pointsEarned = question.getPoints();
+                        int basePoints = question.getPoints();
+                        if (answer.getTimeTaken() != null && question.getTimeLimit() != null) {
+                            double timeRatio = (double) answer.getTimeTaken() / question.getTimeLimit();
+                            double speedBonus = Math.max(0, 1 - timeRatio);
+                            int bonusPoints = (int) (speedBonus * (question.getPoints() / 2));
+                            pointsEarned = basePoints + bonusPoints;
+                        }
                     }
+
                 }
             }
             case FILL_THE_BLANK -> {
                 if (answer.getAnswerText() != null && !answer.getAnswerText().trim().isEmpty()) {
                     isCorrect = checkFillInTheBlankAnswer(answer.getAnswerText(), question);
                     if (isCorrect) {
-                        pointsEarned = question.getPoints();
+                        int basePoints = question.getPoints();
+                        if (answer.getTimeTaken() != null && question.getTimeLimit() != null) {
+                            double timeRatio = (double) answer.getTimeTaken() / question.getTimeLimit();
+                            double speedBonus = Math.max(0, 1 - timeRatio);
+                            int bonusPoints = (int) (speedBonus * (question.getPoints() / 2));
+                            pointsEarned = basePoints + bonusPoints;
+                        }
                     }
+
                 }
             }
         }
@@ -300,7 +316,7 @@ public class ParticipantAnswerServiceImpl implements ParticipantAnswerService {
                 .participantNickname(answer.getParticipant().getNickname())
                 .questionId(answer.getQuestion().getId())
                 .questionText(answer.getQuestion().getText())
-                .optionId(answer.getSelectedAnswer() != null ? answer.getSelectedAnswer().getOptionText() : null)
+                .optionId(answer.getSelectedAnswer() != null ? answer.getSelectedAnswer().getId() : null)
                 .optionText(answer.getSelectedAnswer() != null ? answer.getSelectedAnswer().getOptionText() : null)
                 .answerText(answer.getAnswerText())
                 .isCorrect(answer.getIsCorrect())

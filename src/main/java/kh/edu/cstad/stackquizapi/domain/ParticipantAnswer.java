@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @NoArgsConstructor
+
 public class ParticipantAnswer {
 
     @Id
@@ -24,16 +25,16 @@ public class ParticipantAnswer {
     private String answerText;
 
     @Column(nullable = false)
-    private Boolean isCorrect;
+    private Boolean isCorrect = false;
 
     @Column(nullable = false)
-    private Integer timeTaken;
+    private Integer timeTaken = 0;
 
     @Column(nullable = false)
     private Integer pointsEarned = 0;
 
-    @Column(updatable = false)
-    private Timestamp submittedAt;
+    @Column(nullable = false)
+    private LocalDateTime answeredAt = LocalDateTime.now();
 
     @ManyToOne
     @JoinColumn(name = "participant_id", nullable = false)
@@ -43,24 +44,15 @@ public class ParticipantAnswer {
     @JoinColumn(name = "question_id", nullable = false)
     private Question question;
 
-    @Column(name = "answered_at", nullable = false)
-    private LocalDateTime answeredAt;
-
     @ManyToOne
     @JoinColumn(name = "option_id")
     private Option selectedAnswer;
 
-
     @PrePersist
     public void prePersist() {
-        if (answeredAt == null) {
-            answeredAt = LocalDateTime.now();
-        }
-        if (isCorrect == null) {
-            isCorrect = false;
-        }
-        if (pointsEarned == null) {
-            pointsEarned = 0;
-        }
+        if (answeredAt == null) answeredAt = LocalDateTime.now();
+        if (isCorrect == null) isCorrect = false;
+        if (pointsEarned == null) pointsEarned = 0;
+        if (timeTaken == null) timeTaken = 0;
     }
 }

@@ -1,5 +1,6 @@
 package kh.edu.cstad.stackquizapi.repository;
 
+import kh.edu.cstad.stackquizapi.domain.Question;
 import kh.edu.cstad.stackquizapi.domain.QuizSession;
 import kh.edu.cstad.stackquizapi.util.Status;
 import org.springframework.data.domain.Page;
@@ -20,9 +21,14 @@ public interface QuizSessionRepository extends JpaRepository<QuizSession, String
 
     List<QuizSession> findByHostIdOrderByCreatedAtDesc(String hostId);
 
-    Page<QuizSession> findByHostIdOrderByCreatedAtDesc(String hostId, Pageable pageable);
+    @Query("SELECT qs FROM QuizSession qs " +
+            "JOIN FETCH qs.quiz q " +
+            "LEFT JOIN FETCH q.questions " +
+            "WHERE qs.id = :sessionId")
+    Optional<QuizSession> findByIdWithQuestions(@Param("sessionId") String sessionId);
 
-    List<QuizSession> findByStatus(Status status);
+    @Query("SELECT qs FROM QuizSession qs JOIN FETCH qs.quiz q LEFT JOIN FETCH q.questions WHERE qs.sessionCode = :code")
+    Optional<QuizSession> findBySessionCodeWithQuestions(@Param("code") String code);
 
     List<QuizSession> findByStatusIn(List<Status> statuses);
 
@@ -30,34 +36,10 @@ public interface QuizSessionRepository extends JpaRepository<QuizSession, String
 
     Page<QuizSession> findByHostIdAndStatusOrderByCreatedAtDesc(String hostId, Status status, Pageable pageable);
 
-    Optional<QuizSession> findFirstByHostIdAndStatusOrderByCreatedAtDesc(String hostId, Status status);
-
-    List<QuizSession> findByCreatedAtBetweenOrderByCreatedAtDesc(LocalDateTime startDate, LocalDateTime endDate);
-
-    List<QuizSession> findByHostIdAndCreatedAtBetweenOrderByCreatedAtDesc(
-            String hostId, LocalDateTime startDate, LocalDateTime endDate);
-
-    Page<QuizSession> findByCreatedAtBetweenOrderByCreatedAtDesc(
-            LocalDateTime startDate, LocalDateTime endDate, Pageable pageable);
-
-    Page<QuizSession> findByStatusAndEndTimeIsNotNullOrderByEndTimeDesc(Status status, Pageable pageable);
-
-    @Query("SELECT qs FROM QuizSession qs WHERE qs.status IN :statuses ORDER BY qs.createdAt DESC")
-    List<QuizSession> findActiveSessionsByStatus(@Param("statuses") List<Status> statuses);
-
-    long countByStatus(Status status);
-
-    long countByHostId(String hostId);
-
     @Query("SELECT qs FROM QuizSession qs WHERE qs.endTime BETWEEN :startTime AND :endTime ORDER BY qs.endTime DESC")
     List<QuizSession> findSessionsEndedBetween(
             @Param("startTime") LocalDateTime startTime,
             @Param("endTime") LocalDateTime endTime);
-
-    boolean existsBySessionCode(String sessionCode);
-
-
-    List<QuizSession> findByQuizIdOrderByCreatedAtDesc(String quizId);
 
     @Query("SELECT qs FROM QuizSession qs WHERE qs.host.id = :hostId ORDER BY qs.createdAt DESC")
     List<QuizSession> findRecentSessionsByHost(@Param("hostId") String hostId, Pageable pageable);

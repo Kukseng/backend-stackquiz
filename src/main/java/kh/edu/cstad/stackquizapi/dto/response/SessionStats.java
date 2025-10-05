@@ -6,18 +6,25 @@ import lombok.Builder;
 @Builder
 public record SessionStats(
 
-        int totalQuestions,
+        Integer totalQuestions,
 
-        double averageScore,
+        Double averageScore,
 
-        double completionRate,
+        Double completionRate,
 
         String duration,
 
-        int totalParticipants,
+        Integer totalParticipants,
 
-        double highestScore,
+        Double highestScore,
 
-        double lowestScore
+        Double lowestScore,
 
-) {}
+        Integer totalAnswers,
+
+        Integer correctAnswers,
+
+        Double accuracyRate
+
+) {
+}

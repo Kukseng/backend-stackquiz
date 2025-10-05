@@ -2,37 +2,48 @@ package kh.edu.cstad.stackquizapi.service;
 
 import kh.edu.cstad.stackquizapi.dto.websocket.*;
 
-/**
- * Service for managing WebSocket communication in quiz sessions.
- *
- * @author Pech Rattanakmony
- */
 public interface WebSocketService {
-    // Core broadcasting methods
 
-    void broadcastGameState(String sessionCode, GameStateMessage msg);
-    void broadcastQuestion(String sessionCode, QuestionMessage msg);
-    void broadcastLeaderboard(String sessionCode, LeaderboardMessage msg);
-    void broadcastParticipantUpdate(String sessionCode, ParticipantMessage msg);
-    void broadcastAnswerResult(String sessionCode, AnswerSubmissionMessage msg);
-    void handleParticipantDisconnect(String sessionCode, String nickname);
-    void sendToParticipant(String nickname, String sessionCode, WebSocketMessage msg);
-    void sendToHost(String hostNickname, String sessionCode, WebSocketMessage msg);
+    // Broadcast methods (to all participants in session)
+    void broadcastGameState(String sessionCode, GameStateMessage message);
+    void broadcastQuestion(String sessionCode, QuestionMessage message);
+    void broadcastLeaderboard(String sessionCode, LeaderboardMessage message);
+    void broadcastParticipantUpdate(String sessionCode, ParticipantMessage message);
+    void broadcastAnswerResult(String sessionCode, AnswerSubmissionMessage message);
+
+    // Individual messaging methods
+    void sendToParticipantByNickname(String nickname, String sessionCode, WebSocketMessage message);
+    void sendToHost(String hostNickname, String sessionCode, WebSocketMessage message);
     void sendErrorToParticipant(String nickname, String sessionCode, String errorMessage);
-    // Direct messaging
 
-
-    //    // Connection management
+    // Connection handling
     void handleParticipantConnect(String sessionCode, String nickname);
-//    void handleParticipantDisconnect(String sessionCode, String nickname);
-//
-//    // Session lifecycle events
-//    void startSessionWithCountdown(String sessionCode, String hostNickname, int totalQuestions);
-//    void broadcastSessionLobby(String sessionCode, String hostNickname);
-//    void broadcastCountdown(String sessionCode, String hostNickname, int seconds);
-//    void endSession(String sessionCode, String hostNickname);
-//
-//    // Utility methods
-//    int getActiveConnectionCount(String sessionCode);
-//    void cleanupSession(String sessionCode);
+    void handleParticipantDisconnect(String sessionCode, String nickname);
+
+    // *** ENHANCED METHODS FOR KAHOOT-STYLE INDIVIDUAL PROGRESSION ***
+
+    // Send messages to specific participant by ID (for individual progression)
+    default void sendToParticipant(String sessionCode, String participantId, Object message) {
+        // Default implementation - override in implementation class
+    }
+
+    // Send question to specific participant
+    default void sendQuestionToParticipant(String sessionCode, String participantId, QuestionMessage message) {
+        sendToParticipant(sessionCode, participantId, message);
+    }
+
+    // Send answer feedback to specific participant
+    default void sendFeedbackToParticipant(String sessionCode, String participantId, AnswerSubmissionMessage message) {
+        sendToParticipant(sessionCode, participantId, message);
+    }
+
+    // Send completion message to specific participant
+    default void sendCompletionToParticipant(String sessionCode, String participantId, GameStateMessage message) {
+        sendToParticipant(sessionCode, participantId, message);
+    }
+
+    // Notify host of participant progress
+    default void notifyHostParticipantProgress(String sessionCode, ParticipantProgressMessage message) {
+        // Default implementation - override in implementation class
+    }
 }
