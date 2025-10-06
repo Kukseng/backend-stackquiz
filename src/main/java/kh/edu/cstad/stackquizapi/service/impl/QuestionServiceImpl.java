@@ -201,34 +201,6 @@ public class QuestionServiceImpl implements QuestionService {
         }
     }
 
-//    @Transactional
-//    @Override
-//    public void disableQuestionById(String id) {
-//
-//        if (id == null || id.trim().isEmpty()) {
-//            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-//                    "Question ID cannot be null or empty");
-//        }
-//
-//        log.info("Attempting to disable question with ID: {}", id);
-//
-//        if (!questionRepository.existsById(id)) {
-//            log.warn("Question not found for ID: {}", id);
-//            throw new ResponseStatusException(HttpStatus.NOT_FOUND,
-//                    "Question id not found");
-//        }
-//
-//        try {
-//            questionRepository.disableById(id);
-//            log.info("Successfully disabled question with ID: {}", id);
-//
-//        } catch (Exception e) {
-//            log.error("Failed to disable question with ID: {}", id, e);
-//            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
-//                    "Failed to disable question", e);
-//        }
-//    }
-
     @Transactional
     public void deleteQuestionsByIds(List<String> ids) {
 
@@ -274,12 +246,38 @@ public class QuestionServiceImpl implements QuestionService {
 
     @Override
     public QuestionResponse getNextQuestionForSession(String sessionId) {
+        var session = quizSessionRepository.findById(sessionId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Session not found"));
+
+        Integer nextOrder = (session.getCurrentQuestion() != null ? session.getCurrentQuestion() + 1 : 1);
+
+        Question question = questionRepository.findQuestionByQuizIdAndOrder(
+                session.getQuiz().getId(),
+                nextOrder
+        ).orElse(null);
+
+        if (question != null) {
+            session.setCurrentQuestion(nextOrder);
+            quizSessionRepository.save(session);
+            return questionMapper.toQuestionResponse(question);
+        }
+
         return null;
     }
 
     @Override
     public QuestionResponse getCurrentQuestionForSession(String sessionId) {
-        return null;
+        var session = quizSessionRepository.findById(sessionId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Session not found"));
+
+        Integer currentOrder = session.getCurrentQuestion(); // track current question index
+
+        Question question = questionRepository.findQuestionByQuizIdAndOrder(
+                session.getQuiz().getId(),
+                currentOrder
+        ).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Question not found"));
+
+        return questionMapper.toQuestionResponse(question);
     }
 
 }
