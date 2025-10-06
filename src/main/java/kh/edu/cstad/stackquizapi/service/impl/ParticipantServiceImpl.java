@@ -1,5 +1,7 @@
 package kh.edu.cstad.stackquizapi.service.impl;
 
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
 import kh.edu.cstad.stackquizapi.domain.*;
 import kh.edu.cstad.stackquizapi.dto.request.JoinSessionRequest;
 import kh.edu.cstad.stackquizapi.dto.request.LeaderboardRequest;
@@ -9,12 +11,14 @@ import kh.edu.cstad.stackquizapi.dto.response.ParticipantResponse;
 import kh.edu.cstad.stackquizapi.dto.response.SubmitAnswerResponse;
 import kh.edu.cstad.stackquizapi.dto.websocket.GameStateMessage;
 import kh.edu.cstad.stackquizapi.dto.websocket.LeaderboardMessage;
+import kh.edu.cstad.stackquizapi.dto.websocket.ParticipantMessage;
 import kh.edu.cstad.stackquizapi.dto.websocket.QuestionMessage;
 import kh.edu.cstad.stackquizapi.mapper.ParticipantMapper;
 import kh.edu.cstad.stackquizapi.repository.*;
 import kh.edu.cstad.stackquizapi.service.LeaderboardService;
 import kh.edu.cstad.stackquizapi.service.ParticipantService;
 import kh.edu.cstad.stackquizapi.service.WebSocketService;
+import kh.edu.cstad.stackquizapi.util.QuizMode;
 import kh.edu.cstad.stackquizapi.util.Status;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,6 +32,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -43,6 +48,10 @@ public class ParticipantServiceImpl implements ParticipantService {
     private final UserRepository userRepository;
     private final LeaderboardService leaderboardService;
     private final WebSocketService webSocketService;
+
+    // NOTE: to trigger per-participant question sending we call the session implementation directly.
+    // This is pragmatic: QuizSessionServiceImpl exposes sendNextQuestionToParticipant(...) which handles Redis progress, start time, and actual sending.
+    private final kh.edu.cstad.stackquizapi.service.impl.QuizSessionServiceImpl quizSessionServiceImpl;
 
     // --- Helper to broadcast leaderboard ---
     private void broadcastLeaderboardToSession(String sessionId) {
@@ -62,18 +71,18 @@ public class ParticipantServiceImpl implements ParticipantService {
 
     @Override
     public ParticipantResponse joinSession(JoinSessionRequest request) {
-        QuizSession getSessionByCode = quizSessionRepository.findBySessionCode(request.quizCode())
+        QuizSession session = quizSessionRepository.findBySessionCode(request.quizCode())
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND,
                         "Session not found with code: " + request.quizCode()
                 ));
 
-        if (getSessionByCode.getStatus() == Status.ENDED) {
+        if (session.getStatus() == Status.ENDED) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     "Cannot join session. Session has ended.");
         }
 
-        if (participantRepository.existsBySessionIdAndNickname(getSessionByCode.getId(), request.nickname())) {
+        if (participantRepository.existsBySessionIdAndNickname(session.getId(), request.nickname())) {
             throw new ResponseStatusException(HttpStatus.CONFLICT,
                     "Nickname '" + request.nickname() + "' is already taken in this session");
         }
@@ -84,77 +93,96 @@ public class ParticipantServiceImpl implements ParticipantService {
 
         Participant participant = participantMapper.toParticipant(request);
 
-        ParticipantResponse response = getParticipantResponse(getSessionByCode, avatar, participant);
+        ParticipantResponse response = getParticipantResponse(session, avatar, participant);
 
-        // Broadcast updated leaderboard
-        broadcastLeaderboardToSession(getSessionByCode.getId());
+        // Broadcast participant list so host sees players
+        broadcastParticipants(session);
 
-        // Broadcast current session state
+        // Broadcast leaderboard
+        broadcastLeaderboardToSession(session.getId());
+
+        // Broadcast current session state (lobby/in-progress/ended)
         GameStateMessage currentState = new GameStateMessage(
-                getSessionByCode.getSessionCode(),
-                getSessionByCode.getHostName(),
-                getSessionByCode.getStatus(),
-                getSessionByCode.getStatus() == Status.WAITING ? "SESSION_LOBBY"
-                        : getSessionByCode.getStatus() == Status.IN_PROGRESS ? "QUESTION_STARTED"
+                session.getSessionCode(),
+                session.getHostName(),
+                session.getStatus(),
+                session.getStatus() == Status.WAITING ? "SESSION_LOBBY"
+                        : session.getStatus() == Status.IN_PROGRESS ? "QUESTION_STARTED"
                         : "SESSION_ENDED",
-                getSessionByCode.getCurrentQuestion(),
-                getSessionByCode.getTotalQuestions(),
+                session.getCurrentQuestion(),
+                session.getTotalQuestions(),
                 null,
-                getSessionByCode.getStatus() == Status.WAITING
+                session.getStatus() == Status.WAITING
                         ? "Lobby opened! Get ready..."
-                        : getSessionByCode.getStatus() == Status.IN_PROGRESS
+                        : session.getStatus() == Status.IN_PROGRESS
                         ? "Quiz in progress..."
                         : "Quiz session has ended!"
         );
-        webSocketService.broadcastGameState(getSessionByCode.getSessionCode(), currentState);
+        webSocketService.broadcastGameState(session.getSessionCode(), currentState);
 
-        if (getSessionByCode.getStatus() == Status.IN_PROGRESS && getSessionByCode.getCurrentQuestion() > 0) {
-            List<Question> questions = getSessionByCode.getQuiz().getQuestions().stream()
-                    .sorted(Comparator.comparingInt(Question::getQuestionOrder)).toList();
-            int questionIndex = getSessionByCode.getCurrentQuestion() - 1;
-            if (questionIndex >= 0 && questionIndex < questions.size()) {
-                Question currentQuestion = questions.get(questionIndex);
-                if (currentQuestion != null) {
-                    QuestionMessage qMsg = new QuestionMessage(
-                            getSessionByCode.getSessionCode(),
-                            getSessionByCode.getHostName(),
-                            currentQuestion,
-                            getSessionByCode.getCurrentQuestion(),
-                            getSessionByCode.getTotalQuestions(),
-                            currentQuestion.getTimeLimit(),
-                            "START_QUESTION"
-                    );
-                    webSocketService.broadcastQuestion(getSessionByCode.getSessionCode(), qMsg);
-                } else {
-                    log.warn("No current question found for late joiner on session {}", getSessionByCode.getSessionCode());
+        /*
+         * Critical: If the session is already IN_PROGRESS:
+         *  - SYNC mode: send the current (global) question to the late-joiner via the existing broadcast path (we already broadcast the current question below)
+         *  - ASYNC mode: send the participant their personal next question (usually Q1) using the QuizSessionServiceImpl helper,
+         *                which ensures Redis progress keys and per-participant start time are set correctly.
+         */
+        if (session.getStatus() == Status.IN_PROGRESS) {
+            if (session.getMode() == QuizMode.SYNC) {
+                // For SYNC we re-send the current global question to everyone (and late joiner already got the game state above).
+                if (session.getCurrentQuestion() != null && session.getCurrentQuestion() > 0) {
+                    List<Question> questions = session.getQuiz().getQuestions().stream()
+                            .sorted(Comparator.comparingInt(Question::getQuestionOrder)).toList();
+                    int questionIndex = session.getCurrentQuestion() - 1;
+                    if (questionIndex >= 0 && questionIndex < questions.size()) {
+                        Question currentQuestion = questions.get(questionIndex);
+                        if (currentQuestion != null) {
+                            QuestionMessage qMsg = new QuestionMessage(
+                                    session.getSessionCode(),
+                                    session.getHostName(),
+                                    currentQuestion,
+                                    session.getCurrentQuestion(),
+                                    session.getTotalQuestions(),
+                                    currentQuestion.getTimeLimit() != null ? currentQuestion.getTimeLimit().intValue() : 30,
+                                    "START_QUESTION"
+                            );
+                            // broadcast so all (including late joiner) receive the same payload
+                            webSocketService.broadcastQuestion(session.getSessionCode(), qMsg);
+                        }
+                    } else {
+                        log.warn("Current question index {} out of bounds for session {}", questionIndex, session.getSessionCode());
+                    }
                 }
             } else {
-                log.warn("Current question index {} is out of bounds (questions.size={} session={})",
-                        questionIndex, questions.size(), getSessionByCode.getSessionCode());
+                // ASYNC: send first question to this joining participant (use the session impl helper)
+                try {
+                    // Use the session implementation so Redis progress/time tracking is handled centrally.
+                    quizSessionServiceImpl.sendNextQuestionToParticipant(response.id(), session.getId(), 1);
+                    log.info("Sent first question to late joiner {} in async session {}", response.nickname(), session.getSessionCode());
+                } catch (Exception e) {
+                    log.error("Failed to send first question to late joiner {}: {}", response.nickname(), e.getMessage(), e);
+                }
             }
         }
 
         return response;
     }
 
-
-
     @Override
     public ParticipantResponse joinSessionAsAuthenticatedUser(Jwt accessToken, JoinSessionRequest request) {
         String userId = accessToken.getSubject();
 
-        QuizSession getSessionByCode = quizSessionRepository.findBySessionCode(request.quizCode())
+        QuizSession session = quizSessionRepository.findBySessionCode(request.quizCode())
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND,
                         "Session not found with code: " + request.quizCode()
                 ));
 
-        if (getSessionByCode.getStatus() == Status.ENDED) {
+        if (session.getStatus() == Status.ENDED) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     "Cannot join session. Session has ended.");
         }
 
-        if (participantRepository.existsBySessionIdAndNickname(getSessionByCode.getId(), request.nickname())) {
+        if (participantRepository.existsBySessionIdAndNickname(session.getId(), request.nickname())) {
             throw new ResponseStatusException(HttpStatus.CONFLICT,
                     "Nickname '" + request.nickname() + "' is already taken in this session");
         }
@@ -167,16 +195,45 @@ public class ParticipantServiceImpl implements ParticipantService {
 
         userRepository.findById(userId).ifPresent(participant::setUser);
 
-        ParticipantResponse response = getParticipantResponse(getSessionByCode, avatar, participant);
+        ParticipantResponse response = getParticipantResponse(session, avatar, participant);
 
-        // Now broadcast updated leaderboard!
-        broadcastLeaderboardToSession(getSessionByCode.getId());
+        // Broadcast leaderboard
+        broadcastLeaderboardToSession(session.getId());
+
+        // If session already running, same behavior as guest join:
+        if (session.getStatus() == Status.IN_PROGRESS && session.getMode() == QuizMode.ASYNC) {
+            try {
+                quizSessionServiceImpl.sendNextQuestionToParticipant(response.id(), session.getId(), 1);
+            } catch (Exception e) {
+                log.error("Failed to send first question to authenticated late joiner {}: {}", response.nickname(), e.getMessage(), e);
+            }
+        }  // SYNC handled elsewhere (we broadcast global question)
+
 
         return response;
     }
 
-    private ParticipantResponse getParticipantResponse(QuizSession getSessionByCode, Avatar avatar, Participant participant) {
-        participant.setSession(getSessionByCode);
+    private void broadcastParticipants(QuizSession session) {
+        List<ParticipantResponse> participants = participantRepository
+                .findBySessionIdAndIsActiveTrue(session.getId())
+                .stream()
+                .map(participantMapper::toParticipantResponse)
+                .collect(Collectors.toList());
+
+        webSocketService.broadcastParticipantUpdate(
+                session.getSessionCode(),
+                new ParticipantMessage(
+                        session.getSessionCode(),
+                        "SYSTEM",
+                        participants,
+                        participants.size(),
+                        "PARTICIPANT_JOINED"
+                )
+        );
+    }
+
+    private ParticipantResponse getParticipantResponse(QuizSession session, Avatar avatar, Participant participant) {
+        participant.setSession(session);
         participant.setAvatar(avatar);
         participant.setJoinedAt(LocalDateTime.now());
         participant.setTotalScore(0);
@@ -185,12 +242,12 @@ public class ParticipantServiceImpl implements ParticipantService {
 
         Participant savedParticipant = participantRepository.save(participant);
 
-        int currentCount = participantRepository.countBySessionIdAndIsActiveTrue(getSessionByCode.getId());
-        getSessionByCode.setTotalParticipants(currentCount);
-        quizSessionRepository.save(getSessionByCode);
+        int currentCount = participantRepository.countBySessionIdAndIsActiveTrue(session.getId());
+        session.setTotalParticipants(currentCount);
+        quizSessionRepository.save(session);
 
         leaderboardService.updateParticipantScore(
-                getSessionByCode.getId(),
+                session.getId(),
                 savedParticipant.getId(),
                 savedParticipant.getNickname(),
                 0
@@ -205,11 +262,6 @@ public class ParticipantServiceImpl implements ParticipantService {
         Participant participant = participantRepository.findByIdAndIsActiveTrue(request.participantId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
                         "Participant not found"));
-
-        if (participant.getSession().getStatus() != Status.IN_PROGRESS) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    "Session is not in progress");
-        }
 
         Question question = questionRepository.findById(request.questionId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
@@ -238,14 +290,14 @@ public class ParticipantServiceImpl implements ParticipantService {
         }
 
         boolean isCorrect = selectedAnswer.getIsCorrected();
-        int pointsEarned = calculatePoints(isCorrect, request.timeTaken().intValue(), question.getTimeLimit());
+        int pointsEarned = calculatePoints(isCorrect, Math.toIntExact(request.timeTaken()), question.getTimeLimit());
 
         ParticipantAnswer answer = new ParticipantAnswer();
         answer.setParticipant(participant);
         answer.setQuestion(question);
         answer.setSelectedAnswer(selectedAnswer);
         answer.setAnsweredAt(LocalDateTime.now());
-        answer.setTimeTaken(request.timeTaken().intValue());
+        answer.setTimeTaken(Math.toIntExact(request.timeTaken()));
         answer.setIsCorrect(isCorrect);
         answer.setPointsEarned(pointsEarned);
 
@@ -265,6 +317,26 @@ public class ParticipantServiceImpl implements ParticipantService {
         // Now broadcast updated leaderboard!
         broadcastLeaderboardToSession(participant.getSession().getId());
 
+        // ✅ FIXED: Send next question AFTER saving the answer
+        // This ensures the answer count is correct when calculating the next question number
+        if (participant.getSession().getMode() == QuizMode.ASYNC) {
+            try {
+                // Count how many answers this participant has given so far (including the one just saved)
+                long answeredCount = participantAnswerRepository.countByParticipantId(participant.getId());
+
+                int nextQuestionNumber = (int) answeredCount + 1; // next question to send
+
+                quizSessionServiceImpl.sendNextQuestionToParticipant(
+                        participant.getId(),
+                        participant.getSession().getId(),
+                        nextQuestionNumber
+                );
+            } catch (Exception e) {
+                log.error("Failed to send next question to participant {} in async mode: {}",
+                        participant.getNickname(), e.getMessage(), e);
+            }
+        }
+
         return SubmitAnswerResponse.builder()
                 .answerId(savedAnswer.getId())
                 .participantId(participant.getId())
@@ -272,15 +344,19 @@ public class ParticipantServiceImpl implements ParticipantService {
                 .selectedAnswerId(selectedAnswer.getId())
                 .isCorrect(isCorrect)
                 .pointsEarned(pointsEarned)
-                .timeTaken(request.timeTaken().intValue())
+                .timeTaken(Math.toIntExact(request.timeTaken()))
                 .answeredAt(savedAnswer.getAnsweredAt())
                 .newTotalScore(newTotalScore)
                 .build();
     }
 
     @Override
-    public List<ParticipantResponse> getSessionParticipants(String sessionId) {
-        List<Participant> participants = participantRepository.findBySessionIdAndIsActiveTrue(sessionId);
+    public List<ParticipantResponse> getSessionParticipants(String quizCode) {
+        QuizSession session = quizSessionRepository.findBySessionCode(quizCode)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        "Session not found with code: " + quizCode));
+
+        List<Participant> participants = participantRepository.findBySessionIdAndIsActiveTrue(session.getId());
         return participants.stream()
                 .map(participantMapper::toParticipantResponse)
                 .collect(Collectors.toList());

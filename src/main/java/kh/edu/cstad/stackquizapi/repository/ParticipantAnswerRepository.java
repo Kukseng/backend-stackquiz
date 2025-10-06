@@ -17,26 +17,31 @@ public interface ParticipantAnswerRepository extends JpaRepository<ParticipantAn
     Optional<ParticipantAnswer> findByParticipantIdAndQuestionId(String participantId, String questionId);
 
     List<ParticipantAnswer> findByParticipantIdOrderByAnsweredAtAsc(String participantId);
+    long countByParticipantId(String participantId);
 
-    List<ParticipantAnswer> findByQuestionIdOrderByAnsweredAtAsc(String questionId);
+//    List<ParticipantAnswer> findByQuestionIdOrderByAnsweredAtAsc(String questionId);
 
-    @Query("SELECT COUNT(pa) FROM ParticipantAnswer pa " +
-           "WHERE pa.participant.id = :participantId AND pa.isCorrect = true")
-    long countCorrectAnswersByParticipantId(@Param("participantId") String participantId);
+//    boolean existsByParticipantIdAndQuestionId(String participantId, String questionId);
+
+    long countByQuestionId(String questionId);
+
+//    @Query("SELECT COUNT(pa) FROM ParticipantAnswer pa " +
+//           "WHERE pa.participant.id = :participantId AND pa.isCorrect = true")
+//    long countCorrectAnswersByParticipantId(@Param("participantId") String participantId);
 
     List<ParticipantAnswer> findByParticipantSessionId(String participantSessionId);
     @Query("SELECT pa FROM ParticipantAnswer pa " +
-           "WHERE pa.question.id = :questionId " +
-           "AND pa.participant.session.id = :sessionId")
+            "WHERE pa.question.id = :questionId " +
+            "AND pa.participant.session.id = :sessionId")
     List<ParticipantAnswer> findByQuestionIdAndParticipantSessionId(
             @Param("questionId") String questionId,
             @Param("sessionId") String sessionId
     );
 
     @Query("SELECT pa FROM ParticipantAnswer pa " +
-           "JOIN pa.participant p " +
-           "WHERE pa.participant.id = :participantId AND p.session.id = :sessionId " +
-           "ORDER BY pa.answeredAt ASC")
+            "JOIN pa.participant p " +
+            "WHERE pa.participant.id = :participantId AND p.session.id = :sessionId " +
+            "ORDER BY pa.answeredAt ASC")
     List<ParticipantAnswer> findByParticipantIdAndParticipantSessionIdOrderByAnsweredAtAsc(
             @Param("participantId") String participantId,
             @Param("sessionId") String sessionId);
