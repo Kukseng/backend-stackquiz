@@ -8,7 +8,7 @@ public record ParticipantProgressMessage(
         String sessionCode,
 
         String participantId,
-        
+
         String participantNickname,
 
         Integer currentQuestion,
@@ -25,7 +25,7 @@ public record ParticipantProgressMessage(
 
 ) {
     public ParticipantProgressMessage {
-        // Auto-fill timestamp if not provided
+
         if (timestamp == null) {
             timestamp = System.currentTimeMillis();
         }

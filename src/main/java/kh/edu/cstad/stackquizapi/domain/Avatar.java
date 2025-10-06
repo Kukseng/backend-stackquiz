@@ -23,6 +23,8 @@ public class Avatar {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    private Byte avatarNo;
+
     @Column(name = "avatar_name", nullable = false)
     private String name;
 

@@ -8,7 +8,6 @@ import kh.edu.cstad.stackquizapi.domain.QuizSession;
 import kh.edu.cstad.stackquizapi.dto.request.SessionCreateRequest;
 import kh.edu.cstad.stackquizapi.dto.response.SessionResponse;
 import kh.edu.cstad.stackquizapi.service.QuizSessionService;
-//import kh.edu.cstad.stackquizapi.service.QuizSessionServiceExtended;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -24,7 +23,6 @@ import java.util.Optional;
 public class QuizSessionController {
 
     private final QuizSessionService quizSessionService;
-//    private final QuizSessionServiceExtended quizSessionServiceExtended;
 
     @Operation(summary = "Get all users (secured)",
             security = { @SecurityRequirement(name = "bearerAuth") })
@@ -58,6 +56,7 @@ public class QuizSessionController {
     public Question toNextQuestion(@PathVariable String sessionCode) {
         return quizSessionService.advanceToNextQuestion(sessionCode);
     }
+
 
     @Operation(summary = "Get all users (secured)",
             security = { @SecurityRequirement(name = "bearerAuth") })

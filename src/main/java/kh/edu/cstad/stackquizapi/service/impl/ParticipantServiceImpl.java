@@ -1,7 +1,5 @@
 package kh.edu.cstad.stackquizapi.service.impl;
 
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotNull;
 import kh.edu.cstad.stackquizapi.domain.*;
 import kh.edu.cstad.stackquizapi.dto.request.JoinSessionRequest;
 import kh.edu.cstad.stackquizapi.dto.request.LeaderboardRequest;
@@ -207,8 +205,9 @@ public class ParticipantServiceImpl implements ParticipantService {
             } catch (Exception e) {
                 log.error("Failed to send first question to authenticated late joiner {}: {}", response.nickname(), e.getMessage(), e);
             }
-        }  // SYNC handled elsewhere (we broadcast global question)
-
+        } else if (session.getStatus() == Status.IN_PROGRESS && session.getMode() == QuizMode.SYNC) {
+            // SYNC handled elsewhere (we broadcast global question)
+        }
 
         return response;
     }

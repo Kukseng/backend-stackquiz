@@ -24,14 +24,14 @@ public class AnswerSubmissionMessage extends WebSocketMessage {
 
     @NotNull
     @Min(value = 0, message = "Response time must be non-negative")
-    private Long responseTime;
+    private Integer responseTime;
 
     private Boolean isCorrect;
     private Integer pointsEarned;
 
     public AnswerSubmissionMessage(String sessionId, String senderNickname, String participantId,
                                    String participantNickname, String questionId,
-                                   String selectedOptionId, Long responseTime) {
+                                   String selectedOptionId, Integer responseTime) {
         super("ANSWER_SUBMISSION", sessionId, senderNickname);
         this.participantId = participantId;
         this.participantNickname = participantNickname;
@@ -42,7 +42,7 @@ public class AnswerSubmissionMessage extends WebSocketMessage {
 
     public AnswerSubmissionMessage(String sessionId, String senderNickname, String participantId,
                                    String participantNickname, String questionId,
-                                   String selectedOptionId, Long responseTime,
+                                   String selectedOptionId, Integer responseTime,
                                    Boolean isCorrect, Integer pointsEarned) {
         super("ANSWER_SUBMISSION", sessionId, senderNickname);
         this.participantId = participantId;

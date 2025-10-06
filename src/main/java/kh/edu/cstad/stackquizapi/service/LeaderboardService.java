@@ -29,6 +29,7 @@ public interface LeaderboardService {
     void finalizeSessionLeaderboard(String sessionId);
 
     void clearSessionLeaderboard(String sessionId);
+
     void updateParticipantScore(String sessionId, String participantId, String nickname, int newScore);
     // Analytics
     SessionStats getSessionStatistics(String sessionId);

@@ -73,6 +73,7 @@ public class QuizSessionServiceImpl implements QuizSessionService, DisposableBea
         String hostId = accessToken.getSubject();
         User user = userRepository.findById(hostId)
                 .orElseThrow(() -> new NotFoundException("User not found"));
+
         Quiz quiz = quizRepository.findById(request.quizId())
                 .orElseThrow(() -> new NotFoundException("Quiz not found"));
 
@@ -125,6 +126,7 @@ public class QuizSessionServiceImpl implements QuizSessionService, DisposableBea
                 .toList();
 
         String questionsKey = SESSION_QUESTIONS_PREFIX + session.getId();
+
         // Clear any existing list first (defensive)
         redisTemplate.delete(questionsKey);
         for (Question q : questions) {
@@ -136,8 +138,10 @@ public class QuizSessionServiceImpl implements QuizSessionService, DisposableBea
         log.info("Cached {} questions for session {}", questions.size(), session.getId());
     }
 
+    @Transactional
     @Override
     public void sendNextQuestionToParticipant(String participantId, String sessionId, int questionNumber) {
+
         try {
             QuizSession session = quizSessionRepository.findById(sessionId)
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
@@ -209,7 +213,10 @@ public class QuizSessionServiceImpl implements QuizSessionService, DisposableBea
                 ParticipantProgressMessage progressMsg = ParticipantProgressMessage.builder()
                         .sessionCode(session.getSessionCode())
                         .participantId(participantId)
-                        .participantNickname(participantRepository.findById(participantId).map(Participant::getNickname).orElse("UNKNOWN"))
+                        .participantNickname(participantRepository
+                                .findById(participantId)
+                                .map(Participant::getNickname)
+                                .orElse("UNKNOWN"))
                         .currentQuestion(questionNumber)
                         .totalQuestions(session.getTotalQuestions())
                         .totalScore(participantRepository.findById(participantId).map(Participant::getTotalScore).orElse(0))
@@ -231,6 +238,7 @@ public class QuizSessionServiceImpl implements QuizSessionService, DisposableBea
         log.info("Participant {} completed all questions in session {}",
                 participant.getNickname(), session.getSessionCode());
 
+        // mark participant progress as completed
         String progressKey = PARTICIPANT_PROGRESS_PREFIX + participant.getId();
         redisTemplate.opsForValue().set(progressKey, String.valueOf(session.getTotalQuestions() + 1));
         redisTemplate.expire(progressKey, java.time.Duration.ofHours(24));
@@ -263,6 +271,7 @@ public class QuizSessionServiceImpl implements QuizSessionService, DisposableBea
                 long startTime = Long.parseLong(startTimeStr);
                 long currentTime = System.currentTimeMillis();
                 int seconds = (int) ((currentTime - startTime) / 1000);
+
                 // remove start time after reading (optional)
                 redisTemplate.delete(startTimeKey);
                 return Math.max(0, seconds);
@@ -276,7 +285,7 @@ public class QuizSessionServiceImpl implements QuizSessionService, DisposableBea
 
     @Override
     @Transactional
-    public SessionResponse startSession(String sessionCode) {
+    public void startSession(String sessionCode) {
         QuizSession session = quizSessionRepository.findBySessionCode(sessionCode)
                 .orElseThrow(() -> new NotFoundException("Session not found for code: " + sessionCode));
 
@@ -323,7 +332,7 @@ public class QuizSessionServiceImpl implements QuizSessionService, DisposableBea
             }, 2, TimeUnit.SECONDS);
         }
 
-        return quizSessionMapper.toSessionResponse(session);
+        quizSessionMapper.toSessionResponse(session);
     }
 
     private void checkSessionCompletion(QuizSession session) {
@@ -362,7 +371,6 @@ public class QuizSessionServiceImpl implements QuizSessionService, DisposableBea
         }
     }
 
-    // =================== SUBMIT ANSWER ===================
     @Override
     @Transactional
     public void submitAnswer(String sessionCode, String participantId, String selectedOptionId) {
@@ -439,7 +447,7 @@ public class QuizSessionServiceImpl implements QuizSessionService, DisposableBea
                 participant.getNickname(),
                 currentQuestion.getId(),
                 selectedOptionId,
-                (long) timeTaken,
+                timeTaken,
                 isCorrect,
                 points
         );
@@ -480,7 +488,7 @@ public class QuizSessionServiceImpl implements QuizSessionService, DisposableBea
         if (participantRepository.existsBySessionIdAndNickname(session.getId(), nickname))
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Nickname taken");
 
-        Avatar avatar = avatarRepository.findById(Long.valueOf(avatarId))
+        Avatar avatar = avatarRepository.findById (Long.valueOf(avatarId))
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST,
                         "Avatar with ID: " + avatarId + " does not exist"));
 
@@ -492,6 +500,7 @@ public class QuizSessionServiceImpl implements QuizSessionService, DisposableBea
         participant.setTotalScore(0);
         participant.setJoinedAt(LocalDateTime.now());
         participant.setAvatar(avatar);
+
 
         if (userId != null) {
             User user = userRepository.findById(userId)
@@ -656,6 +665,7 @@ public class QuizSessionServiceImpl implements QuizSessionService, DisposableBea
                 "NEXT_QUESTION"
         );
 
+        // Broadcast to everyone
         webSocketService.broadcastQuestion(session.getSessionCode(), qMsg);
 
         return question;

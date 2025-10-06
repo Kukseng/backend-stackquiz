@@ -73,7 +73,7 @@ public class ParticipantAnswerServiceImpl implements ParticipantAnswerService {
         ParticipantAnswerResponse response = mapToResponse(savedAnswer);
 
         webSocketService.sendToParticipant(
-                participant.getNickname(), // Used to identify recipient
+                participant.getNickname(),
                 participant.getSession().getSessionCode(),
                 new AnswerSubmissionMessage(
                         participant.getSession().getSessionCode(),
@@ -82,7 +82,7 @@ public class ParticipantAnswerServiceImpl implements ParticipantAnswerService {
                         participant.getNickname(),
                         question.getId(),
                         answer.getSelectedAnswer() != null ? answer.getSelectedAnswer().getId() : null,
-                        request.timeTaken().longValue()
+                        request.timeTaken()
                 )
         );
 
@@ -122,7 +122,7 @@ public class ParticipantAnswerServiceImpl implements ParticipantAnswerService {
                             singleAnswer.questionId(),
                             singleAnswer.optionId(),
                             singleAnswer.answerText(),
-                            singleAnswer.timeTaken().longValue(),
+                            singleAnswer.timeTaken(),
                             request.sessionId()
                     );
                     return submitAnswer(submitRequest);

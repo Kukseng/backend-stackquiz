@@ -25,7 +25,6 @@ public interface ParticipantAnswerService {
      */
     List<ParticipantAnswerResponse> getParticipantAnswers(String participantId);
 
-
     /**
      * Update an existing answer (if allowed)
      */
@@ -46,11 +45,6 @@ public interface ParticipantAnswerService {
      */
     ParticipantAnswerResponse getParticipantQuestionAnswer(String participantId, String questionId);
 
-//    /**
-//     * Validate and score an answer
-//     */
-//    ParticipantAnswerResponse validateAndScoreAnswer(SubmitAnswerRequest request);
-//
     /**
      * Calculate participant's total score
      */

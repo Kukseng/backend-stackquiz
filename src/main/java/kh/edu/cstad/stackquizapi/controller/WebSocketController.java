@@ -1,5 +1,6 @@
 package kh.edu.cstad.stackquizapi.controller;
 
+
 import kh.edu.cstad.stackquizapi.dto.request.JoinSessionRequest;
 import kh.edu.cstad.stackquizapi.dto.request.SubmitAnswerRequest;
 import kh.edu.cstad.stackquizapi.dto.websocket.AnswerSubmissionMessage;
@@ -22,7 +23,6 @@ public class WebSocketController {
     private final QuizSessionService quizSessionService;
     private final ParticipantService participantService;
 
-    // Host commands
     @MessageMapping("/session/{sessionId}/host-command")
     public void handleHostCommand(
             @DestinationVariable String sessionId,
@@ -75,6 +75,5 @@ public class WebSocketController {
 
         participantService.submitAnswer(request);
     }
-
 
 }

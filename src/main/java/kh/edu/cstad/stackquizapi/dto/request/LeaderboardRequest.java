@@ -20,7 +20,7 @@ public record LeaderboardRequest(
 
         String currentParticipantId
 ) {
-    // Default values
+
     public LeaderboardRequest {
         if (limit == null) limit = 20;
         if (offset == null) offset = 0;

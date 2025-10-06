@@ -4,20 +4,26 @@ import kh.edu.cstad.stackquizapi.dto.websocket.*;
 
 public interface WebSocketService {
 
-    // Broadcast methods (to all participants in session)
     void broadcastGameState(String sessionCode, GameStateMessage message);
+
     void broadcastQuestion(String sessionCode, QuestionMessage message);
+
     void broadcastLeaderboard(String sessionCode, LeaderboardMessage message);
+
     void broadcastParticipantUpdate(String sessionCode, ParticipantMessage message);
+
     void broadcastAnswerResult(String sessionCode, AnswerSubmissionMessage message);
 
     // Individual messaging methods
     void sendToParticipantByNickname(String nickname, String sessionCode, WebSocketMessage message);
+
     void sendToHost(String hostNickname, String sessionCode, WebSocketMessage message);
+
     void sendErrorToParticipant(String nickname, String sessionCode, String errorMessage);
 
     // Connection handling
     void handleParticipantConnect(String sessionCode, String nickname);
+
     void handleParticipantDisconnect(String sessionCode, String nickname);
 
     // *** ENHANCED METHODS FOR KAHOOT-STYLE INDIVIDUAL PROGRESSION ***

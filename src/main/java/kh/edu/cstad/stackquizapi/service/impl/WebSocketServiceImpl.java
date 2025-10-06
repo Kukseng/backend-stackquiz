@@ -76,26 +76,18 @@ public class WebSocketServiceImpl implements WebSocketService {
         log.info("Participant {} connected to session {}", nickname, sessionCode);
     }
 
-    /**
-     * Send message to specific participant by participant ID (for individual progression)
-     * ✅ FIXED: Use convertAndSendToUser to send to participant's personal queue
-     */
     @Override
     public void sendToParticipant(String sessionCode, String participantId, Object message) {
-        // ✅ FIXED: Send to /user/{participantId}/queue/question
-        // The participant subscribes to /user/queue/question
+
         // Spring automatically routes to /user/{sessionId}/queue/question
         messagingTemplate.convertAndSendToUser(
-                participantId,           // User identifier (participant ID)
-                "/queue/question",       // Destination queue
+                participantId,
+                "/queue/question",
                 message
         );
         log.debug("Sent message to participant {} in session {}: {}", participantId, sessionCode, message.getClass().getSimpleName());
     }
 
-    /**
-     * Send question to specific participant (individual progression)
-     */
     @Override
     public void sendQuestionToParticipant(String sessionCode, String participantId, QuestionMessage message) {
         sendToParticipant(sessionCode, participantId, message);
@@ -112,18 +104,12 @@ public class WebSocketServiceImpl implements WebSocketService {
         log.debug("Sent answer feedback to participant {} in session {}", participantId, sessionCode);
     }
 
-    /**
-     * Send completion message to specific participant
-     */
     @Override
     public void sendCompletionToParticipant(String sessionCode, String participantId, GameStateMessage message) {
         sendToParticipant(sessionCode, participantId, message);
         log.info("Sent completion message to participant {} in session {}", participantId, sessionCode);
     }
 
-    /**
-     * Notify host of participant progress updates
-     */
     @Override
     public void notifyHostParticipantProgress(String sessionCode, ParticipantProgressMessage message) {
         String topic = "/topic/session/" + sessionCode + "/host";
@@ -132,27 +118,18 @@ public class WebSocketServiceImpl implements WebSocketService {
                 sessionCode, message.participantNickname(), message.currentQuestion());
     }
 
-    /**
-     * Send message directly to host
-     */
     public void sendToHost(String sessionCode, Object message) {
         String topic = "/topic/session/" + sessionCode + "/host";
         messagingTemplate.convertAndSend(topic, message);
         log.debug("Sent message to host in session {}: {}", sessionCode, message.getClass().getSimpleName());
     }
 
-    /**
-     * Broadcast session statistics to all participants
-     */
     public void broadcastSessionStats(String sessionCode, Object statsMessage) {
         String topic = "/topic/session/" + sessionCode + "/stats";
         messagingTemplate.convertAndSend(topic, statsMessage);
         log.debug("Broadcasted session stats to session {}", sessionCode);
     }
 
-    /**
-     * Send real-time progress update to all participants
-     */
     public void broadcastProgressUpdate(String sessionCode, Object progressMessage) {
         String topic = "/topic/session/" + sessionCode + "/progress";
         messagingTemplate.convertAndSend(topic, progressMessage);

@@ -6,7 +6,6 @@ import kh.edu.cstad.stackquizapi.dto.response.CategoryResponse;
 import java.util.List;
 
 public interface CategoryService {
-//    CategoryResponse createCategory(CategoryRequest categoryRequest);
 
     CategoryResponse createCategory(CategoryRequest categoryRequest);
 

@@ -21,8 +21,6 @@ public interface ParticipantService {
 
     List<ParticipantResponse> getSessionParticipants(String sessionId);
 
-//    LeaderboardResponse getLeaderboard(String sessionId);
-
     void leaveSession(String participantId);
 
     Optional<Participant> getParticipantById(String participantId);
