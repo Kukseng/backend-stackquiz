@@ -82,7 +82,7 @@ public class ParticipantAnswerServiceImpl implements ParticipantAnswerService {
                         participant.getNickname(),
                         question.getId(),
                         answer.getSelectedAnswer() != null ? answer.getSelectedAnswer().getId() : null,
-                        request.timeTaken()
+                        request.timeTaken().longValue()
                 )
         );
 
