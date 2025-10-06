@@ -154,7 +154,7 @@ public class KeycloakSecurityConfig {
                          // Rating
                                 .requestMatchers(HttpMethod.POST, "api/v1/ratings/**").hasAnyRole("ORGANIZER", "ADMIN")
                                 .requestMatchers(HttpMethod.GET, "api/v1/ratings/**").hasAnyRole("ORGANIZER", "ADMIN")
-                                .requestMatchers(HttpMethod.POST, "api/v1/ratings/**").hasAnyRole("ORGANIZER", "ADMIN")
+                                .requestMatchers(HttpMethod.DELETE, "api/v1/ratings/**").hasAnyRole("ADMIN")
 
 //                        // Require authentication for all other requests
                                 .anyRequest().authenticated()
