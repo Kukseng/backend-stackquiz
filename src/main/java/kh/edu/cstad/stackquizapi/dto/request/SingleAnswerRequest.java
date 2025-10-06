@@ -14,5 +14,5 @@ public record SingleAnswerRequest(
 
         @NotNull(message = "Time taken is required")
         @Min(value = 0, message = "Time taken must be non-negative")
-        Long timeTaken
+        Integer timeTaken
 ) {}
