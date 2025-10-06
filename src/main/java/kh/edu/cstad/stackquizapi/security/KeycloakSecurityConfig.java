@@ -117,8 +117,8 @@ public class KeycloakSecurityConfig {
 //
 //                        // Secure quiz management - ORGANIZER or ADMIN
                                 .requestMatchers(HttpMethod.POST, "/api/v1/quizzes").hasAnyRole("ORGANIZER", "ADMIN")
-                                .requestMatchers(HttpMethod.PUT, "/api/v1/quizzes/*").hasAnyRole("ORGANIZER", "ADMIN")
-                                .requestMatchers(HttpMethod.DELETE, "/api/v1/quizzes/*").hasAnyRole("ORGANIZER", "ADMIN")
+                                .requestMatchers(HttpMethod.PUT, "/api/v1/quizzes/**").hasAnyRole("ORGANIZER", "ADMIN")
+                                .requestMatchers(HttpMethod.DELETE, "/api/v1/quizzes/**").hasAnyRole("ORGANIZER", "ADMIN")
 //
 //                        // Secure session management - ORGANIZER or ADMIN
                                 .requestMatchers(HttpMethod.POST, "/api/v1/sessions").hasAnyRole("ORGANIZER", "ADMIN")
