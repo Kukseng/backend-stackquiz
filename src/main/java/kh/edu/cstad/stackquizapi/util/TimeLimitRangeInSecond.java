@@ -6,6 +6,10 @@ import lombok.Getter;
 public enum TimeLimitRangeInSecond {
 
     FIVE(5),
+    SIX(6),
+    SEVEN(7),
+    EIGHT(8),
+    NINE(9),
     TEN(10),
     FIFTEEN(15),
     TWENTY(20),
