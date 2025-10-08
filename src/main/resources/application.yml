@@ -1,3 +1,7 @@
+media:
+  server-path: /home/aintantony/ISTAD/FINAL_PROJECT/StackQuiz/media-upload/
+  base-uri: http://localhost:9999/media/
+
 keycloak:
   realm: stackquiz
   server-url: https://keycloak-prod.rattanakmony.com

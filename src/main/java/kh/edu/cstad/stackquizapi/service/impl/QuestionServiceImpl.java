@@ -1,15 +1,18 @@
 package kh.edu.cstad.stackquizapi.service.impl;
 
 import jakarta.transaction.Transactional;
+import kh.edu.cstad.stackquizapi.domain.Media;
 import kh.edu.cstad.stackquizapi.domain.Question;
 import kh.edu.cstad.stackquizapi.domain.Quiz;
 import kh.edu.cstad.stackquizapi.dto.request.CreateQuestionRequest;
 import kh.edu.cstad.stackquizapi.dto.request.UpdateQuestionRequest;
+import kh.edu.cstad.stackquizapi.dto.response.MediaResponse;
 import kh.edu.cstad.stackquizapi.dto.response.QuestionResponse;
 import kh.edu.cstad.stackquizapi.mapper.QuestionMapper;
 import kh.edu.cstad.stackquizapi.repository.QuestionRepository;
 import kh.edu.cstad.stackquizapi.repository.QuizRepository;
 import kh.edu.cstad.stackquizapi.repository.QuizSessionRepository;
+import kh.edu.cstad.stackquizapi.service.MediaService;
 import kh.edu.cstad.stackquizapi.service.QuestionService;
 import kh.edu.cstad.stackquizapi.util.QuestionType;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.sql.Timestamp;
@@ -36,12 +40,13 @@ public class QuestionServiceImpl implements QuestionService {
     private final QuestionRepository questionRepository;
     private final QuestionMapper questionMapper;
     private final QuizSessionRepository quizSessionRepository;
+    private final MediaService mediaService;
 
     private static final Set<QuestionType> VALID_QUESTION_TYPES =
             EnumSet.of(QuestionType.TF, QuestionType.MCQ, QuestionType.FILL_THE_BLANK);
 
     @Override
-    public QuestionResponse createNewQuestion(CreateQuestionRequest createQuestionRequest) {
+    public QuestionResponse createNewQuestion(CreateQuestionRequest createQuestionRequest, MultipartFile file) {
 
         Quiz quiz = quizRepository.findById(createQuestionRequest.quizId()).orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND,
@@ -61,11 +66,15 @@ public class QuestionServiceImpl implements QuestionService {
             int nextOrder = (maxOrder != null) ? maxOrder + 1 : 1;
 
             Question question = questionMapper.fromCreateQuestionRequest(createQuestionRequest);
+            MediaResponse media = mediaService.upload(file);
+
+            String imageUri = media.uri();
 
             question.setQuiz(quiz);
             question.setPoints(10);
             question.setTimeLimit(timeLimit);
             question.setQuestionOrder(nextOrder);
+            question.setImageUrl(imageUri);
             question.setCreatedAt(Timestamp.valueOf(LocalDateTime.now()));
             question.setUpdatedAt(Timestamp.valueOf(LocalDateTime.now()));
 

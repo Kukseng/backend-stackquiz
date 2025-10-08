@@ -5,6 +5,7 @@ import kh.edu.cstad.stackquizapi.dto.request.UpdateQuestionRequest;
 import kh.edu.cstad.stackquizapi.dto.response.QuestionResponse;
 import kh.edu.cstad.stackquizapi.util.QuestionType;
 import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -21,7 +22,7 @@ public interface QuestionService {
      * @param createQuestionRequest the request object containing question details
      * @return the created question as a {@link QuestionResponse}
      */
-    QuestionResponse createNewQuestion(CreateQuestionRequest createQuestionRequest);
+    QuestionResponse createNewQuestion(CreateQuestionRequest createQuestionRequest, MultipartFile file);
 
     /**
      * Retrieves all questions from the system.

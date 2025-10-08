@@ -75,6 +75,7 @@ public class KeycloakSecurityConfig {
 
         return http
                 .authorizeHttpRequests(request -> request
+
                                 // Allow Swagger UI
                                 .requestMatchers(
                                         "/swagger-ui/**",
@@ -88,7 +89,7 @@ public class KeycloakSecurityConfig {
                                 .requestMatchers("/ws/**").permitAll()
                                 .requestMatchers("/api/v1/auth/**").permitAll()
 
-//                        // Allow participant public endpoints (joining sessions, submitting answers)
+                                // Allow participant public endpoints (joining sessions, submitting answers)
                                 .requestMatchers(HttpMethod.GET, "/api/v1/participants/session/*/can-join").permitAll()
                                 .requestMatchers(HttpMethod.GET, "/api/v1/participants/session/*/nickname-available").permitAll()
                                 .requestMatchers(HttpMethod.POST, "/api/v1/participants/join").permitAll()
@@ -98,65 +99,113 @@ public class KeycloakSecurityConfig {
                                 // Allow session join checking (public)
                                 .requestMatchers(HttpMethod.GET, "/api/v1/sessions/*/join").permitAll()
                                 .requestMatchers(HttpMethod.GET, "/api/v1/sessions/*").permitAll()
-//
-//                        // Allow public quiz viewing
+
+                                // Allow public quiz viewing
                                 .requestMatchers(HttpMethod.GET, "/api/v1/quizzes").permitAll()
                                 .requestMatchers(HttpMethod.GET, "/api/v1/quizzes/**").permitAll()
-//
-////                        // Allow participant public endpoints (joining sessions, submitting answers)
+
+                                // Allow participant public endpoints (joining sessions, submitting answers)
                                 .requestMatchers(HttpMethod.GET, "/api/v1/participants/session/*/can-join").permitAll()
                                 .requestMatchers(HttpMethod.GET, "/api/v1/participants/session/*/nickname-available").permitAll()
                                 .requestMatchers(HttpMethod.POST, "/api/v1/participants/join").permitAll()
                                 .requestMatchers(HttpMethod.POST, "/api/v1/participants/submit-answer").permitAll()
-//
-//                        // Secure question management - ORGANIZER or ADMIN
-                                .requestMatchers(HttpMethod.POST, "/api/v1/questions/**").hasAnyRole("ORGANIZER", "ADMIN")
-                                .requestMatchers(HttpMethod.GET, "/api/v1/questions/**").hasAnyRole("ORGANIZER", "ADMIN")
-                                .requestMatchers(HttpMethod.PATCH, "/api/v1/questions/**").hasAnyRole("ORGANIZER", "ADMIN")
-                                .requestMatchers(HttpMethod.DELETE, "/api/v1/questions/**").hasAnyRole("ORGANIZER", "ADMIN")
-//
-//                        // Secure quiz management - ORGANIZER or ADMIN
-                                .requestMatchers(HttpMethod.POST, "/api/v1/quizzes").hasAnyRole("ORGANIZER", "ADMIN")
-                                .requestMatchers(HttpMethod.PUT, "/api/v1/quizzes/**").hasAnyRole("ORGANIZER", "ADMIN")
-                                .requestMatchers(HttpMethod.DELETE, "/api/v1/quizzes/**").hasAnyRole("ORGANIZER", "ADMIN")
-//
-//                        // Secure session management - ORGANIZER or ADMIN
-                                .requestMatchers(HttpMethod.POST, "/api/v1/sessions").hasAnyRole("ORGANIZER", "ADMIN")
-                                .requestMatchers(HttpMethod.PUT, "/api/v1/sessions/**").hasAnyRole("ORGANIZER", "ADMIN")
-//
-//                        // Secure user management - ADMIN only
-                                .requestMatchers(HttpMethod.GET, "/api/v1/users").hasRole("ADMIN")
-                                .requestMatchers(HttpMethod.GET, "/api/v1/users/me").hasAnyRole("ADMIN", "ORGANIZER")
-                                .requestMatchers(HttpMethod.POST, "/api/v1/users").hasRole("ADMIN")
-                                .requestMatchers(HttpMethod.PUT, "/api/v1/users/me").hasAnyRole("ADMIN", "ORGANIZER")
-                                .requestMatchers(HttpMethod.DELETE, "/api/v1/users/**").hasRole("ADMIN")
-                                .requestMatchers(HttpMethod.PATCH, "/api/v1/users/**").hasRole("ADMIN")
-//
-//                        // Secure category management - ORGANIZER or ADMIN
-                                .requestMatchers(HttpMethod.POST, "/api/v1/categories/**").hasAnyRole("ORGANIZER", "ADMIN")
-                                .requestMatchers(HttpMethod.GET, "/api/v1/categories").hasAnyRole("ORGANIZER")
-//
-//                        // Secure option management - ORGANIZER or ADMIN
-                                .requestMatchers(HttpMethod.POST, "/api/v1/options/**").hasAnyRole("ORGANIZER", "ADMIN")
-                                .requestMatchers(HttpMethod.PUT, "/api/v1/options/**").hasAnyRole("ORGANIZER", "ADMIN")
-                                .requestMatchers(HttpMethod.DELETE, "/api/v1/options/**").hasAnyRole("ORGANIZER", "ADMIN")
-//
-                        // Secure reports - ORGANIZER or ADMIN
-                                .requestMatchers("/api/v1/sessions/*/report").hasAnyRole("ORGANIZER", "ADMIN")
-                                .requestMatchers("/api/v1/sessions/reports/**").hasAnyRole("ORGANIZER", "ADMIN")
-                                .requestMatchers("/api/v1/sessions/*/generate-report").hasAnyRole("ORGANIZER", "ADMIN")
-//
-//                        // Secure leaderboard management - ORGANIZER or ADMIN
-                                .requestMatchers(HttpMethod.POST, "/api/v1/leaderboard/session/*/initialize").hasAnyRole("ORGANIZER", "ADMIN")
-                                .requestMatchers(HttpMethod.POST, "/api/v1/leaderboard/session/*/finalize").hasAnyRole("ORGANIZER", "ADMIN")
-                                .requestMatchers(HttpMethod.POST, "/api/v1/leaderboard/history").hasAnyRole("ORGANIZER", "ADMIN")
-//
-                         // Rating
-                                .requestMatchers(HttpMethod.POST, "/api/v1/ratings/**").hasAnyRole("ORGANIZER", "ADMIN")
-                                .requestMatchers(HttpMethod.GET, "/api/v1/ratings/**").hasAnyRole("ORGANIZER", "ADMIN")
-                                .requestMatchers(HttpMethod.DELETE, "/api/v1/ratings/**").hasAnyRole("ADMIN")
 
-//                        // Require authentication for all other requests
+                                // Secure question management - ORGANIZER or ADMIN
+                                .requestMatchers(HttpMethod.GET, "/api/v1/questions/**")
+                                .hasAnyRole("ORGANIZER", "ADMIN")
+
+                                .requestMatchers(HttpMethod.POST, "/api/v1/questions/**")
+                                .hasAnyRole("ORGANIZER", "ADMIN")
+
+                                .requestMatchers(HttpMethod.PATCH, "/api/v1/questions/**")
+                                .hasAnyRole("ORGANIZER", "ADMIN")
+
+                                .requestMatchers(HttpMethod.DELETE, "/api/v1/questions/**")
+                                .hasAnyRole("ORGANIZER", "ADMIN")
+
+                                // Secure quiz management - ORGANIZER or ADMIN
+                                .requestMatchers(HttpMethod.POST, "/api/v1/quizzes")
+                                .hasAnyRole("ORGANIZER", "ADMIN")
+
+                                .requestMatchers(HttpMethod.PUT, "/api/v1/quizzes/**")
+                                .hasAnyRole("ORGANIZER", "ADMIN")
+
+                                .requestMatchers(HttpMethod.DELETE, "/api/v1/quizzes/**")
+                                .hasAnyRole("ORGANIZER", "ADMIN")
+
+                                // Secure session management - ORGANIZER or ADMIN
+                                .requestMatchers(HttpMethod.POST, "/api/v1/sessions")
+                                .hasAnyRole("ORGANIZER", "ADMIN")
+
+                                .requestMatchers(HttpMethod.PUT, "/api/v1/sessions/**")
+                                .hasAnyRole("ORGANIZER", "ADMIN")
+
+                                // Secure user management - ADMIN only
+                                .requestMatchers(HttpMethod.GET, "/api/v1/users")
+                                .hasRole("ADMIN")
+
+                                .requestMatchers(HttpMethod.DELETE, "/api/v1/users/**")
+                                .hasRole("ADMIN")
+
+                                .requestMatchers(HttpMethod.PATCH, "/api/v1/users/**")
+                                .hasRole("ADMIN")
+
+                                .requestMatchers(HttpMethod.GET, "/api/v1/users/me")
+                                .hasAnyRole("ADMIN", "ORGANIZER")
+
+                                .requestMatchers(HttpMethod.POST, "/api/v1/users")
+                                .hasRole("ADMIN")
+
+                                .requestMatchers(HttpMethod.PUT, "/api/v1/users/me")
+                                .hasAnyRole("ADMIN", "ORGANIZER")
+
+                                // Secure category management - ORGANIZER or ADMIN
+                                .requestMatchers(HttpMethod.POST, "/api/v1/categories/**")
+                                .hasAnyRole("ORGANIZER", "ADMIN")
+
+                                .requestMatchers(HttpMethod.GET, "/api/v1/categories")
+                                .hasAnyRole("ORGANIZER")
+
+                                // Secure option management - ORGANIZER or ADMIN
+                                .requestMatchers(HttpMethod.POST, "/api/v1/options/**")
+                                .hasAnyRole("ORGANIZER", "ADMIN")
+
+                                .requestMatchers(HttpMethod.PUT, "/api/v1/options/**")
+                                .hasAnyRole("ORGANIZER", "ADMIN")
+
+                                .requestMatchers(HttpMethod.DELETE, "/api/v1/options/**")
+                                .hasAnyRole("ORGANIZER", "ADMIN")
+
+                                // Secure reports - ORGANIZER or ADMIN
+                                .requestMatchers("/api/v1/sessions/*/report")
+                                .hasAnyRole("ORGANIZER", "ADMIN")
+
+                                .requestMatchers("/api/v1/sessions/reports/**").
+                                hasAnyRole("ORGANIZER", "ADMIN")
+
+                                .requestMatchers("/api/v1/sessions/*/generate-report")
+                                .hasAnyRole("ORGANIZER", "ADMIN")
+
+                                // Secure leaderboard management - ORGANIZER or ADMIN
+                                .requestMatchers(HttpMethod.POST, "/api/v1/leaderboard/session/*/initialize")
+                                .hasAnyRole("ORGANIZER", "ADMIN")
+
+                                .requestMatchers(HttpMethod.POST, "/api/v1/leaderboard/session/*/finalize")
+                                .hasAnyRole("ORGANIZER", "ADMIN")
+
+                                .requestMatchers(HttpMethod.POST, "/api/v1/leaderboard/history")
+                                .hasAnyRole("ORGANIZER", "ADMIN")
+
+                                // Rating
+                                .requestMatchers(HttpMethod.DELETE, "/api/v1/ratings/**")
+                                .hasAnyRole("ADMIN")
+
+                                .requestMatchers(HttpMethod.POST, "/api/v1/ratings/**")
+                                .hasAnyRole("ORGANIZER", "ADMIN")
+
+                                .requestMatchers(HttpMethod.GET, "/api/v1/ratings/**")
+                                .hasAnyRole("ORGANIZER", "ADMIN")
+
                                 .anyRequest().authenticated()
 //                                .anyRequest().permitAll()
                 )
