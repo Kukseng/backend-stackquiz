@@ -27,7 +27,7 @@ public class Quiz {
     @Column(name = "quiz_id")
     private String id;
 
-    @Column(nullable = false, length = 100)
+    @Column(nullable = false, length = 200)
     private String title;
 
     @Column(columnDefinition = "TEXT")

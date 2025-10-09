@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -58,9 +59,11 @@ public class UserController {
     @Operation(summary = "Update current user (secured)",
             security = {@SecurityRequirement(name = "bearerAuth")})
     @ResponseStatus(HttpStatus.CREATED)
-    @PutMapping("/me")
-    public UserResponse updateUser(@Valid @AuthenticationPrincipal Jwt accessToken,
-                                           @RequestBody UpdateUserRequest updateUserRequest) {
-        return userService.updateUser(accessToken, updateUserRequest);
+    @PatchMapping(value = "/me", consumes = {"multipart/form-data"})
+    public UserResponse updateUser(
+            @AuthenticationPrincipal Jwt accessToken,
+            @RequestPart("updateUserRequest") @Valid UpdateUserRequest updateUserRequest,
+            @RequestPart(value = "file", required = false) MultipartFile file) {
+        return userService.updateUser(accessToken, updateUserRequest, file);
     }
 }

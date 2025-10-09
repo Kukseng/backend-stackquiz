@@ -4,6 +4,7 @@ import kh.edu.cstad.stackquizapi.dto.request.CreateUserRequest;
 import kh.edu.cstad.stackquizapi.dto.request.UpdateUserRequest;
 import kh.edu.cstad.stackquizapi.dto.response.UserResponse;
 import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -35,7 +36,7 @@ public interface UserService{
      * @param updateUserRequest the request object containing updated user details
      * @return the updated user response DTO
      */
-    UserResponse updateUser(Jwt accessToken, UpdateUserRequest updateUserRequest);
+    UserResponse updateUser(Jwt accessToken, UpdateUserRequest updateUserRequest, MultipartFile file);
 
     /**
      * Deletes a user by their ID.

@@ -1,7 +1,6 @@
 package kh.edu.cstad.stackquizapi.service.impl;
 
 import jakarta.transaction.Transactional;
-import kh.edu.cstad.stackquizapi.domain.Media;
 import kh.edu.cstad.stackquizapi.domain.Question;
 import kh.edu.cstad.stackquizapi.domain.Quiz;
 import kh.edu.cstad.stackquizapi.dto.request.CreateQuestionRequest;

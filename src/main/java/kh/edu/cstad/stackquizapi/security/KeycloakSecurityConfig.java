@@ -96,13 +96,40 @@ public class KeycloakSecurityConfig {
                                 .requestMatchers(HttpMethod.POST, "/api/v1/participants/join/").permitAll()
                                 .requestMatchers(HttpMethod.POST, "/api/v1/participants/submit-answer").permitAll()
 
+                                // Secure session management - ORGANIZER or ADMIN
+                                .requestMatchers(HttpMethod.POST, "/api/v1/sessions")
+                                .hasAnyRole("ORGANIZER", "ADMIN")
+
+                                .requestMatchers(HttpMethod.PUT, "/api/v1/sessions/**")
+                                .hasAnyRole("ORGANIZER", "ADMIN")
+
                                 // Allow session join checking (public)
                                 .requestMatchers(HttpMethod.GET, "/api/v1/sessions/*/join").permitAll()
                                 .requestMatchers(HttpMethod.GET, "/api/v1/sessions/*").permitAll()
 
+                                // Secure quiz management - ORGANIZER or ADMIN
+                                .requestMatchers(HttpMethod.POST, "api/v1/quizzes/admin/{quizId}/suspend")
+                                .hasRole("ADMIN")
+
+                                .requestMatchers(HttpMethod.POST, "/api/v1/quizzes")
+                                .hasAnyRole("ORGANIZER", "ADMIN")
+
+                                .requestMatchers(HttpMethod.PUT, "/api/v1/quizzes/**")
+                                .hasAnyRole("ORGANIZER", "ADMIN")
+
+                                .requestMatchers(HttpMethod.DELETE, "/api/v1/quizzes/**")
+                                .hasAnyRole("ORGANIZER", "ADMIN")
+
+                                .requestMatchers(HttpMethod.POST, "api/vq/quizzes/{quizId}/favorite")
+                                .hasRole("ORGANIZER")
+
+                                .requestMatchers(HttpMethod.DELETE, "api/vq/quizzes/{quizId}/favorite")
+                                .hasRole("ORGANIZER")
+
                                 // Allow public quiz viewing
                                 .requestMatchers(HttpMethod.GET, "/api/v1/quizzes").permitAll()
                                 .requestMatchers(HttpMethod.GET, "/api/v1/quizzes/**").permitAll()
+
 
                                 // Allow participant public endpoints (joining sessions, submitting answers)
                                 .requestMatchers(HttpMethod.GET, "/api/v1/participants/session/*/can-join").permitAll()
@@ -121,23 +148,6 @@ public class KeycloakSecurityConfig {
                                 .hasAnyRole("ORGANIZER", "ADMIN")
 
                                 .requestMatchers(HttpMethod.DELETE, "/api/v1/questions/**")
-                                .hasAnyRole("ORGANIZER", "ADMIN")
-
-                                // Secure quiz management - ORGANIZER or ADMIN
-                                .requestMatchers(HttpMethod.POST, "/api/v1/quizzes")
-                                .hasAnyRole("ORGANIZER", "ADMIN")
-
-                                .requestMatchers(HttpMethod.PUT, "/api/v1/quizzes/**")
-                                .hasAnyRole("ORGANIZER", "ADMIN")
-
-                                .requestMatchers(HttpMethod.DELETE, "/api/v1/quizzes/**")
-                                .hasAnyRole("ORGANIZER", "ADMIN")
-
-                                // Secure session management - ORGANIZER or ADMIN
-                                .requestMatchers(HttpMethod.POST, "/api/v1/sessions")
-                                .hasAnyRole("ORGANIZER", "ADMIN")
-
-                                .requestMatchers(HttpMethod.PUT, "/api/v1/sessions/**")
                                 .hasAnyRole("ORGANIZER", "ADMIN")
 
                                 // Secure user management - ADMIN only

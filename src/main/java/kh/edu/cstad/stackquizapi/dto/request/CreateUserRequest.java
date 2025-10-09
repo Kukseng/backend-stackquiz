@@ -32,8 +32,6 @@ public record CreateUserRequest(
 
         String avatarUrl,
 
-        String profileUser,
-
         @NotBlank(message = "Is Deleted is required")
         Boolean isDeleted
 

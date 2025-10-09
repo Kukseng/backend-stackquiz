@@ -10,13 +10,11 @@ import java.util.List;
 public record CreateQuizRequest(
 
         @NotBlank(message = "Title is required")
-        @Size(max = 100, message = "Title must not exceed 100 characters")
+        @Size(max = 200, message = "Title must not exceed 200 characters")
         String title,
 
         @NotBlank(message = "Description must not be empty")
         String description,
-
-        String thumbnailUrl,
 
         @NotBlank(message = "Visibility is required")
         @Pattern(regexp = "PUBLIC|UNLISTED|PRIVATE", message = "Visibility must be either PUBLIC, UNLISTED or PRIVATE")

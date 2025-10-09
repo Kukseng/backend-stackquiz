@@ -1,6 +1,6 @@
 media:
   server-path: /home/aintantony/ISTAD/FINAL_PROJECT/StackQuiz/media-upload/
-  base-uri: http://localhost:9999/media/
+  base-uri: https://stackquiz-api.stackquiz.me/media
 
 keycloak:
   realm: stackquiz
@@ -14,6 +14,8 @@ keycloak:
 
 app:
   default-role: ORGANIZER
+  report:
+    threshold: 5
 quiz:
   autoplay:
     enabled: true

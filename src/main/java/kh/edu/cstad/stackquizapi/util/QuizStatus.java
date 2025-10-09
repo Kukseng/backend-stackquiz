@@ -6,6 +6,6 @@ public enum QuizStatus {
 
     DRAFT,
 
-    FAVORITE
+    SUSPENDED
 
 }

@@ -67,7 +67,6 @@ public class RatingServiceImpl implements RatingService {
                 .build();
     }
 
-
     @Override
     public List<RatingResponse> getRatingsByQuiz(String quizId) {
 
