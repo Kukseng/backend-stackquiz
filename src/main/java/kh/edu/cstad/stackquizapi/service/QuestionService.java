@@ -22,7 +22,7 @@ public interface QuestionService {
      * @param createQuestionRequest the request object containing question details
      * @return the created question as a {@link QuestionResponse}
      */
-    QuestionResponse createNewQuestion(CreateQuestionRequest createQuestionRequest, MultipartFile file);
+    QuestionResponse createNewQuestion(CreateQuestionRequest createQuestionRequest);
 
     /**
      * Retrieves all questions from the system.

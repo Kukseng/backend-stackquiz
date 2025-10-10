@@ -59,11 +59,10 @@ public class UserController {
     @Operation(summary = "Update current user (secured)",
             security = {@SecurityRequirement(name = "bearerAuth")})
     @ResponseStatus(HttpStatus.CREATED)
-    @PatchMapping(value = "/me", consumes = {"multipart/form-data"})
+    @PatchMapping(value = "/me")
     public UserResponse updateUser(
             @AuthenticationPrincipal Jwt accessToken,
-            @RequestPart("updateUserRequest") @Valid UpdateUserRequest updateUserRequest,
-            @RequestPart(value = "file", required = false) MultipartFile file) {
-        return userService.updateUser(accessToken, updateUserRequest, file);
+            @RequestBody @Valid UpdateUserRequest updateUserRequest) {
+        return userService.updateUser(accessToken, updateUserRequest);
     }
 }

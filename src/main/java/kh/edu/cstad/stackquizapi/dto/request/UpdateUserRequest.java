@@ -17,9 +17,9 @@ public record UpdateUserRequest(
         @Size(min = 3, max = 50, message = "Full name must be between 3 and 50 characters")
         String lastName,
 
-        String avatarUrl
+        String avatarUrl,
 
-//        String profileUser
+        String profileUser
 
 ){
 }

@@ -36,7 +36,7 @@ public interface UserService{
      * @param updateUserRequest the request object containing updated user details
      * @return the updated user response DTO
      */
-    UserResponse updateUser(Jwt accessToken, UpdateUserRequest updateUserRequest, MultipartFile file);
+    UserResponse updateUser(Jwt accessToken, UpdateUserRequest updateUserRequest);
 
     /**
      * Deletes a user by their ID.

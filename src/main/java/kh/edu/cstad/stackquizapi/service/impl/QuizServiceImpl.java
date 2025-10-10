@@ -46,7 +46,7 @@ public class QuizServiceImpl implements QuizService {
     private final MediaService mediaService;
 
     @Override
-    public QuizResponse createQuiz(CreateQuizRequest createQuizRequest, MultipartFile file, Jwt accessToken) {
+    public QuizResponse createQuiz(CreateQuizRequest createQuizRequest, Jwt accessToken) {
 
         String userId = accessToken.getSubject();
         log.info("User ID: {}", userId);
@@ -56,12 +56,11 @@ public class QuizServiceImpl implements QuizService {
                         "User Id not found " + userId));
 
         Quiz quiz = quizMapper.toQuizRequest(createQuizRequest);
-        MediaResponse media = mediaService.upload(file);
-
-        String thumbnail = media.uri();
+//        MediaResponse media = mediaService.upload(file);
+//
+//        String thumbnail = media.uri();
 
         quiz.setUser(user);
-        quiz.setThumbnailUrl(thumbnail);
         quiz.setFlagged(false);
         quiz.setCreatedAt(LocalDateTime.now());
         quiz.setUpdatedAt(LocalDateTime.now());
