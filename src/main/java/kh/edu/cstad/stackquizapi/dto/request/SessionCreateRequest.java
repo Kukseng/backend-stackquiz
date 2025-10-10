@@ -9,7 +9,6 @@ import java.time.LocalDateTime;
 
 @Builder
 public record SessionCreateRequest(
-
         @NotBlank(message = "Quiz ID is required")
         String quizId,
 
@@ -17,43 +16,33 @@ public record SessionCreateRequest(
         QuizMode mode,
 
         LocalDateTime scheduledStartTime,
-
         LocalDateTime scheduledEndTime,
 
         @Min(value = 1, message = "Max attempts must be at least 1")
         Integer maxAttempts,
 
         Boolean allowJoinInProgress,
-
         Boolean shuffleQuestions,
-
         Boolean showCorrectAnswers,
-
         Boolean allowReview,
 
-        Integer defaultQuestionTimeLimit,
 
+        Integer defaultQuestionTimeLimit,
         Integer sessionTimeLimit,
 
+
         Integer maxParticipants,
-
         Boolean requireNickname,
-
         Boolean allowAnonymous,
 
+
         Boolean showLeaderboard,
-
         Boolean showProgress,
-
         Boolean playSound,
 
-        String description,
 
-        String[] tags,
 
-        Boolean isPublic,
-
-        String password
+        Boolean isPublic
 
 ) {
 }

@@ -147,20 +147,23 @@ public class OptionServiceImpl implements OptionService {
         log.info("Updating option With ID {}", optionId);
 
         Option option = optionRepository.findById(optionId)
-                .orElseThrow(
-                        () -> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                                "Option ID not found")
-                );
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        "Option with ID " + optionId + " not found"));
+
+        optionRepository.delete(option);
+        log.info("Successfully deleted option with ID: {}", optionId);
+
 
         try {
             optionMapper.toQuestionPartially(updateOptionRequest, option);
+
 
             Option updatedOption = optionRepository.save(option);
 
             log.info("Successfully updated option with ID: {}", optionId);
 
             return optionMapper.toOptionResponse(updatedOption);
-        }  catch (DataAccessException e) {
+        } catch (DataAccessException e) {
             log.error("Database error while updating question with ID: {}", optionId, e);
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
                     "Failed to update question due to database error", e);
@@ -175,34 +178,32 @@ public class OptionServiceImpl implements OptionService {
     @Override
     public void deleteOptionById(String optionId) {
 
-        if (optionId == null) {
+        if (optionId == null || optionId.trim().isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    "Option ID cannot be null");
+                    "Option ID cannot be null or empty");
         }
 
         try {
-            Question question = questionRepository.findById(optionId)
+            Option option = optionRepository.findById(optionId)
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
                             "Option with ID " + optionId + " not found"));
 
-            questionRepository.delete(question);
+            optionRepository.delete(option);
             log.info("Successfully deleted option with ID: {}", optionId);
 
-        } catch (DataIntegrityViolationException exception) {
+        } catch (DataIntegrityViolationException ex) {
             throw new ResponseStatusException(HttpStatus.CONFLICT,
                     "Cannot delete option as it's used in active quizzes");
 
-        } catch (DataAccessException exception) {
+        } catch (DataAccessException ex) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
                     "Failed to delete option from database");
 
-        } catch (ResponseStatusException exception) {
-            throw exception;
-
-        } catch (Exception exception) {
+        } catch (Exception ex) {
+            log.error("Unexpected error while deleting option {}", optionId, ex);
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
                     "An unexpected error occurred while deleting option");
         }
-
     }
+
 }

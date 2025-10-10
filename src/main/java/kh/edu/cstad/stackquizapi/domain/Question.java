@@ -2,19 +2,7 @@ package kh.edu.cstad.stackquizapi.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import kh.edu.cstad.stackquizapi.util.QuestionType;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -65,7 +53,7 @@ public class Question {
     private List<Option> options;
 
     @OneToMany(mappedBy = "question")
-    @JsonIgnore
+    @JsonIgnore // ignore in JSON output
     private List<ParticipantAnswer> participantAnswers;
 
     @ManyToOne

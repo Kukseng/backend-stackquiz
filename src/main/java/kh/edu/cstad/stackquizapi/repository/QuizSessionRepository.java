@@ -27,8 +27,13 @@ public interface QuizSessionRepository extends JpaRepository<QuizSession, String
             "WHERE qs.id = :sessionId")
     Optional<QuizSession> findByIdWithQuestions(@Param("sessionId") String sessionId);
 
+
     @Query("SELECT qs FROM QuizSession qs JOIN FETCH qs.quiz q LEFT JOIN FETCH q.questions WHERE qs.sessionCode = :code")
     Optional<QuizSession> findBySessionCodeWithQuestions(@Param("code") String code);
+
+
+
+
 
     List<QuizSession> findByStatusIn(List<Status> statuses);
 
@@ -36,10 +41,14 @@ public interface QuizSessionRepository extends JpaRepository<QuizSession, String
 
     Page<QuizSession> findByHostIdAndStatusOrderByCreatedAtDesc(String hostId, Status status, Pageable pageable);
 
+
+
     @Query("SELECT qs FROM QuizSession qs WHERE qs.endTime BETWEEN :startTime AND :endTime ORDER BY qs.endTime DESC")
     List<QuizSession> findSessionsEndedBetween(
             @Param("startTime") LocalDateTime startTime,
             @Param("endTime") LocalDateTime endTime);
+
+
 
     @Query("SELECT qs FROM QuizSession qs WHERE qs.host.id = :hostId ORDER BY qs.createdAt DESC")
     List<QuizSession> findRecentSessionsByHost(@Param("hostId") String hostId, Pageable pageable);

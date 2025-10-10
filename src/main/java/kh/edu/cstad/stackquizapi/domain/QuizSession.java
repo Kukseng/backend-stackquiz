@@ -72,6 +72,7 @@ public class QuizSession {
     @Enumerated(EnumType.STRING)
     private QuizMode mode;
 
+
     @ManyToOne
     @JoinColumn(name = "host_id", nullable = false)
     private User host;
@@ -80,34 +81,36 @@ public class QuizSession {
     @Column(columnDefinition = "jsonb")
     private JsonNode leaderboardData;
 
+    @Column(name = "session_time_limit")
+    private Integer sessionTimeLimit; // Total session time limit in minutes
+
+
+    //
     @Column(name = "scheduled_start_time")
     private LocalDateTime scheduledStartTime;
 
     @Column(name = "scheduled_end_time")
     private LocalDateTime scheduledEndTime;
 
-    @Column(name = "default_question_time_limit")
-    private Integer defaultQuestionTimeLimit = 30;
-
-    @Column(name = "session_time_limit")
-    private Integer sessionTimeLimit; // Total session time limit in minutes
-
-    // Participation Settings
     @Column(name = "max_attempts")
-    private Integer maxAttempts = 1;
-
-    @Column(name = "max_participants")
-    private Integer maxParticipants = 100;
+    private Integer maxAttempts;
 
     @Column(name = "allow_join_in_progress")
-    private Boolean allowJoinInProgress = false;
+    private Boolean allowJoinInProgress;
 
-    // Quiz Behavior Settings
     @Column(name = "shuffle_questions")
-    private Boolean shuffleQuestions = false;
+    private Boolean shuffleQuestions;
 
     @Column(name = "show_correct_answers")
-    private Boolean showCorrectAnswers = true;
+    private Boolean showCorrectAnswers;
+
+    @Column(name = "default_question_time_limit")
+    private Integer defaultQuestionTimeLimit;
+
+    @Column(name = "max_participants")
+    private Integer maxParticipants;
+
+//
 
 
     // Display Settings
@@ -136,6 +139,9 @@ public class QuizSession {
     @Column(name = "correct_answers")
     private Integer correctAnswers = 0;
 
+//    @Column(name = "session_duration_minutes")
+//    private Integer sessionDurationMinutes;
+
     // Convenience methods for business logic
     public boolean isScheduled() {
         return scheduledStartTime != null;
@@ -156,9 +162,12 @@ public class QuizSession {
                 (status == Status.IN_PROGRESS && Boolean.TRUE.equals(allowJoinInProgress));
     }
 
+
+
     public boolean isAtCapacity() {
         return totalParticipants >= maxParticipants;
     }
+
 
     public void updateStatistics(int totalAnswers, int correctAnswers, double averageScore) {
         this.totalAnswers = totalAnswers;

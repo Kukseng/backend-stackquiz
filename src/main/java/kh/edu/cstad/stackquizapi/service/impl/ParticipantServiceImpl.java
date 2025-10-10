@@ -1,5 +1,7 @@
 package kh.edu.cstad.stackquizapi.service.impl;
 
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
 import kh.edu.cstad.stackquizapi.domain.*;
 import kh.edu.cstad.stackquizapi.dto.request.JoinSessionRequest;
 import kh.edu.cstad.stackquizapi.dto.request.LeaderboardRequest;
@@ -47,9 +49,9 @@ public class ParticipantServiceImpl implements ParticipantService {
     private final LeaderboardService leaderboardService;
     private final WebSocketService webSocketService;
 
-    // NOTE: to trigger per-participant question sending we call the session implementation directly.
-    // This is pragmatic: QuizSessionServiceImpl exposes sendNextQuestionToParticipant(...) which handles Redis progress, start time, and actual sending.
+
     private final kh.edu.cstad.stackquizapi.service.impl.QuizSessionServiceImpl quizSessionServiceImpl;
+    private final kh.edu.cstad.stackquizapi.service.RealTimeRankingService realTimeRankingService;
 
     // --- Helper to broadcast leaderboard ---
     private void broadcastLeaderboardToSession(String sessionId) {
@@ -154,7 +156,7 @@ public class ParticipantServiceImpl implements ParticipantService {
                 // ASYNC: send first question to this joining participant (use the session impl helper)
                 try {
                     // Use the session implementation so Redis progress/time tracking is handled centrally.
-                    quizSessionServiceImpl.sendNextQuestionToParticipant(response.id(), session.getId(), 1);
+                    quizSessionServiceImpl.sendNextQuestionToParticipant(response.id(), session.getSessionCode(), 1);
                     log.info("Sent first question to late joiner {} in async session {}", response.nickname(), session.getSessionCode());
                 } catch (Exception e) {
                     log.error("Failed to send first question to late joiner {}: {}", response.nickname(), e.getMessage(), e);
@@ -201,7 +203,7 @@ public class ParticipantServiceImpl implements ParticipantService {
         // If session already running, same behavior as guest join:
         if (session.getStatus() == Status.IN_PROGRESS && session.getMode() == QuizMode.ASYNC) {
             try {
-                quizSessionServiceImpl.sendNextQuestionToParticipant(response.id(), session.getId(), 1);
+                quizSessionServiceImpl.sendNextQuestionToParticipant(response.id(), session.getSessionCode(), 1);
             } catch (Exception e) {
                 log.error("Failed to send first question to authenticated late joiner {}: {}", response.nickname(), e.getMessage(), e);
             }
@@ -249,6 +251,16 @@ public class ParticipantServiceImpl implements ParticipantService {
                 session.getId(),
                 savedParticipant.getId(),
                 savedParticipant.getNickname(),
+                0
+        );
+
+        // ✅ ENHANCED: Initialize participant in ranking system
+        realTimeRankingService.updateParticipantScoreAndRanking(
+                session.getId(),
+                savedParticipant.getId(),
+                savedParticipant.getNickname(),
+                0,
+                false,
                 0
         );
 
@@ -306,28 +318,38 @@ public class ParticipantServiceImpl implements ParticipantService {
         participant.setTotalScore(newTotalScore);
         participantRepository.save(participant);
 
-        leaderboardService.updateParticipantScore(
+        // ✅ ENHANCED: Use RealTimeRankingService for comprehensive real-time updates
+        realTimeRankingService.updateParticipantScoreAndRanking(
                 participant.getSession().getId(),
                 participant.getId(),
                 participant.getNickname(),
-                newTotalScore
+                newTotalScore,
+                isCorrect,
+                pointsEarned
         );
 
-        // Now broadcast updated leaderboard!
-        broadcastLeaderboardToSession(participant.getSession().getId());
+        // Send answer feedback with ranking information
+        realTimeRankingService.sendAnswerFeedback(
+                participant.getSession().getId(),
+                participant.getId(),
+                question.getId(),
+                isCorrect,
+                pointsEarned,
+                Math.toIntExact(request.timeTaken())
+        );
 
-        // ✅ FIXED: Send next question AFTER saving the answer
-        // This ensures the answer count is correct when calculating the next question number
+
         if (participant.getSession().getMode() == QuizMode.ASYNC) {
             try {
-                // Count how many answers this participant has given so far (including the one just saved)
+
+
                 long answeredCount = participantAnswerRepository.countByParticipantId(participant.getId());
 
-                int nextQuestionNumber = (int) answeredCount + 1; // next question to send
+                int nextQuestionNumber = (int) answeredCount + 1;
 
                 quizSessionServiceImpl.sendNextQuestionToParticipant(
                         participant.getId(),
-                        participant.getSession().getId(),
+                        participant.getSession().getSessionCode(),
                         nextQuestionNumber
                 );
             } catch (Exception e) {
@@ -370,7 +392,7 @@ public class ParticipantServiceImpl implements ParticipantService {
         participant.setIsActive(false);
         participantRepository.save(participant);
 
-        // Optionally, broadcast updated leaderboard on leave as well:
+
         broadcastLeaderboardToSession(participant.getSession().getId());
     }
 

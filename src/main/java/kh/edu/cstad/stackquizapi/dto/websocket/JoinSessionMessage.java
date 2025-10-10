@@ -12,9 +12,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class JoinSessionMessage {
-
+//    private String participantId; // optional: id returned by REST join
     private String nickname;
-
-    private Long avatarId;
-
+    private Long avatarId;     // optional for guests; use Integer to accept null
 }

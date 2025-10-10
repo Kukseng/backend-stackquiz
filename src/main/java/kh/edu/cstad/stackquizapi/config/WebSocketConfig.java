@@ -40,19 +40,33 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
             {
                 StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
                 if (accessor != null && StompCommand.CONNECT.equals(accessor.getCommand())) {
-                    String nickname = null;
-                    List<String> nicks = accessor.getNativeHeader("nickname");
-                    if (nicks != null && !nicks.isEmpty() && nicks.get(0) != null && !nicks.get(0).isBlank()) {
-                        nickname = nicks.get(0);
+                    // ✅ CRITICAL FIX: Use participantId as Principal for user-specific message routing
+                    String principalName = null;
+
+                    // Try to get participantId from headers (for participants)
+                    List<String> participantIds = accessor.getNativeHeader("participantId");
+                    if (participantIds != null && !participantIds.isEmpty() && participantIds.get(0) != null && !participantIds.get(0).isBlank()) {
+                        principalName = participantIds.get(0);
                     }
-                    if (nickname == null || nickname.isBlank()) {
-                        nickname = accessor.getSessionId();
+
+                    // Fallback to nickname (for hosts or other users)
+                    if (principalName == null || principalName.isBlank()) {
+                        List<String> nicks = accessor.getNativeHeader("nickname");
+                        if (nicks != null && !nicks.isEmpty() && nicks.get(0) != null && !nicks.get(0).isBlank()) {
+                            principalName = nicks.get(0);
+                        }
                     }
-                    final String principalName = nickname; // must be final for anonymous class below
+
+                    // Final fallback to session ID
+                    if (principalName == null || principalName.isBlank()) {
+                        principalName = accessor.getSessionId();
+                    }
+
+                    final String finalPrincipalName = principalName; // must be final for anonymous class
                     accessor.setUser(new Principal() {
                         @Override
                         public String getName() {
-                            return principalName;
+                            return finalPrincipalName;
                         }
                     });
                 }

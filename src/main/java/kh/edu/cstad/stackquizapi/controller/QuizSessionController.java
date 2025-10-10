@@ -7,22 +7,29 @@ import kh.edu.cstad.stackquizapi.domain.Question;
 import kh.edu.cstad.stackquizapi.domain.QuizSession;
 import kh.edu.cstad.stackquizapi.dto.request.SessionCreateRequest;
 import kh.edu.cstad.stackquizapi.dto.response.SessionResponse;
+import kh.edu.cstad.stackquizapi.dto.websocket.HostCommandMessage;
 import kh.edu.cstad.stackquizapi.service.QuizSessionService;
+//import kh.edu.cstad.stackquizapi.service.QuizSessionServiceExtended;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Optional;
 
+@Slf4j
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/v1/sessions")
+@RequestMapping("/api/v1/quiz-sessions")
 public class QuizSessionController {
 
     private final QuizSessionService quizSessionService;
+//    private final QuizSessionServiceExtended quizSessionServiceExtended;
 
     @Operation(summary = "Get all users (secured)",
             security = { @SecurityRequirement(name = "bearerAuth") })
@@ -36,9 +43,22 @@ public class QuizSessionController {
     @Operation(summary = "Get all users (secured)",
             security = { @SecurityRequirement(name = "bearerAuth") })
     @ResponseStatus(HttpStatus.CREATED)
+//    @PutMapping("/{sessionCode}/start")
+//    public void startSession(@PathVariable String sessionCode) {
+//         quizSessionService.startSession(sessionCode);
+//    }
+
     @PutMapping("/{sessionCode}/start")
-    public void startSession(@PathVariable String sessionCode) {
-        quizSessionService.startSession(sessionCode);
+    public ResponseEntity<SessionResponse> startSession(
+            @PathVariable String sessionCode,
+            @RequestBody(required = false) HostCommandMessage.SessionSettings settings) {
+
+        log.info("Starting session {} with settings: {}", sessionCode, settings);
+
+
+        SessionResponse response = quizSessionService.startSessionWithSettings(sessionCode, settings);
+
+        return ResponseEntity.ok(response);
     }
 
     @Operation(summary = "Get all users (secured)",
@@ -69,6 +89,13 @@ public class QuizSessionController {
     @Operation(summary = "Get all users (secured)",
             security = { @SecurityRequirement(name = "bearerAuth") })
     @ResponseStatus(HttpStatus.OK)
+    @GetMapping("/by-code/{sessionCode}")
+    public SessionResponse getQuizSessionByCode(@PathVariable String sessionCode){
+        return quizSessionService.getSessionByCode(sessionCode)
+                .map(quizSessionService::toSessionResponse)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Quiz session not found with code: " + sessionCode));
+    }
+
     @GetMapping("/{quizCode}")
     public Optional<QuizSession> getQuizSessions(@PathVariable String quizCode){
         return quizSessionService.getSessionByCode(quizCode);

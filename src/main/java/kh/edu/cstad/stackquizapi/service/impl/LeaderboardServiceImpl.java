@@ -3,11 +3,14 @@ package kh.edu.cstad.stackquizapi.service.impl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.HashMap;
+import java.util.Map;
 import kh.edu.cstad.stackquizapi.domain.*;
 import kh.edu.cstad.stackquizapi.dto.request.HistoricalLeaderboardRequest;
 import kh.edu.cstad.stackquizapi.dto.request.LeaderboardRequest;
 import kh.edu.cstad.stackquizapi.dto.request.ParticipantRedisData;
 import kh.edu.cstad.stackquizapi.dto.response.*;
+import kh.edu.cstad.stackquizapi.dto.websocket.LeaderboardMessage;
 import kh.edu.cstad.stackquizapi.repository.*;
 import kh.edu.cstad.stackquizapi.service.LeaderboardService;
 import kh.edu.cstad.stackquizapi.util.Status;
@@ -18,6 +21,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.http.HttpStatus;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -38,9 +42,14 @@ public class LeaderboardServiceImpl implements LeaderboardService {
     private final ParticipantRepository participantRepository;
     private final ParticipantAnswerRepository participantAnswerRepository;
     private final QuestionRepository questionRepository;
-
+    //    private final RedisTemplate<String, Object> redisTemplate;
+    private final SimpMessagingTemplate messagingTemplate;
     private static final String LEADERBOARD_KEY_PREFIX = "leaderboard:session:";
     private static final String PARTICIPANT_DATA_PREFIX = "participant:";
+
+    private String leaderboardKey(String sessionId) {
+        return "leaderboard:" + sessionId;
+    }
 
     @Override
     public LeaderboardResponse getRealTimeLeaderboard(LeaderboardRequest request) {
@@ -198,45 +207,59 @@ public class LeaderboardServiceImpl implements LeaderboardService {
                 .build();
     }
 
-//    @Override
-//    public void updateParticipantScore(String sessionId, String participantId, String nickname, int newScore) {
-//        log.info("Updating participant score: session={}, participant={}, nickname={}, score={}",
-//                sessionId, participantId, nickname, newScore);
-//
-//        String actualSessionId = resolveSessionId(sessionId);
-//        String leaderboardKey = LEADERBOARD_KEY_PREFIX + actualSessionId;
-//        String participantKey = PARTICIPANT_DATA_PREFIX + participantId;
-//
-//        try {
-//            // Store participant data
-//            Map<String, Object> participantData = Map.of(
-//                    "participantId", participantId,
-//                    "nickname", nickname,
-//                    "score", newScore,
-//                    "lastUpdated", System.currentTimeMillis()
-//            );
-//
-//            String participantJson = objectMapper.writeValueAsString(participantData);
-//
-//            // Update score in sorted set
-//            redisTemplate.opsForZSet().add(leaderboardKey, participantKey, newScore);
-//
-//            // Store participant details
-//            String participantDataKey = participantKey + ":" + actualSessionId;
-//            redisTemplate.opsForValue().set(participantDataKey, participantJson);
-//
-//            // Set TTL
-//            redisTemplate.expire(leaderboardKey, Duration.ofHours(24));
-//            redisTemplate.expire(participantDataKey, Duration.ofHours(24));
-//
-//            log.info("Successfully updated participant {} score to {} in session {} (Redis key: {})",
-//                    nickname, newScore, actualSessionId, leaderboardKey);
-//
-//        } catch (JsonProcessingException e) {
-//            log.error("Error updating participant score in Redis", e);
-//        }
-//    }
+    @Override
+    public void updateParticipantScore(String sessionId, String participantId, String nickname, int newScore) {
+        String key = leaderboardKey(sessionId);
 
+        // Store participant data in Redis using the correct key structure
+        String participantKey = PARTICIPANT_DATA_PREFIX + participantId;
+        String participantDataKey = participantKey + ":" + sessionId;
+
+        // Create participant data map
+        Map<String, Object> participantData = new HashMap<>();
+        participantData.put("participantId", participantId);
+        participantData.put("nickname", nickname);
+        participantData.put("totalScore", newScore);
+
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            String participantJson = objectMapper.writeValueAsString(participantData);
+            redisTemplate.opsForValue().set(participantDataKey, participantJson);
+
+            // Also update the ZSet for leaderboard ranking
+            redisTemplate.opsForZSet().add(leaderboardKey(sessionId), participantKey, newScore);
+
+            log.info("Updated participant {} score to {} in session {}", participantId, newScore, sessionId);
+        } catch (Exception e) {
+            log.error("Failed to serialize participant data to JSON: {}", e.getMessage());
+            // Fallback: still update the ZSet for ranking
+            redisTemplate.opsForZSet().add(leaderboardKey(sessionId), participantKey, newScore);
+        }
+
+
+        LeaderboardResponse leaderboard = getRealTimeLeaderboard(
+                new LeaderboardRequest(sessionId, 100, 0, false, null)
+        );
+
+
+        LeaderboardMessage message = new LeaderboardMessage(
+                sessionId,
+                nickname,
+                leaderboard,
+                "SCORE_UPDATE"
+        );
+
+        messagingTemplate.convertAndSend("/topic/session/" + sessionId + "/leaderboard", message);
+    }
+
+
+//
+
+
+
+
+
+    //
     @Override
     public void removeParticipant(String sessionId, String participantId) {
         String actualSessionId = resolveSessionId(sessionId);
@@ -427,43 +450,7 @@ public class LeaderboardServiceImpl implements LeaderboardService {
 
 
 
-    @Override
-    public void updateParticipantScore(String sessionId, String participantId, String nickname, int newScore) {
-        log.info("Updating participant score: session={}, participant={}, nickname={}, score={}",
-                sessionId, participantId, nickname, newScore);
 
-        String actualSessionId = resolveSessionId(sessionId);
-        String leaderboardKey = LEADERBOARD_KEY_PREFIX + actualSessionId;
-        String participantKey = PARTICIPANT_DATA_PREFIX + participantId;
-
-        try {
-            ParticipantRedisData participantData = ParticipantRedisData.builder()
-                    .participantId(participantId)
-                    .nickname(nickname)
-                    .score(newScore)
-                    .lastUpdated(System.currentTimeMillis())
-                    .build();
-
-            String participantJson = objectMapper.writeValueAsString(participantData);
-
-            // Update score in sorted set
-            redisTemplate.opsForZSet().add(leaderboardKey, participantKey, newScore);
-
-            // Store participant details
-            String participantDataKey = participantKey + ":" + actualSessionId;
-            redisTemplate.opsForValue().set(participantDataKey, participantJson);
-
-            // Set TTL
-            redisTemplate.expire(leaderboardKey, Duration.ofHours(24));
-            redisTemplate.expire(participantDataKey, Duration.ofHours(24));
-
-            log.info("Successfully updated participant {} score to {} in session {} (Redis key: {})",
-                    nickname, newScore, actualSessionId, leaderboardKey);
-
-        } catch (JsonProcessingException e) {
-            log.error("Error updating participant score in Redis", e);
-        }
-    }
 
 
     private String determineLeaderboardStatus(String sessionId) {

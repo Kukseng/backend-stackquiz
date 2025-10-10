@@ -28,6 +28,7 @@ public interface ParticipantRepository extends JpaRepository<Participant, String
             "AND p.totalScore > :score AND p.isActive = true")
     int getParticipantPosition(@Param("sessionId") String sessionId, @Param("score") Integer score);
 
+
     @Query("SELECT p FROM Participant p WHERE p.session.id = :sessionId AND p.isActive = true ORDER BY p.totalScore DESC")
     List<Participant> findBySessionIdAndIsActiveTrueOrderByTotalScoreDesc(@Param("sessionId") String sessionId);
 }

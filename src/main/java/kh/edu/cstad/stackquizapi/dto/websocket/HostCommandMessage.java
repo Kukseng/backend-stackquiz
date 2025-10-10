@@ -1,31 +1,36 @@
 package kh.edu.cstad.stackquizapi.dto.websocket;
 
 import kh.edu.cstad.stackquizapi.util.HostCommand;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 @Data
-@EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
-public class HostCommandMessage extends WebSocketMessage {
-
-
+@AllArgsConstructor
+public class HostCommandMessage {
     private HostCommand command;
+    private String sessionId;
 
-    private String hostNickname;
+    // ✅ ADDED: Session settings for START_SESSION command
+    private SessionSettings settings;
 
-    private Object commandData;
-
-    public HostCommandMessage(String sessionId,
-                              String senderNickname,
-                              HostCommand command,
-                              String hostNickname,
-                              Object commandData) {
-        super("HOST_COMMAND", sessionId, senderNickname);
-        this.command = command;
-        this.hostNickname = hostNickname;
-        this.commandData = commandData;
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class SessionSettings {
+        private LocalDateTime scheduledStartTime;
+        private LocalDateTime scheduledEndTime;
+        private String mode;  // "SYNC" or "ASYNC"
+        private Integer maxAttempts;
+        private Boolean allowJoinInProgress;
+        private Boolean shuffleQuestions;
+        private Boolean showCorrectAnswers;
+        private Integer defaultQuestionTimeLimit;
+        private Integer maxParticipants;
     }
-
 }
