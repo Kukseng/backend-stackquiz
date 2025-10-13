@@ -26,7 +26,7 @@ public class Option {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    private String Id;
+    private String id;
 
     @Column(length = 255, nullable = false)
     private String optionText;

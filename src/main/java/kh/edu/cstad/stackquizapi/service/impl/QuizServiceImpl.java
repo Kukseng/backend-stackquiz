@@ -97,8 +97,7 @@ public class QuizServiceImpl implements QuizService {
 
     @Override
     public List<QuizResponse> getAllQuiz(Boolean active) {
-        return quizRepository.findAll().stream()
-                .filter(quiz -> quiz.getIsActive().equals(active))
+        return quizRepository.findByIsActive(active).stream()
                 .map(quizMapper::toQuizResponse)
                 .toList();
     }
