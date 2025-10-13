@@ -1,0 +1,168 @@
+> Task :clean
+
+> Task :compileJava
+/home/ubuntu/backend-stackquiz/src/main/java/kh/edu/cstad/stackquizapi/mapper/QuestionMapper.java:22: warning: Unmapped target properties: "questionOrder, timeLimit, points".
+    Question fromCreateQuestionRequest(CreateQuestionRequest request);
+             ^
+/home/ubuntu/backend-stackquiz/src/main/java/kh/edu/cstad/stackquizapi/mapper/QuizMapper.java:23: warning: Unmapped target properties: "id, thumbnailUrl, isActive, flagged, createdAt, updatedAt, quizCategories, questions, sessions, user, ratings, quizReports".
+    Quiz toQuizRequest(CreateQuizRequest createQuizRequest);
+         ^
+/home/ubuntu/backend-stackquiz/src/main/java/kh/edu/cstad/stackquizapi/mapper/QuizMapper.java:37: warning: Unmapped target properties: "id, questionTimeLimit, difficulty, status, isActive, flagged, createdAt, updatedAt, quizCategories, questions, sessions, user, ratings, quizReports".
+    void toQuizUpdateResponse(
+         ^
+/home/ubuntu/backend-stackquiz/src/main/java/kh/edu/cstad/stackquizapi/mapper/OptionMapper.java:19: warning: Unmapped target properties: "id, optionOrder".
+    Option fromAddOptionRequest(AddOptionRequest addOptionRequest);
+           ^
+/home/ubuntu/backend-stackquiz/src/main/java/kh/edu/cstad/stackquizapi/mapper/OptionMapper.java:27: warning: Unmapped target property: "id".
+    void toQuestionPartially(
+         ^
+/home/ubuntu/backend-stackquiz/src/main/java/kh/edu/cstad/stackquizapi/mapper/UserMapper.java:15: warning: Unmapped target properties: "id, profileUser, isActive, isDeleted, createdAt, updatedAt, userRoles, quizzes, participants, quizSessions, quizReports".
+    void toCustomerPartially(
+         ^
+/home/ubuntu/backend-stackquiz/src/main/java/kh/edu/cstad/stackquizapi/mapper/UserMapper.java:22: warning: Unmapped target properties: "profileUser, isActive, userRoles, quizzes, participants, quizSessions, quizReports".
+    User fromCreateUserRequest(CreateUserRequest dto);
+         ^
+/home/ubuntu/backend-stackquiz/src/main/java/kh/edu/cstad/stackquizapi/mapper/QuizSessionMapper.java:15: warning: Unmapped target property: "participantCount".
+    SessionResponse toSessionResponse(QuizSession quizSession);
+                    ^
+/home/ubuntu/backend-stackquiz/src/main/java/kh/edu/cstad/stackquizapi/mapper/QuizSessionMapper.java:17: warning: Unmapped target properties: "id, quiz, hostName, sessionCode, status, totalQuestions, totalParticipants, currentQuestion, startTime, endTime, createdAt, participants, host, leaderboardData, completionRate, averageScore, totalAnswers, correctAnswers".
+    QuizSession toSessionRequest(SessionCreateRequest sessionCreateRequest);
+                ^
+/home/ubuntu/backend-stackquiz/src/main/java/kh/edu/cstad/stackquizapi/mapper/RatingMapper.java:10: warning: Unmapped target properties: "id, userId, quiz".
+    Rating fromRatingRequest(RatingRequest ratingRequest);
+           ^
+/home/ubuntu/backend-stackquiz/src/main/java/kh/edu/cstad/stackquizapi/mapper/QuizReportMapper.java:10: warning: Unmapped target properties: "id, quiz, user, createdAt".
+    QuizReport fromQuizReportRequest(QuizReportRequest quizReportRequest);
+               ^
+/home/ubuntu/backend-stackquiz/src/main/java/kh/edu/cstad/stackquizapi/mapper/CategoryMapper.java:13: warning: Unmapped target properties: "id, createdAt, updatedAt".
+    Category mapCategoryRequest(CategoryRequest categoryRequest);
+             ^
+/home/ubuntu/backend-stackquiz/src/main/java/kh/edu/cstad/stackquizapi/mapper/ParticipantMapper.java:17: warning: Unmapped target properties: "id, totalScore, isActive, isConnected, joinedAt, answers, user, session, avatar".
+    Participant toParticipant(JoinSessionRequest joinSessionRequest);
+                ^
+/home/ubuntu/backend-stackquiz/src/main/java/kh/edu/cstad/stackquizapi/service/impl/SessionReportServiceImpl.java:274: error: cannot find symbol
+            Question question, List<ParticipantAnswer> allAnswers, int totalParticipants) {
+            ^
+  symbol:   class Question
+  location: class SessionReportServiceImpl
+/home/ubuntu/backend-stackquiz/src/main/java/kh/edu/cstad/stackquizapi/service/impl/SessionReportServiceImpl.java:429: error: cannot find symbol
+            Question question, List<ParticipantAnswer> questionAnswers) {
+            ^
+  symbol:   class Question
+  location: class SessionReportServiceImpl
+/home/ubuntu/backend-stackquiz/src/main/java/kh/edu/cstad/stackquizapi/service/impl/SessionReportServiceImpl.java:463: error: cannot find symbol
+    private String findCorrectOptionId(Question question) {
+                                       ^
+  symbol:   class Question
+  location: class SessionReportServiceImpl
+/home/ubuntu/backend-stackquiz/src/main/java/kh/edu/cstad/stackquizapi/service/impl/SessionReportServiceImpl.java:469: error: cannot find symbol
+    private Option findCorrectOption(Question question) {
+                                     ^
+  symbol:   class Question
+  location: class SessionReportServiceImpl
+/home/ubuntu/backend-stackquiz/src/main/java/kh/edu/cstad/stackquizapi/service/impl/SessionReportServiceImpl.java:469: error: cannot find symbol
+    private Option findCorrectOption(Question question) {
+            ^
+  symbol:   class Option
+  location: class SessionReportServiceImpl
+/home/ubuntu/backend-stackquiz/src/main/java/kh/edu/cstad/stackquizapi/service/impl/SessionReportServiceImpl.java:480: error: cannot find symbol
+    private List<String> findCommonMistakes(List<ParticipantAnswer> answers, Question question) {
+                                                                             ^
+  symbol:   class Question
+  location: class SessionReportServiceImpl
+/home/ubuntu/backend-stackquiz/src/main/java/kh/edu/cstad/stackquizapi/service/impl/SessionReportServiceImpl.java:8: error: package kh.edu.cstad.stackquizapi.entity does not exist
+import kh.edu.cstad.stackquizapi.entity.*;
+^
+7 errors
+13 warnings
+
+> Task :compileJava FAILED
+
+[Incubating] Problems report is available at: file:///home/ubuntu/backend-stackquiz/build/reports/problems/problems-report.html
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':compileJava'.
+> Compilation failed; see the compiler output below.
+  /home/ubuntu/backend-stackquiz/src/main/java/kh/edu/cstad/stackquizapi/mapper/QuestionMapper.java:22: warning: Unmapped target properties: "questionOrder, timeLimit, points".
+      Question fromCreateQuestionRequest(CreateQuestionRequest request);
+               ^
+  /home/ubuntu/backend-stackquiz/src/main/java/kh/edu/cstad/stackquizapi/mapper/QuizMapper.java:23: warning: Unmapped target properties: "id, thumbnailUrl, isActive, flagged, createdAt, updatedAt, quizCategories, questions, sessions, user, ratings, quizReports".
+      Quiz toQuizRequest(CreateQuizRequest createQuizRequest);
+           ^
+  /home/ubuntu/backend-stackquiz/src/main/java/kh/edu/cstad/stackquizapi/mapper/QuizMapper.java:37: warning: Unmapped target properties: "id, questionTimeLimit, difficulty, status, isActive, flagged, createdAt, updatedAt, quizCategories, questions, sessions, user, ratings, quizReports".
+      void toQuizUpdateResponse(
+           ^
+  /home/ubuntu/backend-stackquiz/src/main/java/kh/edu/cstad/stackquizapi/mapper/OptionMapper.java:19: warning: Unmapped target properties: "id, optionOrder".
+      Option fromAddOptionRequest(AddOptionRequest addOptionRequest);
+             ^
+  /home/ubuntu/backend-stackquiz/src/main/java/kh/edu/cstad/stackquizapi/mapper/OptionMapper.java:27: warning: Unmapped target property: "id".
+      void toQuestionPartially(
+           ^
+  /home/ubuntu/backend-stackquiz/src/main/java/kh/edu/cstad/stackquizapi/mapper/UserMapper.java:15: warning: Unmapped target properties: "id, profileUser, isActive, isDeleted, createdAt, updatedAt, userRoles, quizzes, participants, quizSessions, quizReports".
+      void toCustomerPartially(
+           ^
+  /home/ubuntu/backend-stackquiz/src/main/java/kh/edu/cstad/stackquizapi/mapper/UserMapper.java:22: warning: Unmapped target properties: "profileUser, isActive, userRoles, quizzes, participants, quizSessions, quizReports".
+      User fromCreateUserRequest(CreateUserRequest dto);
+           ^
+  /home/ubuntu/backend-stackquiz/src/main/java/kh/edu/cstad/stackquizapi/mapper/QuizSessionMapper.java:15: warning: Unmapped target property: "participantCount".
+      SessionResponse toSessionResponse(QuizSession quizSession);
+                      ^
+  /home/ubuntu/backend-stackquiz/src/main/java/kh/edu/cstad/stackquizapi/mapper/QuizSessionMapper.java:17: warning: Unmapped target properties: "id, quiz, hostName, sessionCode, status, totalQuestions, totalParticipants, currentQuestion, startTime, endTime, createdAt, participants, host, leaderboardData, completionRate, averageScore, totalAnswers, correctAnswers".
+      QuizSession toSessionRequest(SessionCreateRequest sessionCreateRequest);
+                  ^
+  /home/ubuntu/backend-stackquiz/src/main/java/kh/edu/cstad/stackquizapi/mapper/RatingMapper.java:10: warning: Unmapped target properties: "id, userId, quiz".
+      Rating fromRatingRequest(RatingRequest ratingRequest);
+             ^
+  /home/ubuntu/backend-stackquiz/src/main/java/kh/edu/cstad/stackquizapi/mapper/QuizReportMapper.java:10: warning: Unmapped target properties: "id, quiz, user, createdAt".
+      QuizReport fromQuizReportRequest(QuizReportRequest quizReportRequest);
+                 ^
+  /home/ubuntu/backend-stackquiz/src/main/java/kh/edu/cstad/stackquizapi/mapper/CategoryMapper.java:13: warning: Unmapped target properties: "id, createdAt, updatedAt".
+      Category mapCategoryRequest(CategoryRequest categoryRequest);
+               ^
+  /home/ubuntu/backend-stackquiz/src/main/java/kh/edu/cstad/stackquizapi/mapper/ParticipantMapper.java:17: warning: Unmapped target properties: "id, totalScore, isActive, isConnected, joinedAt, answers, user, session, avatar".
+      Participant toParticipant(JoinSessionRequest joinSessionRequest);
+                  ^
+  /home/ubuntu/backend-stackquiz/src/main/java/kh/edu/cstad/stackquizapi/service/impl/SessionReportServiceImpl.java:274: error: cannot find symbol
+              Question question, List<ParticipantAnswer> allAnswers, int totalParticipants) {
+              ^
+    symbol:   class Question
+    location: class SessionReportServiceImpl
+  /home/ubuntu/backend-stackquiz/src/main/java/kh/edu/cstad/stackquizapi/service/impl/SessionReportServiceImpl.java:429: error: cannot find symbol
+              Question question, List<ParticipantAnswer> questionAnswers) {
+              ^
+    symbol:   class Question
+    location: class SessionReportServiceImpl
+  /home/ubuntu/backend-stackquiz/src/main/java/kh/edu/cstad/stackquizapi/service/impl/SessionReportServiceImpl.java:463: error: cannot find symbol
+      private String findCorrectOptionId(Question question) {
+                                         ^
+    symbol:   class Question
+    location: class SessionReportServiceImpl
+  /home/ubuntu/backend-stackquiz/src/main/java/kh/edu/cstad/stackquizapi/service/impl/SessionReportServiceImpl.java:469: error: cannot find symbol
+      private Option findCorrectOption(Question question) {
+                                       ^
+    symbol:   class Question
+    location: class SessionReportServiceImpl
+  /home/ubuntu/backend-stackquiz/src/main/java/kh/edu/cstad/stackquizapi/service/impl/SessionReportServiceImpl.java:469: error: cannot find symbol
+      private Option findCorrectOption(Question question) {
+              ^
+    symbol:   class Option
+    location: class SessionReportServiceImpl
+  /home/ubuntu/backend-stackquiz/src/main/java/kh/edu/cstad/stackquizapi/service/impl/SessionReportServiceImpl.java:480: error: cannot find symbol
+      private List<String> findCommonMistakes(List<ParticipantAnswer> answers, Question question) {
+                                                                               ^
+    symbol:   class Question
+    location: class SessionReportServiceImpl
+  /home/ubuntu/backend-stackquiz/src/main/java/kh/edu/cstad/stackquizapi/service/impl/SessionReportServiceImpl.java:8: error: package kh.edu.cstad.stackquizapi.entity does not exist
+  import kh.edu.cstad.stackquizapi.entity.*;
+  ^
+  7 errors
+  13 warnings
+
+* Try:
+> Check your code and dependencies to fix the compilation error(s)
+> Run with --scan to get full insights.
+
+BUILD FAILED in 13s
+2 actionable tasks: 2 executed
