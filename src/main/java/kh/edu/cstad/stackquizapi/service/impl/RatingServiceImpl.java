@@ -114,7 +114,7 @@ public class RatingServiceImpl implements RatingService {
 
         if(!quizRepository.existsById(quizId)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND,
-                    "Quiz ID not exist");
+                    "Quiz ID does not exist");
         }
 
         ratingRepository.deleteByQuizIdAndUserId(quizId, userId);

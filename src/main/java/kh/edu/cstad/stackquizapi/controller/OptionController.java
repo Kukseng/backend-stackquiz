@@ -38,7 +38,7 @@ public class OptionController {
             security = { @SecurityRequirement(name = "bearerAuth") })
     @GetMapping
     public ResponseEntity<List<OptionResponse>> getAllOptions() {
-        return ResponseEntity.ok(optionService.gelAllOptions());
+        return ResponseEntity.ok(optionService.getAllOptions());
     }
 
     @Operation(summary = "Get options by questionId (public)")

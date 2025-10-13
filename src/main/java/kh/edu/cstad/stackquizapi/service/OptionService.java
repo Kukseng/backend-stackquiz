@@ -25,7 +25,7 @@ public interface OptionService {
      */
     List<OptionResponse> addNewOptions(String questionId, List<AddOptionRequest> addOptionRequests);
 
-    List<OptionResponse> gelAllOptions();
+    List<OptionResponse> getAllOptions();
 
     List<OptionResponse> getOptionsByQuestionId(String questionId);
 

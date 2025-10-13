@@ -83,7 +83,7 @@ public class OptionServiceImpl implements OptionService {
     }
 
     @Override
-    public List<OptionResponse> gelAllOptions() {
+    public List<OptionResponse> getAllOptions() {
 
         try {
 
@@ -150,13 +150,8 @@ public class OptionServiceImpl implements OptionService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
                         "Option with ID " + optionId + " not found"));
 
-        optionRepository.delete(option);
-        log.info("Successfully deleted option with ID: {}", optionId);
-
-
         try {
             optionMapper.toQuestionPartially(updateOptionRequest, option);
-
 
             Option updatedOption = optionRepository.save(option);
 
@@ -164,14 +159,14 @@ public class OptionServiceImpl implements OptionService {
 
             return optionMapper.toOptionResponse(updatedOption);
         } catch (DataAccessException e) {
-            log.error("Database error while updating question with ID: {}", optionId, e);
+            log.error("Database error while updating option with ID: {}", optionId, e);
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
-                    "Failed to update question due to database error", e);
+                    "Failed to update option due to database error", e);
 
         } catch (Exception e) {
-            log.error("Unexpected error while updating question with ID: {}", optionId, e);
+            log.error("Unexpected error while updating option with ID: {}", optionId, e);
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
-                    "Failed to update question", e);
+                    "Failed to update option", e);
         }
     }
 
