@@ -1,0 +1,85 @@
+media:
+  server-path: /home/aintantony/ISTAD/FINAL_PROJECT/StackQuiz/media-upload/
+  base-uri: https://stackquiz-api.stackquiz.me/media
+
+keycloak:
+  realm: stackquiz
+  server-url: https://keycloak-prod.rattanakmony.com
+  client-id: admin-cli
+  client-secret: i3DAFVHsFMXrM1S1rg7VgX55ue3kZnUo
+  #: client used for password grant when you really need it
+  token-client-id: nextjs
+  token-client-secret: azpLBVVq454Vzz22h004FbTqeMGFS8k7
+  token-url: https://keycloak-prod.rattanakmony.com/realms/stackquiz/protocol/openid-connect/token
+
+app:
+  default-role: ORGANIZER
+  report:
+    threshold: 5
+
+openai:
+  api:
+    key: ${NULL}
+    model: gpt-4.1-mini
+    temperature: 0.7
+    max-tokens: 2000
+quiz:
+  autoplay:
+    enabled: true
+  default:
+    time-limit: 30
+  advance:
+    delay: 3
+spring:
+  application:
+    name: stackquiz-api
+  threads:
+    virtual:
+      enabled: true
+
+  servlet:
+    multipart:
+      max-request-size: 20MB
+      max-file-size: 10MB
+
+  datasource:
+    url: jdbc:postgresql://35.247.128.230:5432/stackquiz-db
+    username: stackquiz-user
+    password: stackquiz@123
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+
+    properties:
+      hibernate:
+        format_sql: true
+
+  data:
+    redis:
+      host: 35.247.128.230
+      port: 6380
+      database: 0
+      timeout: 60000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+          max-wait: -1ms
+        shutdown-timeout: 100ms
+  main:
+    allow-bean-definition-overriding: true
+  app:
+    api-url: https://stackquiz-api.stackquiz.me
+
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: https://keycloak-prod.rattanakmony.com/realms/stackquiz
+server:
+  port: 9999
