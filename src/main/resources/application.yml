@@ -19,7 +19,7 @@ app:
 
 openai:
   api:
-    key: ${OPENAI_API_KEY}
+    key: ${OPENAI_API_KEY:h}
     model: gpt-4.1-mini
     temperature: 0.7
     max-tokens: 2000
@@ -83,4 +83,5 @@ spring:
           issuer-uri: https://keycloak-prod.rattanakmony.com/realms/stackquiz
 server:
   port: 9999
+
 
