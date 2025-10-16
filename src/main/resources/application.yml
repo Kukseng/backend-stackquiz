@@ -60,7 +60,7 @@ spring:
   data:
     redis:
       host: 35.247.128.230
-      port: 6380
+      port: 6379
       database: 0
       timeout: 60000ms
       lettuce:
@@ -83,6 +83,7 @@ spring:
           issuer-uri: https://keycloak-prod.rattanakmony.com/realms/stackquiz
 server:
   port: 9999
+
 
 
 
