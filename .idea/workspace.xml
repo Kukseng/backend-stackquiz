@@ -78,6 +78,9 @@
   }
 }</component>
   <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$" />
+    </key>
     <key name="CopyClassDialog.RECENTS_KEY">
       <recent name="kh.edu.cstad.stackquizapi.dto.response" />
     </key>
@@ -110,7 +113,7 @@
       <workItem from="1760170213971" duration="4487000" />
       <workItem from="1760193469730" duration="1176000" />
       <workItem from="1760544994515" duration="3703000" />
-      <workItem from="1760596161211" duration="9524000" />
+      <workItem from="1760596161211" duration="9846000" />
     </task>
     <servers />
   </component>
