@@ -1,0 +1,168 @@
+{
+  "info": {
+    "name": "StackQuiz AI Generation",
+    "description": "AI-powered quiz question generation endpoints",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:9999",
+      "type": "string"
+    },
+    {
+      "key": "quizId",
+      "value": "quiz-123",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/ai/quiz/health",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "ai", "quiz", "health"]
+        },
+        "description": "Check if AI service is working"
+      }
+    },
+    {
+      "name": "2. Generate Questions (Preview)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"topic\": \"Solar System\",\n  \"numberOfQuestions\": 3,\n  \"difficulty\": \"MEDIUM\",\n  \"questionType\": \"MULTIPLE_CHOICE\",\n  \"numberOfOptions\": 4,\n  \"timeLimit\": 30,\n  \"points\": 100,\n  \"language\": \"English\",\n  \"includeExplanations\": true,\n  \"additionalContext\": \"Focus on planets and their characteristics\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/ai/quiz/generate",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "ai", "quiz", "generate"]
+        },
+        "description": "Generate multiple questions without saving to database"
+      }
+    },
+    {
+      "name": "3. Generate Single Question",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/ai/quiz/generate/single?topic=Python Programming&difficulty=EASY",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "ai", "quiz", "generate", "single"],
+          "query": [
+            {
+              "key": "topic",
+              "value": "Python Programming"
+            },
+            {
+              "key": "difficulty",
+              "value": "EASY"
+            }
+          ]
+        },
+        "description": "Generate one question quickly"
+      }
+    },
+    {
+      "name": "4. Improve Question",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/ai/quiz/improve?questionText=What is Python?",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "ai", "quiz", "improve"],
+          "query": [
+            {
+              "key": "questionText",
+              "value": "What is Python?"
+            }
+          ]
+        },
+        "description": "Use AI to refine and improve a question"
+      }
+    },
+    {
+      "name": "5. Generate and Save to Quiz",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer YOUR_JWT_TOKEN",
+            "description": "Replace with actual JWT token"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"topic\": \"JavaScript ES6 Features\",\n  \"numberOfQuestions\": 5,\n  \"difficulty\": \"MEDIUM\",\n  \"questionType\": \"MULTIPLE_CHOICE\",\n  \"numberOfOptions\": 4,\n  \"timeLimit\": 30,\n  \"points\": 100,\n  \"language\": \"English\",\n  \"includeExplanations\": true,\n  \"additionalContext\": \"Focus on arrow functions, promises, and async/await\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/quiz/{{quizId}}/ai/generate-questions",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "quiz", "{{quizId}}", "ai", "generate-questions"]
+        },
+        "description": "Generate questions and add them to a quiz"
+      }
+    },
+    {
+      "name": "6. Generate Single and Save",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer YOUR_JWT_TOKEN",
+            "description": "Replace with actual JWT token"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/quiz/{{quizId}}/ai/generate-single?topic=React Hooks&difficulty=HARD",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "quiz", "{{quizId}}", "ai", "generate-single"],
+          "query": [
+            {
+              "key": "topic",
+              "value": "React Hooks"
+            },
+            {
+              "key": "difficulty",
+              "value": "HARD"
+            }
+          ]
+        },
+        "description": "Generate one question and add to quiz"
+      }
+    }
+  ]
+}
