@@ -1,7 +1,5 @@
 package kh.edu.cstad.stackquizapi.service.impl;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.ws.rs.core.Response;
 import kh.edu.cstad.stackquizapi.dto.request.CreateUserRequest;
 import kh.edu.cstad.stackquizapi.dto.request.OAuthRegisterRequest;
@@ -240,9 +238,8 @@ public class AuthServiceImpl implements AuthService {
     }
 
 
-    /**
-     * Lowercase,  collapse repeats, trim
-     */
+
+    /** Lowercase,  collapse repeats, trim */
     private String sanitizeUsername(String raw, String email) {
         String base = (raw != null && !raw.isBlank()) ? raw : (email != null ? email.split("@")[0] : "user");
 
@@ -265,9 +262,7 @@ public class AuthServiceImpl implements AuthService {
         return cleaned;
     }
 
-    /**
-     * Check KC for conflicts and append short suffix
-     */
+    /** Check KC for conflicts and append short suffix  */
     private String makeUniqueUsername(String base) {
         String candidate = base;
         int attempt = 0;
@@ -378,11 +373,7 @@ public class AuthServiceImpl implements AuthService {
             try (Response response = adminKeycloak.realm(realm).users().create(user)) {
                 if (response.getStatus() != HttpStatus.CREATED.value()) {
                     String body;
-                    try {
-                        body = response.readEntity(String.class);
-                    } catch (Exception ex) {
-                        body = "<no body>";
-                    }
+                    try { body = response.readEntity(String.class); } catch (Exception ex) { body = "<no body>"; }
                     log.error("KC create failed: status={}, body={}", response.getStatus(), body);
                     throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to create user in Keycloak");
                 }
@@ -413,11 +404,8 @@ public class AuthServiceImpl implements AuthService {
                 log.info("App DB user created with ID: {}", userId);
             } catch (Exception e) {
                 log.error("Failed to save user to DB for KC user {}: {}", userId, e.getMessage());
-                try {
-                    adminKeycloak.realm(realm).users().get(userId).remove();
-                } catch (Exception ex) {
-                    log.error("Rollback KC user failed for {}: {}", userId, ex.getMessage());
-                }
+                try { adminKeycloak.realm(realm).users().get(userId).remove(); }
+                catch (Exception ex) { log.error("Rollback KC user failed for {}: {}", userId, ex.getMessage()); }
                 throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to complete user registration");
             }
 
@@ -439,9 +427,9 @@ public class AuthServiceImpl implements AuthService {
         return ResponseEntity.ok(body);
     }
 
-    private final ObjectMapper objectMapper =
-            new ObjectMapper()
-                    .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, true);
+    private final com.fasterxml.jackson.databind.ObjectMapper objectMapper =
+            new com.fasterxml.jackson.databind.ObjectMapper()
+                    .configure(com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, true);
 
     private TokenResponse getTokenFromKeycloak(String username, String password) {
         final String tokenUrl = serverUrl + "/realms/" + realm + "/protocol/openid-connect/token";

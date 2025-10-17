@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 @Data
-@JsonIgnoreProperties(ignoreUnknown = true)   // ← key fix
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class TokenResponse {
 
     @JsonProperty("access_token")
