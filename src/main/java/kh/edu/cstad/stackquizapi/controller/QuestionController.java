@@ -36,11 +36,9 @@ public class QuestionController {
     @Operation(summary = "Create new question (users)",
             security = {@SecurityRequirement(name = "bearerAuth")})
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<QuestionResponse> createQuestion(
-            @RequestPart("data") @Valid CreateQuestionRequest request,
-            @RequestPart(value = "file", required = false) MultipartFile file) {
+    public ResponseEntity<QuestionResponse> createQuestion(@Valid @RequestBody CreateQuestionRequest request) {
 
-        QuestionResponse response = questionService.createNewQuestion(request, file);
+        QuestionResponse response = questionService.createNewQuestion(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 

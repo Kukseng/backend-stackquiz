@@ -45,7 +45,7 @@ public class QuestionServiceImpl implements QuestionService {
             EnumSet.of(QuestionType.TF, QuestionType.MCQ, QuestionType.FILL_THE_BLANK);
 
     @Override
-    public QuestionResponse createNewQuestion(CreateQuestionRequest createQuestionRequest, MultipartFile file) {
+    public QuestionResponse createNewQuestion(CreateQuestionRequest createQuestionRequest) {
 
         Quiz quiz = quizRepository.findById(createQuestionRequest.quizId()).orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND,
@@ -65,15 +65,11 @@ public class QuestionServiceImpl implements QuestionService {
             int nextOrder = (maxOrder != null) ? maxOrder + 1 : 1;
 
             Question question = questionMapper.fromCreateQuestionRequest(createQuestionRequest);
-            MediaResponse media = mediaService.upload(file);
-
-            String imageUri = media.uri();
 
             question.setQuiz(quiz);
             question.setPoints(10);
             question.setTimeLimit(timeLimit);
             question.setQuestionOrder(nextOrder);
-            question.setImageUrl(imageUri);
             question.setCreatedAt(Timestamp.valueOf(LocalDateTime.now()));
             question.setUpdatedAt(Timestamp.valueOf(LocalDateTime.now()));
 

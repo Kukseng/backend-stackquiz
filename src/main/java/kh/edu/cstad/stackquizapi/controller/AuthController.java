@@ -1,10 +1,13 @@
 package kh.edu.cstad.stackquizapi.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
-import kh.edu.cstad.stackquizapi.dto.request.LoginRequest;
 
+import kh.edu.cstad.stackquizapi.dto.request.LoginRequest;
 import kh.edu.cstad.stackquizapi.dto.request.OAuthRegisterRequest;
 import kh.edu.cstad.stackquizapi.dto.request.RegisterRequest;
+import kh.edu.cstad.stackquizapi.dto.request.ResetPasswordRequest;
 import kh.edu.cstad.stackquizapi.dto.response.LoginResponse;
 import kh.edu.cstad.stackquizapi.dto.response.RegisterResponse;
 import kh.edu.cstad.stackquizapi.exception.ApiResponse;
@@ -19,11 +22,13 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Mono;
+
 
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -33,8 +38,9 @@ public class AuthController {
 
     private final AuthService authService;
     private final WebClient webClient;
-
     private final UserRepository userRepository;
+
+    private RestTemplate restTemplate;
 
     @Value("${keycloak.token-url}")
     private String keycloakTokenUrl;
@@ -107,5 +113,18 @@ public class AuthController {
         return authService.oauthRegister(request);
     }
 
+    @PostMapping("/reset-password")
+    @Operation(summary = "Reset Password | [ ADMIN ] (secured)", security = {@SecurityRequirement(name = "bearerAuth")})
+    public ResponseEntity<String> resetPassword(@RequestBody @Valid ResetPasswordRequest resetPasswordRequest) {
+        authService.resetPassword(resetPasswordRequest);
+        return ResponseEntity.ok("Reset Password successfully");
+    }
+
+    @PostMapping("/request-reset-password")
+    @Operation(summary = "Request reset Password  | [ ORGANIZER ] (secured)", security = {@SecurityRequirement(name = "bearerAuth")})
+    public ResponseEntity<String> requestResetPassword(@RequestBody @Valid ResetPasswordRequest resetPasswordRequest) {
+        authService.requestPasswordReset(resetPasswordRequest);
+        return ResponseEntity.ok("We have sent link to your email to reset password");
+    }
 
 }

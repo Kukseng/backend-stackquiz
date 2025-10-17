@@ -62,8 +62,7 @@ public class UserController {
     @PatchMapping(value = "/me", consumes = {"multipart/form-data"})
     public UserResponse updateUser(
             @AuthenticationPrincipal Jwt accessToken,
-            @RequestPart("updateUserRequest") @Valid UpdateUserRequest updateUserRequest,
-            @RequestPart(value = "file", required = false) MultipartFile file) {
-        return userService.updateUser(accessToken, updateUserRequest, file);
+            @Valid @RequestBody UpdateUserRequest updateUserRequest) {
+        return userService.updateUser(accessToken, updateUserRequest);
     }
 }

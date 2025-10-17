@@ -23,6 +23,10 @@ public record QuizResponse(
 
         QuizStatus status,
 
+        String parentsId,
+
+        Integer versionNumber,
+
         TimeLimitRangeInSecond questionTimeLimit,
 
         LocalDateTime createdAt,

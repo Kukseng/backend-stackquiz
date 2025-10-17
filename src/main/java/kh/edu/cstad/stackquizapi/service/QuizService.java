@@ -1,11 +1,10 @@
 package kh.edu.cstad.stackquizapi.service;
 
-import kh.edu.cstad.stackquizapi.domain.Quiz;
 import kh.edu.cstad.stackquizapi.dto.request.CreateQuizRequest;
 import kh.edu.cstad.stackquizapi.dto.request.FolkQuizRequest;
-import kh.edu.cstad.stackquizapi.dto.request.QuizUpdate;
+import kh.edu.cstad.stackquizapi.dto.request.QuizUpdateRequest;
 import kh.edu.cstad.stackquizapi.dto.request.SuspendQuizRequest;
-import kh.edu.cstad.stackquizapi.dto.response.AtToFavoriteResponse;
+import kh.edu.cstad.stackquizapi.dto.response.FavoriteQuizResponse;
 import kh.edu.cstad.stackquizapi.dto.response.QuizResponse;
 import kh.edu.cstad.stackquizapi.dto.response.QuizSuspensionResponse;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -21,7 +20,7 @@ public interface QuizService {
 
     List<QuizResponse> getAllQuiz(Boolean active);
 
-    QuizResponse updateQuiz(String QuizId, QuizUpdate quizUpdate, Jwt accessToken);
+    QuizResponse updateQuiz(String QuizId, QuizUpdateRequest quizUpdateRequest, Jwt accessToken);
 
     void deleteQuiz(String quizId, Jwt accessToken);
 
@@ -29,10 +28,13 @@ public interface QuizService {
 
     QuizSuspensionResponse suspendQuiz(String quizId, SuspendQuizRequest request, Jwt accessToken);
 
-    AtToFavoriteResponse atToFavorite(String quizId, Jwt accessToken);
+    FavoriteQuizResponse atToFavorite(String quizId, Jwt accessToken);
 
     void removeFromFavorite(String quizId, Jwt accessToken);
 
+    List<FavoriteQuizResponse> getFavoriteQuizzes();
+
+    List<FavoriteQuizResponse> getCurrentUserFavoriteQuizzes(Jwt accessToken);
 
     QuizResponse folkQuiz(Jwt accessToken, String quizId, FolkQuizRequest folkQuizRequest);
 

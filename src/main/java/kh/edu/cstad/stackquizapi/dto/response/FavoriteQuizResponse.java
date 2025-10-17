@@ -2,8 +2,10 @@ package kh.edu.cstad.stackquizapi.dto.response;
 
 import lombok.Builder;
 
+import java.time.LocalDateTime;
+
 @Builder
-public record AtToFavoriteResponse(
+public record FavoriteQuizResponse(
 
         String id,
 
@@ -11,7 +13,7 @@ public record AtToFavoriteResponse(
 
         String username,
 
-        String createdAt
+        LocalDateTime createdAt
 
 ) {
 }

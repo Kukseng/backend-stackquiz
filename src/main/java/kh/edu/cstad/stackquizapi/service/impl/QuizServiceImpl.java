@@ -3,15 +3,13 @@ package kh.edu.cstad.stackquizapi.service.impl;
 import kh.edu.cstad.stackquizapi.domain.*;
 import kh.edu.cstad.stackquizapi.dto.request.CreateQuizRequest;
 import kh.edu.cstad.stackquizapi.dto.request.FolkQuizRequest;
-import kh.edu.cstad.stackquizapi.dto.request.QuizUpdate;
+import kh.edu.cstad.stackquizapi.dto.request.QuizUpdateRequest;
 import kh.edu.cstad.stackquizapi.dto.request.SuspendQuizRequest;
-import kh.edu.cstad.stackquizapi.dto.response.AtToFavoriteResponse;
-import kh.edu.cstad.stackquizapi.dto.response.MediaResponse;
+import kh.edu.cstad.stackquizapi.dto.response.FavoriteQuizResponse;
 import kh.edu.cstad.stackquizapi.dto.response.QuizResponse;
 import kh.edu.cstad.stackquizapi.dto.response.QuizSuspensionResponse;
 import kh.edu.cstad.stackquizapi.mapper.QuizMapper;
 import kh.edu.cstad.stackquizapi.repository.*;
-import kh.edu.cstad.stackquizapi.service.MediaService;
 import kh.edu.cstad.stackquizapi.service.QuizService;
 import kh.edu.cstad.stackquizapi.util.QuizStatus;
 import lombok.RequiredArgsConstructor;
@@ -38,8 +36,7 @@ public class QuizServiceImpl implements QuizService {
     private final CategoryRepository categoryRepository;
     private final UserRepository userRepository;
     private final FavoriteQuizRepository favoriteQuizRepository;
-    private final MediaService mediaService;
-    private  final QuestionRepository questionRepository;
+    private final QuestionRepository questionRepository;
     private final OptionRepository optionRepository;
 
     @Override
@@ -53,13 +50,10 @@ public class QuizServiceImpl implements QuizService {
                         "User Id not found " + userId));
 
         Quiz quiz = quizMapper.toQuizRequest(createQuizRequest);
-        MediaResponse media = mediaService.upload(file);
-
-        String thumbnail = media.uri();
 
         quiz.setUser(user);
-        quiz.setThumbnailUrl(thumbnail);
         quiz.setFlagged(false);
+        quiz.setVersionNumber(1);
         quiz.setCreatedAt(LocalDateTime.now());
         quiz.setUpdatedAt(LocalDateTime.now());
         quiz.setIsActive(true);
@@ -100,9 +94,8 @@ public class QuizServiceImpl implements QuizService {
                 .toList();
     }
 
-
     @Override
-    public QuizResponse updateQuiz(String QuizId, QuizUpdate quizUpdate, Jwt accessToken) {
+    public QuizResponse updateQuiz(String QuizId, QuizUpdateRequest quizUpdateRequest, Jwt accessToken) {
 
         String userId = accessToken.getSubject();
 
@@ -118,7 +111,7 @@ public class QuizServiceImpl implements QuizService {
                     "You are not allowed to update this quiz");
         }
 
-        quizMapper.toQuizUpdateResponse(quizUpdate, quiz);
+        quizMapper.toQuizUpdateResponse(quizUpdateRequest, quiz);
         quiz = quizRepository.save(quiz);
         return quizMapper.toQuizResponse(quiz);
     }
@@ -198,7 +191,7 @@ public class QuizServiceImpl implements QuizService {
     }
 
     @Override
-    public AtToFavoriteResponse atToFavorite(String quizId, Jwt accessToken) {
+    public FavoriteQuizResponse atToFavorite(String quizId, Jwt accessToken) {
         String userId = accessToken.getSubject();
 
         Quiz quiz = quizRepository.findQuizById(quizId)
@@ -223,7 +216,7 @@ public class QuizServiceImpl implements QuizService {
 
         favoriteQuizRepository.save(favoriteQuiz);
 
-        return AtToFavoriteResponse.builder()
+        return FavoriteQuizResponse.builder()
                 .id(favoriteQuiz.getId())
                 .quizId(quiz.getId())
                 .username(user.getUsername())
@@ -253,7 +246,40 @@ public class QuizServiceImpl implements QuizService {
         favoriteQuizRepository.delete(favoriteQuiz);
     }
 
-    @Transactional
+    @Override
+    public List<FavoriteQuizResponse> getFavoriteQuizzes() {
+
+        return favoriteQuizRepository.findAll()
+                .stream()
+                .map(favoriteQuiz -> FavoriteQuizResponse
+                        .builder()
+                        .id(favoriteQuiz.getId())
+                        .quizId(favoriteQuiz.getQuiz().getId())
+                        .username(favoriteQuiz.getUser().getUsername())
+                        .createdAt(favoriteQuiz.getCreatedAt())
+                        .build())
+                .toList();
+    }
+
+    @Override
+    public List<FavoriteQuizResponse> getCurrentUserFavoriteQuizzes(Jwt accessToken) {
+        String userId = accessToken.getSubject();
+
+        return favoriteQuizRepository.findAll()
+                .stream()
+                .filter(fav -> fav.getUser().getId().equals(userId))
+                .map(favoriteQuiz -> FavoriteQuizResponse
+                        .builder()
+                        .id(favoriteQuiz.getId())
+                        .quizId(favoriteQuiz.getQuiz().getId())
+                        .username(favoriteQuiz.getUser().getUsername())
+                        .createdAt(favoriteQuiz.getCreatedAt())
+                        .build())
+                .toList();
+
+    }
+
+
     @Override
     public QuizResponse folkQuiz(Jwt accessToken, String quizId, FolkQuizRequest folkQuizRequest) {
         String userId = accessToken.getSubject();
@@ -329,6 +355,4 @@ public class QuizServiceImpl implements QuizService {
         }
         return newQuiz;
     }
-
-
 }

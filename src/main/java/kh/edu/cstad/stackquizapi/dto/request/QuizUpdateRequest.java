@@ -1,6 +1,6 @@
 package kh.edu.cstad.stackquizapi.dto.request;
 
-public record QuizUpdate(
+public record QuizUpdateRequest(
 
         String title,
 

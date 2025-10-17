@@ -1,5 +1,7 @@
 package kh.edu.cstad.stackquizapi.service.impl;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.ws.rs.core.Response;
 import kh.edu.cstad.stackquizapi.dto.request.CreateUserRequest;
 import kh.edu.cstad.stackquizapi.dto.request.OAuthRegisterRequest;
@@ -40,6 +42,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
 
+    private final Keycloak keycloak;
     private final Keycloak adminKeycloak;
     private final RoleService roleService;
     private final UserService userService;
@@ -203,70 +206,43 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public void requestPasswordReset(String email) {
-        log.info("Password reset requested for email: {}", email);
+    public void requestPasswordReset(ResetPasswordRequest resetPasswordRequest) {
+        // Find the user by email
+        UserRepresentation user = keycloak.realm(realm)
+                .users()
+                .searchByEmail(resetPasswordRequest.email(), true)
+                .stream()
+                .findFirst()
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
-        try {
-            UserRepresentation user = adminKeycloak.realm(realm)
-                    .users()
-                    .searchByEmail(email, true)
-                    .stream()
-                    .findFirst()
-                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                            "No account found with this email"));
-
-            adminKeycloak.realm(realm)
-                    .users()
-                    .get(user.getId())
-                    .executeActionsEmail(Collections.singletonList("UPDATE_PASSWORD"));
-
-            log.info("Password reset email sent for user: {}", user.getId());
-
-        } catch (ResponseStatusException e) {
-            throw e;
-        } catch (Exception e) {
-            log.error("Failed to send password reset email: {}", e.getMessage());
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
-                    "Failed to send password reset email");
-        }
+        // Send Link to user for reset password
+        getUserResource(user.getId()).executeActionsEmail(List.of("UPDATE_PASSWORD"));
     }
+
 
     @Override
-    public void resetPassword(ResetPasswordRequest request) {
-        log.info("Resetting password for email: {}", request.email());
+    public void resetPassword(ResetPasswordRequest resetPasswordRequest) {
+        // Find the user by email
+        UserRepresentation user = keycloak.realm(realm)
+                .users()
+                .searchByEmail(resetPasswordRequest.email(), true)
+                .stream()
+                .findFirst()
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid email"));
 
-        try {
-            UserRepresentation user = adminKeycloak.realm(realm)
-                    .users()
-                    .searchByEmail(request.email(), true)
-                    .stream()
-                    .findFirst()
-                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                            "No account found with this email"));
+        // Get the UserResource and reset the password
+        CredentialRepresentation credential = new CredentialRepresentation();
+        credential.setType(CredentialRepresentation.PASSWORD);
+        credential.setValue(resetPasswordRequest.newPassword());
+        credential.setTemporary(false);
 
-            CredentialRepresentation credential = new CredentialRepresentation();
-            credential.setType(CredentialRepresentation.PASSWORD);
-            credential.setValue(request.newPassword());
-            credential.setTemporary(false);
-
-            adminKeycloak.realm(realm)
-                    .users()
-                    .get(user.getId())
-                    .resetPassword(credential);
-
-            log.info("Password successfully reset for user: {}", user.getId());
-
-        } catch (ResponseStatusException e) {
-            throw e;
-        } catch (Exception e) {
-            log.error("Password reset failed: {}", e.getMessage());
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
-                    "Password reset failed");
-        }
+        getUserResource(user.getId()).resetPassword(credential);
     }
 
 
-    /** Lowercase,  collapse repeats, trim */
+    /**
+     * Lowercase,  collapse repeats, trim
+     */
     private String sanitizeUsername(String raw, String email) {
         String base = (raw != null && !raw.isBlank()) ? raw : (email != null ? email.split("@")[0] : "user");
 
@@ -289,7 +265,9 @@ public class AuthServiceImpl implements AuthService {
         return cleaned;
     }
 
-    /** Check KC for conflicts and append short suffix  */
+    /**
+     * Check KC for conflicts and append short suffix
+     */
     private String makeUniqueUsername(String base) {
         String candidate = base;
         int attempt = 0;
@@ -400,7 +378,11 @@ public class AuthServiceImpl implements AuthService {
             try (Response response = adminKeycloak.realm(realm).users().create(user)) {
                 if (response.getStatus() != HttpStatus.CREATED.value()) {
                     String body;
-                    try { body = response.readEntity(String.class); } catch (Exception ex) { body = "<no body>"; }
+                    try {
+                        body = response.readEntity(String.class);
+                    } catch (Exception ex) {
+                        body = "<no body>";
+                    }
                     log.error("KC create failed: status={}, body={}", response.getStatus(), body);
                     throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to create user in Keycloak");
                 }
@@ -431,8 +413,11 @@ public class AuthServiceImpl implements AuthService {
                 log.info("App DB user created with ID: {}", userId);
             } catch (Exception e) {
                 log.error("Failed to save user to DB for KC user {}: {}", userId, e.getMessage());
-                try { adminKeycloak.realm(realm).users().get(userId).remove(); }
-                catch (Exception ex) { log.error("Rollback KC user failed for {}: {}", userId, ex.getMessage()); }
+                try {
+                    adminKeycloak.realm(realm).users().get(userId).remove();
+                } catch (Exception ex) {
+                    log.error("Rollback KC user failed for {}: {}", userId, ex.getMessage());
+                }
                 throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to complete user registration");
             }
 
@@ -454,11 +439,9 @@ public class AuthServiceImpl implements AuthService {
         return ResponseEntity.ok(body);
     }
 
-    // -------- Token via password grant (Direct Access Grants must be enabled) --------
-
-    private final com.fasterxml.jackson.databind.ObjectMapper objectMapper =
-            new com.fasterxml.jackson.databind.ObjectMapper()
-                    .configure(com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, true);
+    private final ObjectMapper objectMapper =
+            new ObjectMapper()
+                    .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, true);
 
     private TokenResponse getTokenFromKeycloak(String username, String password) {
         final String tokenUrl = serverUrl + "/realms/" + realm + "/protocol/openid-connect/token";
@@ -494,6 +477,14 @@ public class AuthServiceImpl implements AuthService {
         form.add("password", password);
 
         return new HttpEntity<>(form, headers);
+    }
+
+    private UserResource getUserResource(String userId) {
+        try {
+            return keycloak.realm(realm).users().get(userId);
+        } catch (jakarta.ws.rs.NotFoundException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found in Keycloak");
+        }
     }
 
 }

@@ -5,7 +5,7 @@ import kh.edu.cstad.stackquizapi.domain.Question;
 import kh.edu.cstad.stackquizapi.domain.Quiz;
 import kh.edu.cstad.stackquizapi.domain.QuizCategory;
 import kh.edu.cstad.stackquizapi.dto.request.CreateQuizRequest;
-import kh.edu.cstad.stackquizapi.dto.request.QuizUpdate;
+import kh.edu.cstad.stackquizapi.dto.request.QuizUpdateRequest;
 import kh.edu.cstad.stackquizapi.dto.response.CategoryResponse;
 import kh.edu.cstad.stackquizapi.dto.response.OptionResponse;
 import kh.edu.cstad.stackquizapi.dto.response.QuestionResponse;
@@ -35,7 +35,7 @@ public interface QuizMapper {
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     void toQuizUpdateResponse(
-            QuizUpdate quizUpdate,
+            QuizUpdateRequest quizUpdateRequest,
             @MappingTarget Quiz quiz
     );
 

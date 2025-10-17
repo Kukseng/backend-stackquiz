@@ -87,7 +87,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserResponse updateUser(Jwt accessToken, UpdateUserRequest updateUserRequest, MultipartFile file) {
+    public UserResponse updateUser(Jwt accessToken, UpdateUserRequest updateUserRequest) {
 
         String userId = accessToken.getSubject();
         log.info("User ID form jwt access token: {}", userId);
@@ -102,9 +102,6 @@ public class UserServiceImpl implements UserService {
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
             userMapper.toCustomerPartially(updateUserRequest, user);
-            MediaResponse media = mediaService.upload(file);
-            String profile = media.uri();
-            user.setProfileUser(profile);
 
             if (updateUserRequest.email() != null &&
                 userRepository.existsByEmail(updateUserRequest.email()) &&
