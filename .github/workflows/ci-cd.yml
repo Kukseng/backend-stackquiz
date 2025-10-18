@@ -51,6 +51,7 @@ jobs:
           SPRING_DATASOURCE_PASSWORD: stackquiz@123
           REDIS_HOST: localhost
           REDIS_PORT: 6379
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
 
       # Build Docker Image (just package the JAR)
       - name: Build Docker image

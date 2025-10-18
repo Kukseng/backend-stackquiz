@@ -30,7 +30,7 @@ public class AIQuizGenerationServiceImpl implements AIQuizGenerationService {
     private final RestTemplate restTemplate = new RestTemplate();
     private final ObjectMapper objectMapper = new ObjectMapper();
     
-    @Value("${openai.api.key:#{environment.OPENAI_API_KEY}}")
+    @Value("${OPENAI_API_KEY:local}")
     private String apiKey;
     
     private static final String OPENAI_API_URL = "https://api.openai.com/v1/chat/completions";
