@@ -195,15 +195,62 @@ public class ParticipantServiceImpl implements ParticipantService {
         // Broadcast leaderboard
         broadcastLeaderboardToSession(session.getId());
 
-        // If session already running, same behavior as guest join:
-        if (session.getStatus() == Status.IN_PROGRESS && session.getMode() == QuizMode.ASYNC) {
-            try {
-                quizSessionServiceImpl.sendNextQuestionToParticipant(response.id(), session.getSessionCode(), 1);
-            } catch (Exception e) {
-                log.error("Failed to send first question to authenticated late joiner {}: {}", response.nickname(), e.getMessage(), e);
+// Broadcast current session state (lobby/in-progress/ended)
+        GameStateMessage currentState = new GameStateMessage(
+                session.getSessionCode(),
+                session.getHostName(),
+                session.getStatus(),
+                session.getStatus() == Status.WAITING ? "SESSION_LOBBY"
+                        : session.getStatus() == Status.IN_PROGRESS ? "QUESTION_STARTED"
+                        : "SESSION_ENDED",
+                session.getCurrentQuestion(),
+                session.getTotalQuestions(),
+                null,
+                session.getStatus() == Status.WAITING
+                        ? "Lobby opened! Get ready..."
+                        : session.getStatus() == Status.IN_PROGRESS
+                        ? "Quiz in progress..."
+                        : "Quiz session has ended!"
+        );
+        webSocketService.broadcastGameState(session.getSessionCode(), currentState);
+
+
+        if (session.getStatus() == Status.IN_PROGRESS) {
+            if (session.getMode() == QuizMode.SYNC) {
+
+                if (session.getCurrentQuestion() != null && session.getCurrentQuestion() > 0) {
+                    List<Question> questions = session.getQuiz().getQuestions().stream()
+                            .sorted(Comparator.comparingInt(Question::getQuestionOrder)).toList();
+                    int questionIndex = session.getCurrentQuestion() - 1;
+                    if (questionIndex >= 0 && questionIndex < questions.size()) {
+                        Question currentQuestion = questions.get(questionIndex);
+                        if (currentQuestion != null) {
+                            QuestionMessage qMsg = new QuestionMessage(
+                                    session.getSessionCode(),
+                                    session.getHostName(),
+                                    currentQuestion,
+                                    session.getCurrentQuestion(),
+                                    session.getTotalQuestions(),
+                                    currentQuestion.getTimeLimit() != null ? currentQuestion.getTimeLimit().intValue() : 30,
+                                    "START_QUESTION"
+                            );
+
+                            webSocketService.broadcastQuestion(session.getSessionCode(), qMsg);
+                        }
+                    } else {
+                        log.warn("Current question index {} out of bounds for session {}", questionIndex, session.getSessionCode());
+                    }
+                }
+            } else {
+
+                try {
+
+                    quizSessionServiceImpl.sendNextQuestionToParticipant(response.id(), session.getSessionCode(), 1);
+                    log.info("Sent first question to late joiner {} in async session {}", response.nickname(), session.getSessionCode());
+                } catch (Exception e) {
+                    log.error("Failed to send first question to late joiner {}: {}", response.nickname(), e.getMessage(), e);
+                }
             }
-        } else if (session.getStatus() == Status.IN_PROGRESS && session.getMode() == QuizMode.SYNC) {
-            // SYNC handled elsewhere (we broadcast global question)
         }
 
         return response;

@@ -4,10 +4,10 @@ import jakarta.validation.constraints.NotBlank;
 
 public record CreateAvatarRequest(
 
-        Byte avatarNo,
+        Integer avatarNo,
 
         @NotBlank(message = "Avatar name is required")
-        String avatarName
+        String name
 
 ) {
 }
