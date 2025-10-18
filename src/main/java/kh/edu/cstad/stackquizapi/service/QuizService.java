@@ -1,10 +1,13 @@
 package kh.edu.cstad.stackquizapi.service;
 
+import kh.edu.cstad.stackquizapi.dto.request.CreateFeedbackRequest;
 import kh.edu.cstad.stackquizapi.dto.request.CreateQuizRequest;
 import kh.edu.cstad.stackquizapi.dto.request.FolkQuizRequest;
 import kh.edu.cstad.stackquizapi.dto.request.QuizUpdateRequest;
 import kh.edu.cstad.stackquizapi.dto.request.SuspendQuizRequest;
 import kh.edu.cstad.stackquizapi.dto.response.FavoriteQuizResponse;
+import kh.edu.cstad.stackquizapi.dto.response.CreateFeedbackResponse;
+import kh.edu.cstad.stackquizapi.dto.response.QuizFeedbackResponse;
 import kh.edu.cstad.stackquizapi.dto.response.QuizResponse;
 import kh.edu.cstad.stackquizapi.dto.response.QuizSuspensionResponse;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -37,6 +40,12 @@ public interface QuizService {
     List<FavoriteQuizResponse> getCurrentUserFavoriteQuizzes(Jwt accessToken);
 
     QuizResponse folkQuiz(Jwt accessToken, String quizId, FolkQuizRequest folkQuizRequest);
+
+    CreateFeedbackResponse giveFeedback(CreateFeedbackRequest createFeedbackRequest, String quizId, Jwt accessToken);
+
+    List<QuizFeedbackResponse> getAllFeedbacks();
+
+    List<QuizFeedbackResponse> getCurrentUserQuizFeedbacks(Jwt accessToken);
 
 }
 

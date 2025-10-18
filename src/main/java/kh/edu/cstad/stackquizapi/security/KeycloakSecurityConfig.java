@@ -119,14 +119,18 @@ public class KeycloakSecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/v1/quizzes").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/quizzes/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/quizzes/favorite/me").hasRole("ORGANIZER")
+                        .requestMatchers(HttpMethod.GET, "/api/v1/quizzes/feedback/me").hasRole("ORGANIZER")
                         .requestMatchers(HttpMethod.POST, "api/vq/quizzes/{quizId}/favorite").hasRole("ORGANIZER")
                         .requestMatchers(HttpMethod.DELETE, "api/vq/quizzes/{quizId}/favorite").hasRole("ORGANIZER")
+                        .requestMatchers(HttpMethod.POST, "api/v1/quizzes/{quizId}/feedback").hasRole("ORGANIZER")
                         .requestMatchers(HttpMethod.PATCH, "/api/v1/quizzes/folk/**").hasRole("ORGANIZER")
+                        .requestMatchers(HttpMethod.POST, "/api/v1/quizzes/{quizId}/folk").hasRole("ORGANIZER")
                         .requestMatchers(HttpMethod.POST, "/api/v1/quizzes").hasAnyRole("ADMIN", "ORGANIZER")
                         .requestMatchers(HttpMethod.PUT, "/api/v1/quizzes/**").hasAnyRole("ADMIN", "ORGANIZER")
                         .requestMatchers(HttpMethod.DELETE, "/api/v1/quizzes/**").hasAnyRole("ADMIN", "ORGANIZER")
                         .requestMatchers(HttpMethod.POST, "api/v1/quizzes/admin/{quizId}/suspend").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/v1/quizzes/favorite").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/v1/quizzes/feedback").hasRole("ADMIN")
 
                         // Question endpoints
                         .requestMatchers(HttpMethod.GET, "/api/v1/questions/**").hasAnyRole("ADMIN", "ORGANIZER")

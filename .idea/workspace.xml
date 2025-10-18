@@ -5,34 +5,34 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="62b7a751-e48e-48eb-9372-434f48b34517" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/src/main/java/kh/edu/cstad/stackquizapi/dto/response/KeycloakTokenResponse.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/kh/edu/cstad/stackquizapi/domain/QuizFeedback.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/kh/edu/cstad/stackquizapi/dto/request/CreateFeedbackRequest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/kh/edu/cstad/stackquizapi/dto/response/CreateFeedbackResponse.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/kh/edu/cstad/stackquizapi/dto/response/QuizFeedbackResponse.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/kh/edu/cstad/stackquizapi/repository/QuizFeedbackRepository.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/kh/edu/cstad/stackquizapi/util/SatisfactionLevel.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.gradle/8.14.3/executionHistory/executionHistory.bin" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/8.14.3/executionHistory/executionHistory.bin" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.gradle/8.14.3/executionHistory/executionHistory.lock" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/8.14.3/executionHistory/executionHistory.lock" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.gradle/8.14.3/fileHashes/fileHashes.bin" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/8.14.3/fileHashes/fileHashes.bin" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.gradle/8.14.3/fileHashes/fileHashes.lock" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/8.14.3/fileHashes/fileHashes.lock" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.gradle/8.14.3/fileHashes/resourceHashesCache.bin" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/8.14.3/fileHashes/resourceHashesCache.bin" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.gradle/buildOutputCleanup/buildOutputCleanup.lock" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/buildOutputCleanup/buildOutputCleanup.lock" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gradle/buildOutputCleanup/outputFiles.bin" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/buildOutputCleanup/outputFiles.bin" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.gradle/file-system.probe" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/file-system.probe" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/modules/stackquiz-api.main.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/modules/stackquiz-api.main.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dataSources/87ea995a-0c19-4660-af77-8cb595c78c9b.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dataSources/87ea995a-0c19-4660-af77-8cb595c78c9b.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dataSources/87ea995a-0c19-4660-af77-8cb595c78c9b/storage_v2/_src_/database/stackquiz-db.bssdZQ/schema/public.abK9xQ.meta" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dataSources/87ea995a-0c19-4660-af77-8cb595c78c9b/storage_v2/_src_/database/stackquiz-db.bssdZQ/schema/public.abK9xQ.meta" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/kh/edu/cstad/stackquizapi/controller/AuthController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kh/edu/cstad/stackquizapi/controller/AuthController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/kh/edu/cstad/stackquizapi/controller/QuestionController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kh/edu/cstad/stackquizapi/controller/QuestionController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/kh/edu/cstad/stackquizapi/controller/QuizController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kh/edu/cstad/stackquizapi/controller/QuizController.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/kh/edu/cstad/stackquizapi/controller/UserController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kh/edu/cstad/stackquizapi/controller/UserController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/kh/edu/cstad/stackquizapi/dto/request/QuizUpdate.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kh/edu/cstad/stackquizapi/dto/request/QuizUpdateRequest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/kh/edu/cstad/stackquizapi/dto/response/AtToFavoriteResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kh/edu/cstad/stackquizapi/dto/response/FavoriteQuizResponse.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/kh/edu/cstad/stackquizapi/dto/response/QuizResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kh/edu/cstad/stackquizapi/dto/response/QuizResponse.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/kh/edu/cstad/stackquizapi/mapper/QuizMapper.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kh/edu/cstad/stackquizapi/mapper/QuizMapper.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/kh/edu/cstad/stackquizapi/domain/Quiz.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kh/edu/cstad/stackquizapi/domain/Quiz.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/kh/edu/cstad/stackquizapi/domain/QuizSession.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kh/edu/cstad/stackquizapi/domain/QuizSession.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/kh/edu/cstad/stackquizapi/domain/User.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kh/edu/cstad/stackquizapi/domain/User.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/kh/edu/cstad/stackquizapi/repository/QuizRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kh/edu/cstad/stackquizapi/repository/QuizRepository.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/kh/edu/cstad/stackquizapi/security/KeycloakSecurityConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kh/edu/cstad/stackquizapi/security/KeycloakSecurityConfig.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/kh/edu/cstad/stackquizapi/service/AuthService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kh/edu/cstad/stackquizapi/service/AuthService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/kh/edu/cstad/stackquizapi/service/QuestionService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kh/edu/cstad/stackquizapi/service/QuestionService.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/kh/edu/cstad/stackquizapi/service/QuizService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kh/edu/cstad/stackquizapi/service/QuizService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/kh/edu/cstad/stackquizapi/service/UserService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kh/edu/cstad/stackquizapi/service/UserService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/kh/edu/cstad/stackquizapi/service/impl/AuthServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kh/edu/cstad/stackquizapi/service/impl/AuthServiceImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/kh/edu/cstad/stackquizapi/service/impl/QuestionServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kh/edu/cstad/stackquizapi/service/impl/QuestionServiceImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/kh/edu/cstad/stackquizapi/service/QuizSessionService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kh/edu/cstad/stackquizapi/service/QuizSessionService.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/kh/edu/cstad/stackquizapi/service/impl/QuizServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kh/edu/cstad/stackquizapi/service/impl/QuizServiceImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/kh/edu/cstad/stackquizapi/service/impl/UserServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kh/edu/cstad/stackquizapi/service/impl/UserServiceImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/kh/edu/cstad/stackquizapi/service/impl/QuizSessionServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kh/edu/cstad/stackquizapi/service/impl/QuizSessionServiceImpl.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -65,6 +65,7 @@
     <option name="RECENT_TEMPLATES">
       <list>
         <option value="Class" />
+        <option value="Interface" />
         <option value="Record" />
       </list>
     </option>
@@ -90,6 +91,7 @@
     &quot;RequestMappingsPanelWidth0&quot;: &quot;75&quot;,
     &quot;RequestMappingsPanelWidth1&quot;: &quot;75&quot;,
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
     &quot;Spring Boot.StackquizApiApplication.executor&quot;: &quot;Run&quot;,
     &quot;git-widget-placeholder&quot;: &quot;master&quot;,
@@ -149,7 +151,16 @@
       <workItem from="1760544994515" duration="3703000" />
       <workItem from="1760596161211" duration="9846000" />
       <workItem from="1760684853244" duration="1044000" />
-      <workItem from="1760686239488" duration="1816000" />
+      <workItem from="1760686239488" duration="2459000" />
+      <workItem from="1760690823209" duration="11000" />
+      <workItem from="1760691617208" duration="302000" />
+      <workItem from="1760693638340" duration="2027000" />
+      <workItem from="1760696995657" duration="995000" />
+      <workItem from="1760719685677" duration="1292000" />
+      <workItem from="1760722833704" duration="37000" />
+      <workItem from="1760757536646" duration="1285000" />
+      <workItem from="1760779188827" duration="264000" />
+      <workItem from="1760779527226" duration="10516000" />
     </task>
     <servers />
   </component>

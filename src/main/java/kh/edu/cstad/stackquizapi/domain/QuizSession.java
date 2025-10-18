@@ -72,7 +72,6 @@ public class QuizSession {
     @Enumerated(EnumType.STRING)
     private QuizMode mode;
 
-
     @ManyToOne
     @JoinColumn(name = "host_id", nullable = false)
     private User host;
@@ -82,10 +81,8 @@ public class QuizSession {
     private JsonNode leaderboardData;
 
     @Column(name = "session_time_limit")
-    private Integer sessionTimeLimit; // Total session time limit in minutes
+    private Integer sessionTimeLimit;
 
-
-    //
     @Column(name = "scheduled_start_time")
     private LocalDateTime scheduledStartTime;
 
@@ -110,10 +107,6 @@ public class QuizSession {
     @Column(name = "max_participants")
     private Integer maxParticipants;
 
-//
-
-
-    // Display Settings
     @Column(name = "show_leaderboard")
     private Boolean showLeaderboard = true;
 
@@ -132,17 +125,12 @@ public class QuizSession {
     @Column(name = "average_score")
     private Double averageScore = 0.0;
 
-    // Session Statistics (calculated fields)
     @Column(name = "total_answers")
     private Integer totalAnswers = 0;
 
     @Column(name = "correct_answers")
     private Integer correctAnswers = 0;
 
-//    @Column(name = "session_duration_minutes")
-//    private Integer sessionDurationMinutes;
-
-    // Convenience methods for business logic
     public boolean isScheduled() {
         return scheduledStartTime != null;
     }
@@ -162,12 +150,9 @@ public class QuizSession {
                 (status == Status.IN_PROGRESS && Boolean.TRUE.equals(allowJoinInProgress));
     }
 
-
-
     public boolean isAtCapacity() {
         return totalParticipants >= maxParticipants;
     }
-
 
     public void updateStatistics(int totalAnswers, int correctAnswers, double averageScore) {
         this.totalAnswers = totalAnswers;

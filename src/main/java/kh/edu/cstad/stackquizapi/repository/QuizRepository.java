@@ -22,5 +22,7 @@ public interface QuizRepository extends JpaRepository<Quiz, String> {
 
     @Query("SELECT q FROM Quiz q WHERE q.user.id = :userId ORDER BY q.createdAt DESC")
     java.util.List<Quiz> findByUser_Id(@Param("userId") String userId);
+
+    int countByParentQuizId(String id);
 }
 

@@ -90,11 +90,9 @@ public class QuizSessionServiceImpl implements QuizSessionService, DisposableBea
         quizSession.setStatus(Status.WAITING);
         quizSession.setSessionCode(generateUniqueSessionCode());
 
-        // ✅ FIX: Explicitly set mode from request, default to ASYNC only if not provided
         quizSession.setMode(request.mode() != null ? request.mode() : QuizMode.ASYNC);
 
         QuizSession savedSession = quizSessionRepository.save(quizSession);
-
 
         cacheSessionQuestions(savedSession);
 

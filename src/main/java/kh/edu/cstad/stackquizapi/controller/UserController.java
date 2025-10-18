@@ -47,7 +47,6 @@ public class UserController {
         userService.disableUserByUserId(userId);
     }
 
-    // get current user for profile
     @Operation(summary = "Get current user profile (secured)",
             security = {@SecurityRequirement(name = "bearerAuth")})
     @ResponseStatus(HttpStatus.OK)
@@ -59,7 +58,7 @@ public class UserController {
     @Operation(summary = "Update current user (secured)",
             security = {@SecurityRequirement(name = "bearerAuth")})
     @ResponseStatus(HttpStatus.CREATED)
-    @PatchMapping(value = "/me", consumes = {"multipart/form-data"})
+    @PatchMapping(value = "/me")
     public UserResponse updateUser(
             @AuthenticationPrincipal Jwt accessToken,
             @Valid @RequestBody UpdateUserRequest updateUserRequest) {

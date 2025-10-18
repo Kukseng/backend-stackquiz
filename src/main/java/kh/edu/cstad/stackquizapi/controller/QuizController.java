@@ -3,11 +3,14 @@ package kh.edu.cstad.stackquizapi.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
+import kh.edu.cstad.stackquizapi.dto.request.CreateFeedbackRequest;
 import kh.edu.cstad.stackquizapi.dto.request.CreateQuizRequest;
 import kh.edu.cstad.stackquizapi.dto.request.FolkQuizRequest;
 import kh.edu.cstad.stackquizapi.dto.request.QuizUpdateRequest;
 import kh.edu.cstad.stackquizapi.dto.request.SuspendQuizRequest;
 import kh.edu.cstad.stackquizapi.dto.response.FavoriteQuizResponse;
+import kh.edu.cstad.stackquizapi.dto.response.CreateFeedbackResponse;
+import kh.edu.cstad.stackquizapi.dto.response.QuizFeedbackResponse;
 import kh.edu.cstad.stackquizapi.dto.response.QuizResponse;
 import kh.edu.cstad.stackquizapi.dto.response.QuizSuspensionResponse;
 import kh.edu.cstad.stackquizapi.service.QuizService;
@@ -90,7 +93,7 @@ public class QuizController {
 
     @Operation(summary = "Add quiz to favorites (user)",
             security = {@SecurityRequirement(name = "bearerAuth")})
-    @PostMapping("/{quizId}/favorites")
+    @PostMapping("/{quizId}/favorite")
     public ResponseEntity<FavoriteQuizResponse> addToFavorite(
             @PathVariable String quizId,
             @AuthenticationPrincipal Jwt accessToken) {
@@ -101,7 +104,7 @@ public class QuizController {
 
     @Operation(summary = "Remove quiz from favorites (user)",
             security = {@SecurityRequirement(name = "bearerAuth")})
-    @DeleteMapping("/{quizId}/favorites")
+    @DeleteMapping("/{quizId}/favorite")
     public ResponseEntity<Void> removeFromFavorite(
             @PathVariable String quizId,
             @AuthenticationPrincipal Jwt accessToken) {
@@ -132,11 +135,41 @@ public class QuizController {
             security = {@SecurityRequirement(name = "bearerAuth")}
     )
     @ResponseStatus(HttpStatus.CREATED)
-    @PostMapping("/{quizId}/forks")
+    @PostMapping("/{quizId}/fork")
     public QuizResponse folkQuiz(@AuthenticationPrincipal Jwt accessToken,
                                  @PathVariable String quizId,
                                  @RequestBody FolkQuizRequest folkQuizRequest) {
         return quizService.folkQuiz(accessToken, quizId, folkQuizRequest);
+    }
+
+    @Operation(
+            summary = "Feedback quizzes",
+            security = {@SecurityRequirement(name = "bearerAuth")}
+    )
+    @ResponseStatus(HttpStatus.CREATED)
+    @PostMapping("/{quizId}/feedback")
+    public CreateFeedbackResponse giveFeedback(@Valid @RequestBody CreateFeedbackRequest createFeedbackRequest,
+                                               @PathVariable String quizId,
+                                               @AuthenticationPrincipal Jwt accessToken) {
+        return quizService.giveFeedback(createFeedbackRequest, quizId, accessToken);
+    }
+
+    @Operation(
+            summary = "Get all feedbacks from participants (admin)",
+            security = {@SecurityRequirement(name = "bearerAuth")}
+    )
+    @GetMapping("/feedback")
+    List<QuizFeedbackResponse> getAllFeedbacks() {
+        return quizService.getAllFeedbacks();
+    }
+
+    @Operation(
+            summary = "Get all current-user quizzes' feedbacks from participants (user)",
+            security = {@SecurityRequirement(name = "bearerAuth")}
+    )
+    @GetMapping("/feedback/me")
+    public List<QuizFeedbackResponse> getCurrentUserQuizFeedbacks(@AuthenticationPrincipal Jwt accessToken) {
+        return quizService.getCurrentUserQuizFeedbacks(accessToken);
     }
 
 }

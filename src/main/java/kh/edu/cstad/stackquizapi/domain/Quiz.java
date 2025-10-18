@@ -61,7 +61,6 @@ public class Quiz {
     @JoinColumn(name = "parent_quiz_id")
     private Quiz parentQuiz;
 
-    //    @Column(nullable = false)
     private Integer versionNumber;
 
     @CreatedDate
@@ -89,5 +88,8 @@ public class Quiz {
 
     @OneToMany(mappedBy = "quiz")
     private List<QuizReport> quizReports;
+
+    @OneToMany(mappedBy = "quiz")
+    private List<QuizFeedback> quizFeedbacks;
 
 }

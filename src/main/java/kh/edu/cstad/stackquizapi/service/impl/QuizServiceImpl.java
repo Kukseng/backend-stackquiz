@@ -1,11 +1,14 @@
 package kh.edu.cstad.stackquizapi.service.impl;
 
 import kh.edu.cstad.stackquizapi.domain.*;
+import kh.edu.cstad.stackquizapi.dto.request.CreateFeedbackRequest;
 import kh.edu.cstad.stackquizapi.dto.request.CreateQuizRequest;
 import kh.edu.cstad.stackquizapi.dto.request.FolkQuizRequest;
 import kh.edu.cstad.stackquizapi.dto.request.QuizUpdateRequest;
 import kh.edu.cstad.stackquizapi.dto.request.SuspendQuizRequest;
 import kh.edu.cstad.stackquizapi.dto.response.FavoriteQuizResponse;
+import kh.edu.cstad.stackquizapi.dto.response.CreateFeedbackResponse;
+import kh.edu.cstad.stackquizapi.dto.response.QuizFeedbackResponse;
 import kh.edu.cstad.stackquizapi.dto.response.QuizResponse;
 import kh.edu.cstad.stackquizapi.dto.response.QuizSuspensionResponse;
 import kh.edu.cstad.stackquizapi.mapper.QuizMapper;
@@ -38,6 +41,7 @@ public class QuizServiceImpl implements QuizService {
     private final FavoriteQuizRepository favoriteQuizRepository;
     private final QuestionRepository questionRepository;
     private final OptionRepository optionRepository;
+    private final QuizFeedbackRepository quizFeedbackRepository;
 
     @Override
     public QuizResponse createQuiz(CreateQuizRequest createQuizRequest, MultipartFile file, Jwt accessToken) {
@@ -80,6 +84,10 @@ public class QuizServiceImpl implements QuizService {
 
         return quizRepository
                 .findById(quizId)
+                .filter(quiz ->
+                        quiz.getIsActive().equals(true)
+                                && !quiz.getStatus().equals(QuizStatus.DRAFT)
+                                && !quiz.getFlagged())
                 .map(quizMapper::toQuizResponse)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
                         "Quiz not found"));
@@ -89,10 +97,14 @@ public class QuizServiceImpl implements QuizService {
     @Override
     public List<QuizResponse> getAllQuiz(Boolean active) {
         return quizRepository.findAll().stream()
-                .filter(quiz -> quiz.getIsActive().equals(active))
+                .filter(quiz ->
+                        quiz.getIsActive().equals(true)
+                                && !quiz.getStatus().equals(QuizStatus.DRAFT)
+                                && !quiz.getFlagged())
                 .map(quizMapper::toQuizResponse)
                 .toList();
     }
+
 
     @Override
     public QuizResponse updateQuiz(String QuizId, QuizUpdateRequest quizUpdateRequest, Jwt accessToken) {
@@ -143,7 +155,12 @@ public class QuizServiceImpl implements QuizService {
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found")
         );
 
-        return quizRepository.findByUserId(user.getId()).stream()
+        return quizRepository.findByUserId(user.getId())
+                .stream()
+                .filter(quiz ->
+                        quiz.getIsActive().equals(true)
+                                && !quiz.getStatus().equals(QuizStatus.DRAFT)
+                                && !quiz.getFlagged())
                 .map(quizMapper::toQuizResponse).toList();
     }
 
@@ -286,6 +303,10 @@ public class QuizServiceImpl implements QuizService {
 
         Quiz newQuiz = cloneQuiz(userId, quizId);
 
+        newQuiz = quizRepository.save(newQuiz);
+
+        cloneQuestionsAndOptions(newQuiz, quizId);
+
         if (folkQuizRequest != null) {
             if (folkQuizRequest.title() != null) newQuiz.setTitle(folkQuizRequest.title());
             if (folkQuizRequest.description() != null) newQuiz.setDescription(folkQuizRequest.description());
@@ -301,17 +322,16 @@ public class QuizServiceImpl implements QuizService {
         return quizMapper.toQuizResponse(newQuiz);
     }
 
-    private Quiz cloneQuiz(String userId, String quizId) {
 
+    private Quiz cloneQuiz(String userId, String quizId) {
         User currentUser = userRepository.findByIdAndIsDeletedFalse(userId)
-                .orElseThrow(
-                        () -> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                                "User ID not found")
-                );
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User ID not found"));
 
         Quiz originalQuiz = quizRepository.findById(quizId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                        "Quiz ID not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Quiz ID not found"));
+
+        // 🔹 Count existing forks
+        int nextVersion = quizRepository.countByParentQuizId(originalQuiz.getId()) + 1;
 
         Quiz newQuiz = new Quiz();
         newQuiz.setTitle(originalQuiz.getTitle());
@@ -323,15 +343,22 @@ public class QuizServiceImpl implements QuizService {
         newQuiz.setStatus(originalQuiz.getStatus());
         newQuiz.setIsActive(true);
         newQuiz.setFlagged(false);
-        newQuiz.setVersionNumber(1);
+        newQuiz.setVersionNumber(nextVersion);
         newQuiz.setParentQuiz(originalQuiz);
         newQuiz.setUser(currentUser);
         newQuiz.setCreatedAt(LocalDateTime.now());
         newQuiz.setUpdatedAt(LocalDateTime.now());
+        return newQuiz;
+    }
+
+
+    private void cloneQuestionsAndOptions(Quiz savedQuiz, String originalQuizId) {
+        Quiz originalQuiz = quizRepository.findById(originalQuizId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Original quiz not found"));
 
         for (Question originalQuestion : originalQuiz.getQuestions()) {
             Question newQuestion = new Question();
-            newQuestion.setQuiz(newQuiz);
+            newQuestion.setQuiz(savedQuiz);
             newQuestion.setText(originalQuestion.getText());
             newQuestion.setType(originalQuestion.getType());
             newQuestion.setQuestionOrder(originalQuestion.getQuestionOrder());
@@ -340,6 +367,7 @@ public class QuizServiceImpl implements QuizService {
             newQuestion.setImageUrl(originalQuestion.getImageUrl());
             newQuestion.setCreatedAt(new Timestamp(System.currentTimeMillis()));
             newQuestion.setUpdatedAt(new Timestamp(System.currentTimeMillis()));
+
             questionRepository.save(newQuestion);
 
             for (Option originalOption : originalQuestion.getOptions()) {
@@ -351,8 +379,74 @@ public class QuizServiceImpl implements QuizService {
                 newOption.setCreatedAt(new Timestamp(System.currentTimeMillis()));
                 optionRepository.save(newOption);
             }
-
         }
-        return newQuiz;
     }
+
+
+    @Override
+    public CreateFeedbackResponse giveFeedback(CreateFeedbackRequest createFeedbackRequest, String quizId, Jwt accessToken) {
+        String userId = accessToken.getSubject();
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        "User ID not found"));
+
+        Quiz quiz = quizRepository.findById(quizId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        "Quiz ID not found"));
+
+        QuizFeedback feedback = new QuizFeedback();
+        feedback.setSatisfactionLevel(createFeedbackRequest.satisfactionLevel());
+        feedback.setText(createFeedbackRequest.text());
+        feedback.setUser(user);
+        feedback.setQuiz(quiz);
+        feedback.setCreatedAt(LocalDateTime.now());
+
+        quizFeedbackRepository.save(feedback);
+
+        return CreateFeedbackResponse
+                .builder()
+                .feedbackId(feedback.getId())
+                .quizId(feedback.getQuiz().getId())
+                .userId(feedback.getUser().getId())
+                .status("success")
+                .message("Feedback submitted successfully.")
+                .satisfactionLevel(feedback.getSatisfactionLevel())
+                .build();
+    }
+
+    @Override
+    public List<QuizFeedbackResponse> getAllFeedbacks() {
+        return quizFeedbackRepository.findAll()
+                .stream().map(quiz -> QuizFeedbackResponse
+                        .builder()
+                        .feedbackId(quiz.getId())
+                        .quizId(quiz.getQuiz().getId())
+                        .userId(quiz.getUser().getId())
+                        .satisfactionLevel(quiz.getSatisfactionLevel())
+                        .createdAt(quiz.getCreatedAt())
+                        .text(quiz.getText())
+                        .build())
+                .toList();
+    }
+
+    @Override
+    public List<QuizFeedbackResponse> getCurrentUserQuizFeedbacks(Jwt accessToken) {
+        String userId = accessToken.getSubject();
+
+        return quizFeedbackRepository.findAll()
+                .stream()
+                .filter(quiz -> quiz.getUser().getId().equals(userId))
+                .map(quiz -> QuizFeedbackResponse
+                        .builder()
+                        .feedbackId(quiz.getId())
+                        .quizId(quiz.getQuiz().getId())
+                        .userId(quiz.getUser().getId())
+                        .satisfactionLevel(quiz.getSatisfactionLevel())
+                        .createdAt(quiz.getCreatedAt())
+                        .text(quiz.getText())
+                        .build())
+                .toList();
+    }
+
 }

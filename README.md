@@ -55,6 +55,12 @@ When prompted, use the organization name `Org1` for development and testing.
 * **\[GET]** `/api/v1/quizzes` — Get all quizzes (public)
 * **\[POST]** `/api/v1/quizzes` — Create a new quiz
 * **\[GET]** `/api/v1/quizzes/users/me` — Get quizzes created by the authenticated user
+* **\[POST]** `/api/v1/quizzes/admin/{quizId}/suspends` — Suspend quiz which is ...
+* **\[POST]** `/api/v1/quizzes/{quizId}/favorites` — Add quiz to favorite
+* **\[DELETE]** `/api/v1/quizzes/{quizId}/favorite` — Remove from favorite
+* **\[GET]** `/api/v1/quizzes/favorite` — Get quizzes that have added as favorite (admin)
+* **\[GET]** `/api/v1/quizzes/favorite/me` — Get quizzes that have added as favorite (current-user)
+* **\[POST]** `/api/v1/quizzes/{quizId}/folk` — Folk an existing quiz
 
 ---
 
