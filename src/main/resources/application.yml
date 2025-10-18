@@ -19,7 +19,7 @@ app:
 
 openai:
   api:
-    key: ${OPENAI_API_KEY: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}
+    key: ${OPENAI_API_KEY}
     model: gpt-4.1-mini
     temperature: 0.7
     max-tokens: 2000
