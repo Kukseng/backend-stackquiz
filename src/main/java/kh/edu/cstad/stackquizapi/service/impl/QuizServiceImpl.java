@@ -15,14 +15,12 @@ import kh.edu.cstad.stackquizapi.mapper.QuizMapper;
 import kh.edu.cstad.stackquizapi.repository.*;
 import kh.edu.cstad.stackquizapi.service.QuizService;
 import kh.edu.cstad.stackquizapi.util.QuizStatus;
-import kh.edu.cstad.stackquizapi.util.VisibilityType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.sql.Timestamp;
@@ -88,8 +86,7 @@ public class QuizServiceImpl implements QuizService {
                 .filter(quiz ->
                         quiz.getIsActive().equals(true)
                                 && !quiz.getStatus().equals(QuizStatus.DRAFT)
-                                && !quiz.getFlagged()
-                                && !quiz.getVisibility().equals(VisibilityType.PRIVATE))
+                                && !quiz.getFlagged())
                 .map(quizMapper::toQuizResponse)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
                         "Quiz not found"));
@@ -102,8 +99,7 @@ public class QuizServiceImpl implements QuizService {
                 .filter(quiz ->
                         quiz.getIsActive().equals(true)
                                 && !quiz.getStatus().equals(QuizStatus.DRAFT)
-                                && !quiz.getFlagged()
-                                && !quiz.getVisibility().equals(VisibilityType.PRIVATE))
+                                && !quiz.getFlagged())
                 .map(quizMapper::toQuizResponse)
                 .toList();
     }
@@ -116,10 +112,6 @@ public class QuizServiceImpl implements QuizService {
 
         Quiz quiz = quizRepository.findById(QuizId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Quiz not found"));
-
-        User user = userRepository.findById(userId).orElseThrow(
-                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found")
-        );
 
         if (!quiz.getUser().getId().equals(userId)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN,
@@ -163,8 +155,7 @@ public class QuizServiceImpl implements QuizService {
                 .filter(quiz ->
                         quiz.getIsActive().equals(true)
                                 && !quiz.getStatus().equals(QuizStatus.DRAFT)
-                                && !quiz.getFlagged()
-                                && !quiz.getVisibility().equals(VisibilityType.PRIVATE))
+                                && !quiz.getFlagged())
                 .map(quizMapper::toQuizResponse).toList();
     }
 
@@ -184,7 +175,7 @@ public class QuizServiceImpl implements QuizService {
         quiz.setFlagged(true);
         quizRepository.save(quiz);
 
-        QuizSuspensionResponse response = new QuizSuspensionResponse(
+        return new QuizSuspensionResponse(
                 "success",
                 "suspend_quiz",
                 new QuizSuspensionResponse.QuizInfo(
@@ -207,8 +198,6 @@ public class QuizServiceImpl implements QuizService {
                 ),
                 "Quiz '" + quiz.getTitle() + "' has been suspended successfully and the creator has been notified."
         );
-
-        return response;
     }
 
     @Override
