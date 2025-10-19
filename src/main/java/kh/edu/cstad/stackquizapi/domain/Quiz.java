@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import kh.edu.cstad.stackquizapi.util.QuizDifficultyType;
 import kh.edu.cstad.stackquizapi.util.QuizStatus;
 import kh.edu.cstad.stackquizapi.util.TimeLimitRangeInSecond;
+import kh.edu.cstad.stackquizapi.util.VisibilityType;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -36,8 +37,9 @@ public class Quiz {
     @Column(length = 500)
     private String thumbnailUrl;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private String visibility;
+    private VisibilityType visibility;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

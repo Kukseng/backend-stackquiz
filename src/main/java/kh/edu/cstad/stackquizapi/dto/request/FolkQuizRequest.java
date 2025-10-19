@@ -2,6 +2,7 @@ package kh.edu.cstad.stackquizapi.dto.request;
 
 import kh.edu.cstad.stackquizapi.util.QuizDifficultyType;
 import kh.edu.cstad.stackquizapi.util.TimeLimitRangeInSecond;
+import kh.edu.cstad.stackquizapi.util.VisibilityType;
 
 public record FolkQuizRequest(
 
@@ -11,7 +12,7 @@ public record FolkQuizRequest(
 
         String thumbnailUrl,
 
-        String visibility,
+        VisibilityType visibility,
 
         TimeLimitRangeInSecond questionTimeLimit,
 

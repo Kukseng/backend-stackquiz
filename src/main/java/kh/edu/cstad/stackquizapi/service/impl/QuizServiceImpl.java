@@ -15,6 +15,7 @@ import kh.edu.cstad.stackquizapi.mapper.QuizMapper;
 import kh.edu.cstad.stackquizapi.repository.*;
 import kh.edu.cstad.stackquizapi.service.QuizService;
 import kh.edu.cstad.stackquizapi.util.QuizStatus;
+import kh.edu.cstad.stackquizapi.util.VisibilityType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -44,7 +45,7 @@ public class QuizServiceImpl implements QuizService {
     private final QuizFeedbackRepository quizFeedbackRepository;
 
     @Override
-    public QuizResponse createQuiz(CreateQuizRequest createQuizRequest, MultipartFile file, Jwt accessToken) {
+    public QuizResponse createQuiz(CreateQuizRequest createQuizRequest, Jwt accessToken) {
 
         String userId = accessToken.getSubject();
         log.info("User ID: {}", userId);
@@ -87,7 +88,8 @@ public class QuizServiceImpl implements QuizService {
                 .filter(quiz ->
                         quiz.getIsActive().equals(true)
                                 && !quiz.getStatus().equals(QuizStatus.DRAFT)
-                                && !quiz.getFlagged())
+                                && !quiz.getFlagged()
+                                && !quiz.getVisibility().equals(VisibilityType.PRIVATE))
                 .map(quizMapper::toQuizResponse)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
                         "Quiz not found"));
@@ -100,7 +102,8 @@ public class QuizServiceImpl implements QuizService {
                 .filter(quiz ->
                         quiz.getIsActive().equals(true)
                                 && !quiz.getStatus().equals(QuizStatus.DRAFT)
-                                && !quiz.getFlagged())
+                                && !quiz.getFlagged()
+                                && !quiz.getVisibility().equals(VisibilityType.PRIVATE))
                 .map(quizMapper::toQuizResponse)
                 .toList();
     }
@@ -160,7 +163,8 @@ public class QuizServiceImpl implements QuizService {
                 .filter(quiz ->
                         quiz.getIsActive().equals(true)
                                 && !quiz.getStatus().equals(QuizStatus.DRAFT)
-                                && !quiz.getFlagged())
+                                && !quiz.getFlagged()
+                                && !quiz.getVisibility().equals(VisibilityType.PRIVATE))
                 .map(quizMapper::toQuizResponse).toList();
     }
 
@@ -295,7 +299,6 @@ public class QuizServiceImpl implements QuizService {
                 .toList();
 
     }
-
 
     @Override
     public QuizResponse folkQuiz(Jwt accessToken, String quizId, FolkQuizRequest folkQuizRequest) {

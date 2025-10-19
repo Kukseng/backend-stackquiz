@@ -17,7 +17,7 @@ import java.util.List;
 
 public interface QuizService {
 
-    QuizResponse createQuiz(CreateQuizRequest createQuizRequest, MultipartFile file, Jwt jwt);
+    QuizResponse createQuiz(CreateQuizRequest createQuizRequest, Jwt jwt);
 
     QuizResponse getQuizById(String quizId);
 

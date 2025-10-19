@@ -5,34 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="62b7a751-e48e-48eb-9372-434f48b34517" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/src/main/java/kh/edu/cstad/stackquizapi/domain/QuizFeedback.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/kh/edu/cstad/stackquizapi/dto/request/CreateFeedbackRequest.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/kh/edu/cstad/stackquizapi/dto/response/CreateFeedbackResponse.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/kh/edu/cstad/stackquizapi/dto/response/QuizFeedbackResponse.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/kh/edu/cstad/stackquizapi/repository/QuizFeedbackRepository.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/kh/edu/cstad/stackquizapi/util/SatisfactionLevel.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gradle/8.14.3/executionHistory/executionHistory.bin" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/8.14.3/executionHistory/executionHistory.bin" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gradle/8.14.3/executionHistory/executionHistory.lock" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/8.14.3/executionHistory/executionHistory.lock" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gradle/8.14.3/fileHashes/fileHashes.bin" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/8.14.3/fileHashes/fileHashes.bin" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gradle/8.14.3/fileHashes/fileHashes.lock" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/8.14.3/fileHashes/fileHashes.lock" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gradle/8.14.3/fileHashes/resourceHashesCache.bin" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/8.14.3/fileHashes/resourceHashesCache.bin" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gradle/buildOutputCleanup/buildOutputCleanup.lock" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/buildOutputCleanup/buildOutputCleanup.lock" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gradle/file-system.probe" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/file-system.probe" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/dataSources/87ea995a-0c19-4660-af77-8cb595c78c9b.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dataSources/87ea995a-0c19-4660-af77-8cb595c78c9b.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/dataSources/87ea995a-0c19-4660-af77-8cb595c78c9b/storage_v2/_src_/database/stackquiz-db.bssdZQ/schema/public.abK9xQ.meta" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dataSources/87ea995a-0c19-4660-af77-8cb595c78c9b/storage_v2/_src_/database/stackquiz-db.bssdZQ/schema/public.abK9xQ.meta" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/kh/edu/cstad/stackquizapi/controller/QuizController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kh/edu/cstad/stackquizapi/controller/QuizController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/kh/edu/cstad/stackquizapi/controller/UserController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kh/edu/cstad/stackquizapi/controller/UserController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/kh/edu/cstad/stackquizapi/domain/Quiz.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kh/edu/cstad/stackquizapi/domain/Quiz.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/kh/edu/cstad/stackquizapi/domain/QuizSession.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kh/edu/cstad/stackquizapi/domain/QuizSession.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/kh/edu/cstad/stackquizapi/domain/User.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kh/edu/cstad/stackquizapi/domain/User.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/kh/edu/cstad/stackquizapi/repository/QuizRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kh/edu/cstad/stackquizapi/repository/QuizRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/kh/edu/cstad/stackquizapi/security/KeycloakSecurityConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kh/edu/cstad/stackquizapi/security/KeycloakSecurityConfig.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/kh/edu/cstad/stackquizapi/service/QuizService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kh/edu/cstad/stackquizapi/service/QuizService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/kh/edu/cstad/stackquizapi/service/QuizSessionService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kh/edu/cstad/stackquizapi/service/QuizSessionService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/kh/edu/cstad/stackquizapi/service/impl/QuizServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kh/edu/cstad/stackquizapi/service/impl/QuizServiceImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/kh/edu/cstad/stackquizapi/service/impl/QuizSessionServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kh/edu/cstad/stackquizapi/service/impl/QuizSessionServiceImpl.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -81,38 +54,38 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;Gradle.Build backend-stackquiz-fixed.executor&quot;: &quot;Run&quot;,
-    &quot;Gradle.Build backend-stackquiz.executor&quot;: &quot;Run&quot;,
-    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
-    &quot;RequestMappingsPanelOrder0&quot;: &quot;0&quot;,
-    &quot;RequestMappingsPanelOrder1&quot;: &quot;1&quot;,
-    &quot;RequestMappingsPanelWidth0&quot;: &quot;75&quot;,
-    &quot;RequestMappingsPanelWidth1&quot;: &quot;75&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;Spring Boot.StackquizApiApplication.executor&quot;: &quot;Run&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
-    &quot;junie.onboarding.icon.badge.shown&quot;: &quot;true&quot;,
-    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;/home/aintantony/ISTAD/FINAL_PROJECT/StackQuiz/latest-latest-latest/backend-stackquiz&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.lookFeel&quot;,
-    &quot;to.speed.mode.migration.done&quot;: &quot;true&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Gradle.Build backend-stackquiz-fixed.executor": "Run",
+    "Gradle.Build backend-stackquiz.executor": "Run",
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RequestMappingsPanelOrder0": "0",
+    "RequestMappingsPanelOrder1": "1",
+    "RequestMappingsPanelWidth0": "75",
+    "RequestMappingsPanelWidth1": "75",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "Spring Boot.StackquizApiApplication.executor": "Run",
+    "git-widget-placeholder": "master",
+    "junie.onboarding.icon.badge.shown": "true",
+    "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "/home/aintantony/ISTAD/FINAL_PROJECT/StackQuiz/this-come-from-merge-latest-sen/backend-stackquiz",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "settings.editor.selected.configurable": "preferences.lookFeel",
+    "to.speed.mode.migration.done": "true",
+    "vue.rearranger.settings.migration": "true"
   },
-  &quot;keyToStringList&quot;: {
-    &quot;DatabaseDriversLRU&quot;: [
-      &quot;postgresql&quot;
+  "keyToStringList": {
+    "DatabaseDriversLRU": [
+      "postgresql"
     ]
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$" />
@@ -161,6 +134,7 @@
       <workItem from="1760757536646" duration="1285000" />
       <workItem from="1760779188827" duration="264000" />
       <workItem from="1760779527226" duration="10516000" />
+      <workItem from="1760854320612" duration="621000" />
     </task>
     <servers />
   </component>

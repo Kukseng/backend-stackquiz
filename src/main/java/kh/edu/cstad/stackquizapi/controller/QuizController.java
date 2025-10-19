@@ -36,9 +36,8 @@ public class QuizController {
     @PostMapping
     public QuizResponse createQuiz(
             @Valid @RequestBody CreateQuizRequest createQuizRequest,
-            @RequestParam("file") MultipartFile file,
             @AuthenticationPrincipal Jwt accessToken) {
-        return quizService.createQuiz(createQuizRequest, file, accessToken);
+        return quizService.createQuiz(createQuizRequest, accessToken);
     }
 
     @Operation(summary = "Update an existing quiz", security = {@SecurityRequirement(name = "bearerAuth")})
