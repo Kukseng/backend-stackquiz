@@ -35,7 +35,7 @@ public class QuestionController {
 
     @Operation(summary = "Create new question (users)",
             security = {@SecurityRequirement(name = "bearerAuth")})
-    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping
     public ResponseEntity<QuestionResponse> createQuestion(@Valid @RequestBody CreateQuestionRequest request) {
 
         QuestionResponse response = questionService.createNewQuestion(request);

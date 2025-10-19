@@ -12,8 +12,6 @@ public record CreateQuestionRequest(
         @NotNull(message = "Question type is required")
         QuestionType type,
 
-        String imageUrl,
-
         @NotBlank(message = "Quiz ID is required")
         String quizId
 
