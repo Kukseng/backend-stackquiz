@@ -1,14 +1,11 @@
 FROM eclipse-temurin:24-jdk-alpine
 WORKDIR /app
 
-# Create directory for media files
-RUN mkdir -p /app/media && chmod 775 /app/media
-
-# Create non-root user for security (Alpine uses addgroup/adduser)
+# Create non-root user
 RUN addgroup -S appuser && adduser -S appuser -G appuser
 
-# Change ownership of the app directory (including /app/media) to appuser
-RUN chown -R appuser:appuser /app
+# Create media directory and give ownership to appuser
+RUN mkdir -p /app/media && chown -R appuser:appuser /app && chmod 775 /app/media
 
 # Switch to non-root user
 USER appuser
