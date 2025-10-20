@@ -4,17 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="62b7a751-e48e-48eb-9372-434f48b34517" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.gradle/8.14.3/executionHistory/executionHistory.lock" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/8.14.3/executionHistory/executionHistory.lock" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gradle/8.14.3/fileHashes/fileHashes.lock" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/8.14.3/fileHashes/fileHashes.lock" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gradle/buildOutputCleanup/buildOutputCleanup.lock" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/buildOutputCleanup/buildOutputCleanup.lock" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gradle/file-system.probe" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/file-system.probe" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/kh/edu/cstad/stackquizapi/controller/QuestionController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kh/edu/cstad/stackquizapi/controller/QuestionController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/kh/edu/cstad/stackquizapi/dto/request/CreateQuestionRequest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kh/edu/cstad/stackquizapi/dto/request/CreateQuestionRequest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/kh/edu/cstad/stackquizapi/security/KeycloakSecurityConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kh/edu/cstad/stackquizapi/security/KeycloakSecurityConfig.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/kh/edu/cstad/stackquizapi/service/impl/QuestionServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kh/edu/cstad/stackquizapi/service/impl/QuestionServiceImpl.java" afterDir="false" />
-    </list>
+    <list default="true" id="62b7a751-e48e-48eb-9372-434f48b34517" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -144,7 +134,7 @@
       <workItem from="1760779527226" duration="10516000" />
       <workItem from="1760854320612" duration="2171000" />
       <workItem from="1760862504081" duration="2559000" />
-      <workItem from="1760869136007" duration="1196000" />
+      <workItem from="1760869136007" duration="1274000" />
     </task>
     <servers />
   </component>

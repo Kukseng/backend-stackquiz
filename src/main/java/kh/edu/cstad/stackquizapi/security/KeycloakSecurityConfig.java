@@ -140,9 +140,8 @@ public class KeycloakSecurityConfig {
 
                         // User endpoints
                         .requestMatchers(HttpMethod.GET, "/api/v1/users/me").hasAnyRole("ADMIN", "ORGANIZER")
-                        .requestMatchers(HttpMethod.PUT, "/api/v1/users/me").hasAnyRole("ADMIN", "ORGANIZER")
                         .requestMatchers(HttpMethod.DELETE, "/api/v1/users/me").hasAnyRole("ADMIN", "ORGANIZER")
-                        .requestMatchers(HttpMethod.PATCH, "/api/v1/users").hasAnyRole("ADMIN", "ORGANIZER")
+                        .requestMatchers(HttpMethod.PATCH, "/api/v1/users/me").hasAnyRole("ADMIN", "ORGANIZER")
                         .requestMatchers(HttpMethod.POST, "/api/v1/users").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/v1/users").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/v1/users/**").hasRole("ADMIN")
