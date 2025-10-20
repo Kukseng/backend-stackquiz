@@ -1,5 +1,5 @@
 media:
-  server-path: app/media/
+  server-path: /app/media/
   base-uri: https://stackquiz-api.stackquiz.me/media
 
 keycloak:
