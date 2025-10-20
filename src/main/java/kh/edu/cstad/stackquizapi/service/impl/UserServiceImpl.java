@@ -3,11 +3,9 @@ package kh.edu.cstad.stackquizapi.service.impl;
 import kh.edu.cstad.stackquizapi.domain.User;
 import kh.edu.cstad.stackquizapi.dto.request.CreateUserRequest;
 import kh.edu.cstad.stackquizapi.dto.request.UpdateUserRequest;
-import kh.edu.cstad.stackquizapi.dto.response.MediaResponse;
 import kh.edu.cstad.stackquizapi.dto.response.UserResponse;
 import kh.edu.cstad.stackquizapi.mapper.UserMapper;
 import kh.edu.cstad.stackquizapi.repository.UserRepository;
-import kh.edu.cstad.stackquizapi.service.MediaService;
 import kh.edu.cstad.stackquizapi.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,7 +13,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
@@ -28,7 +25,6 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final UserMapper userMapper;
-    private final MediaService mediaService;
 
     @Override
     public UserResponse createUser(CreateUserRequest createUserRequest) {
