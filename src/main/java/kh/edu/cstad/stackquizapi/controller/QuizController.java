@@ -20,7 +20,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -169,6 +168,15 @@ public class QuizController {
     @GetMapping("/feedback/me")
     public List<QuizFeedbackResponse> getCurrentUserQuizFeedbacks(@AuthenticationPrincipal Jwt accessToken) {
         return quizService.getCurrentUserQuizFeedbacks(accessToken);
+    }
+
+    @Operation(
+            summary = "Get drafted quizzes (current-user)",
+            security = {@SecurityRequirement(name = "bearerAuth")}
+    )
+    @GetMapping("/draft")
+    public List<QuizResponse> getDraftedQuizzes(@AuthenticationPrincipal Jwt accessToken) {
+        return quizService.getDraftedQuizzes(accessToken);
     }
 
 }

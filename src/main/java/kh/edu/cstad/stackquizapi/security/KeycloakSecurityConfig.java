@@ -119,6 +119,7 @@ public class KeycloakSecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/v1/quizzes").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/quizzes/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/quizzes/me").hasRole("ORGANIZER")
+                        .requestMatchers(HttpMethod.GET, "/api/v1/quizzes/draft").hasRole("ORGANIZER")
                         .requestMatchers(HttpMethod.GET, "/api/v1/quizzes/favorite/me").hasRole("ORGANIZER")
                         .requestMatchers(HttpMethod.GET, "/api/v1/quizzes/feedback/me").hasRole("ORGANIZER")
                         .requestMatchers(HttpMethod.POST, "api/vq/quizzes/{quizId}/favorite").hasRole("ORGANIZER")

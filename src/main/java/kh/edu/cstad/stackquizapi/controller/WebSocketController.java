@@ -63,9 +63,6 @@ public class WebSocketController {
         participantService.joinSession(request);
     }
 
-
-
-
     // Participant submits an answer
     @MessageMapping("/session/{sessionId}/answer")
     public void handleAnswerSubmission(

@@ -8,6 +8,7 @@ import kh.edu.cstad.stackquizapi.dto.request.QuizUpdateRequest;
 import kh.edu.cstad.stackquizapi.dto.request.SuspendQuizRequest;
 import kh.edu.cstad.stackquizapi.dto.response.FavoriteQuizResponse;
 import kh.edu.cstad.stackquizapi.dto.response.CreateFeedbackResponse;
+import kh.edu.cstad.stackquizapi.dto.response.QuestionResponse;
 import kh.edu.cstad.stackquizapi.dto.response.QuizFeedbackResponse;
 import kh.edu.cstad.stackquizapi.dto.response.QuizResponse;
 import kh.edu.cstad.stackquizapi.dto.response.QuizSuspensionResponse;
@@ -438,6 +439,21 @@ public class QuizServiceImpl implements QuizService {
                         .createdAt(quiz.getCreatedAt())
                         .text(quiz.getText())
                         .build())
+                .toList();
+    }
+
+    @Override
+    public List<QuizResponse> getDraftedQuizzes(Jwt accessToken) {
+        String userId = accessToken.getSubject();
+
+        return quizRepository.findAll()
+                .stream()
+                .filter(quiz ->
+                        quiz.getUser().getId().equals(userId)
+                                && quiz.getIsActive().equals(true)
+                                && quiz.getStatus().equals(QuizStatus.DRAFT)
+                                && !quiz.getFlagged())
+                .map(quizMapper::toQuizResponse)
                 .toList();
     }
 

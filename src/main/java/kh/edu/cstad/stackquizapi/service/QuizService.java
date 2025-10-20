@@ -7,6 +7,7 @@ import kh.edu.cstad.stackquizapi.dto.request.QuizUpdateRequest;
 import kh.edu.cstad.stackquizapi.dto.request.SuspendQuizRequest;
 import kh.edu.cstad.stackquizapi.dto.response.FavoriteQuizResponse;
 import kh.edu.cstad.stackquizapi.dto.response.CreateFeedbackResponse;
+import kh.edu.cstad.stackquizapi.dto.response.QuestionResponse;
 import kh.edu.cstad.stackquizapi.dto.response.QuizFeedbackResponse;
 import kh.edu.cstad.stackquizapi.dto.response.QuizResponse;
 import kh.edu.cstad.stackquizapi.dto.response.QuizSuspensionResponse;
@@ -46,6 +47,8 @@ public interface QuizService {
     List<QuizFeedbackResponse> getAllFeedbacks();
 
     List<QuizFeedbackResponse> getCurrentUserQuizFeedbacks(Jwt accessToken);
+
+    List<QuizResponse> getDraftedQuizzes(Jwt accessToken);
 
 }
 
