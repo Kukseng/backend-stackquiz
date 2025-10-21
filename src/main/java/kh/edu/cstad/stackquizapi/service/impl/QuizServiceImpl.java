@@ -14,6 +14,7 @@ import kh.edu.cstad.stackquizapi.dto.response.QuizResponse;
 import kh.edu.cstad.stackquizapi.dto.response.QuizSuspensionResponse;
 import kh.edu.cstad.stackquizapi.mapper.QuizMapper;
 import kh.edu.cstad.stackquizapi.repository.*;
+import kh.edu.cstad.stackquizapi.service.QuizAnalyticsService;
 import kh.edu.cstad.stackquizapi.service.QuizService;
 import kh.edu.cstad.stackquizapi.util.QuizStatus;
 import lombok.RequiredArgsConstructor;
@@ -34,6 +35,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class QuizServiceImpl implements QuizService {
 
+    private final QuizAnalyticsService  quizAnalyticsService;
     private final QuizRepository quizRepository;
     private final QuizMapper quizMapper;
     private final CategoryRepository categoryRepository;
@@ -97,13 +99,38 @@ public class QuizServiceImpl implements QuizService {
     @Override
     public List<QuizResponse> getAllQuiz(Boolean active) {
         return quizRepository.findAll().stream()
-                .filter(quiz ->
-                        quiz.getIsActive().equals(true)
-                                && !quiz.getStatus().equals(QuizStatus.DRAFT)
-                                && !quiz.getFlagged())
-                .map(quizMapper::toQuizResponse)
+                .filter(quiz -> quiz.getIsActive().equals(active))
+                .map(quiz -> {
+                    // Map quiz to response
+                    QuizResponse baseResponse = quizMapper.toQuizResponse(quiz);
+
+                    // Get analytics for this quiz
+                    var analytics = quizAnalyticsService.getQuizAnalytics(quiz.getId());
+
+                    // Create new response with analytics data
+                    return new QuizResponse(
+                            baseResponse.id(),
+                            baseResponse.title(),
+                            baseResponse.description(),
+                            baseResponse.thumbnailUrl(),
+                            baseResponse.categories(),
+                            baseResponse.visibility(),
+                            baseResponse.status(),
+                            baseResponse.questionTimeLimit(),
+                            baseResponse.createdAt(),
+                            baseResponse.difficulty(),
+                            baseResponse.updatedAt(),
+                            baseResponse.questions(),
+                            analytics.totalSessionsHosted(),
+                            analytics.totalParticipants(),
+                            analytics.participantsDisplay(),
+                            analytics.sessionsDisplay()
+                    );
+                })
                 .toList();
     }
+
+
 
 
     @Override
