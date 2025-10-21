@@ -17,6 +17,7 @@ import kh.edu.cstad.stackquizapi.mapper.ParticipantMapper;
 import kh.edu.cstad.stackquizapi.repository.*;
 import kh.edu.cstad.stackquizapi.service.LeaderboardService;
 import kh.edu.cstad.stackquizapi.service.ParticipantService;
+import kh.edu.cstad.stackquizapi.service.RealTimeRankingService;
 import kh.edu.cstad.stackquizapi.service.WebSocketService;
 import kh.edu.cstad.stackquizapi.util.QuizMode;
 import kh.edu.cstad.stackquizapi.util.Status;
@@ -50,8 +51,8 @@ public class ParticipantServiceImpl implements ParticipantService {
     private final WebSocketService webSocketService;
 
 
-    private final kh.edu.cstad.stackquizapi.service.impl.QuizSessionServiceImpl quizSessionServiceImpl;
-    private final kh.edu.cstad.stackquizapi.service.RealTimeRankingService realTimeRankingService;
+    private final QuizSessionServiceImpl quizSessionServiceImpl;
+    private final RealTimeRankingService realTimeRankingService;
 
     // --- Helper to broadcast leaderboard ---
     private void broadcastLeaderboardToSession(String sessionId) {
@@ -123,7 +124,7 @@ public class ParticipantServiceImpl implements ParticipantService {
 
         if (session.getStatus() == Status.IN_PROGRESS) {
             if (session.getMode() == QuizMode.SYNC) {
-
+                // ✅ FIX: In SYNC mode, send the current question only to this late joiner
                 if (session.getCurrentQuestion() != null && session.getCurrentQuestion() > 0) {
                     List<Question> questions = session.getQuiz().getQuestions().stream()
                             .sorted(Comparator.comparingInt(Question::getQuestionOrder)).toList();
@@ -141,16 +142,18 @@ public class ParticipantServiceImpl implements ParticipantService {
                                     "START_QUESTION"
                             );
 
-                            webSocketService.broadcastQuestion(session.getSessionCode(), qMsg);
+                            // ✅ FIX: Send only to this participant, not broadcast
+                            webSocketService.sendQuestionToParticipant(session.getSessionCode(), response.id(), qMsg);
+                            log.info("Sent current question {} to late joiner {} in SYNC session {}",
+                                    session.getCurrentQuestion(), response.nickname(), session.getSessionCode());
                         }
                     } else {
                         log.warn("Current question index {} out of bounds for session {}", questionIndex, session.getSessionCode());
                     }
                 }
             } else {
-
+                // ASYNC mode: send first question to late joiner
                 try {
-
                     quizSessionServiceImpl.sendNextQuestionToParticipant(response.id(), session.getSessionCode(), 1);
                     log.info("Sent first question to late joiner {} in async session {}", response.nickname(), session.getSessionCode());
                 } catch (Exception e) {
@@ -217,7 +220,7 @@ public class ParticipantServiceImpl implements ParticipantService {
 
         if (session.getStatus() == Status.IN_PROGRESS) {
             if (session.getMode() == QuizMode.SYNC) {
-
+                // ✅ FIX: In SYNC mode, send the current question only to this late joiner
                 if (session.getCurrentQuestion() != null && session.getCurrentQuestion() > 0) {
                     List<Question> questions = session.getQuiz().getQuestions().stream()
                             .sorted(Comparator.comparingInt(Question::getQuestionOrder)).toList();
@@ -235,16 +238,18 @@ public class ParticipantServiceImpl implements ParticipantService {
                                     "START_QUESTION"
                             );
 
-                            webSocketService.broadcastQuestion(session.getSessionCode(), qMsg);
+                            // ✅ FIX: Send only to this participant, not broadcast
+                            webSocketService.sendQuestionToParticipant(session.getSessionCode(), response.id(), qMsg);
+                            log.info("Sent current question {} to late joiner {} in SYNC session {}",
+                                    session.getCurrentQuestion(), response.nickname(), session.getSessionCode());
                         }
                     } else {
                         log.warn("Current question index {} out of bounds for session {}", questionIndex, session.getSessionCode());
                     }
                 }
             } else {
-
+                // ASYNC mode: send first question to late joiner
                 try {
-
                     quizSessionServiceImpl.sendNextQuestionToParticipant(response.id(), session.getSessionCode(), 1);
                     log.info("Sent first question to late joiner {} in async session {}", response.nickname(), session.getSessionCode());
                 } catch (Exception e) {
@@ -370,6 +375,13 @@ public class ParticipantServiceImpl implements ParticipantService {
                 pointsEarned
         );
 
+        // ✅ FIXED: Get correct option ID
+        String correctOptionId = question.getOptions().stream()
+                .filter(Option::getIsCorrected)
+                .findFirst()
+                .map(Option::getId)
+                .orElse(null);
+
         // Send answer feedback with ranking information
         realTimeRankingService.sendAnswerFeedback(
                 participant.getSession().getId(),
@@ -377,7 +389,9 @@ public class ParticipantServiceImpl implements ParticipantService {
                 question.getId(),
                 isCorrect,
                 pointsEarned,
-                Math.toIntExact(request.timeTaken())
+                Math.toIntExact(request.timeTaken()),
+                selectedAnswer.getId(),  // ✅ selectedOptionId
+                correctOptionId          // ✅ correctOptionId
         );
 
 

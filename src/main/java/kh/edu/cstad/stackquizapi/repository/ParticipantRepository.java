@@ -31,4 +31,12 @@ public interface ParticipantRepository extends JpaRepository<Participant, String
 
     @Query("SELECT p FROM Participant p WHERE p.session.id = :sessionId AND p.isActive = true ORDER BY p.totalScore DESC")
     List<Participant> findBySessionIdAndIsActiveTrueOrderByTotalScoreDesc(@Param("sessionId") String sessionId);
+
+    // Admin Dashboard Methods
+    Long countByIsActiveTrue();
+    @Query("SELECT COUNT(DISTINCT p.nickname) FROM Participant p")
+    Long countDistinctNickname();
+    Long countByJoinedAtAfter(java.time.LocalDateTime date);
+    Long countBySessionIdIn(List<String> sessionIds);
+    List<Participant> findBySessionIdIn(List<String> sessionIds);
 }

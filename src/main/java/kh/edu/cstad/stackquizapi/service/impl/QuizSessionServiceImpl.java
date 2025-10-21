@@ -12,6 +12,7 @@ import kh.edu.cstad.stackquizapi.mapper.ParticipantMapper;
 import kh.edu.cstad.stackquizapi.mapper.QuizSessionMapper;
 import kh.edu.cstad.stackquizapi.repository.*;
 import kh.edu.cstad.stackquizapi.service.LeaderboardService;
+import kh.edu.cstad.stackquizapi.service.QuizAnalyticsService;
 import kh.edu.cstad.stackquizapi.service.QuizSessionService;
 import kh.edu.cstad.stackquizapi.service.WebSocketService;
 import kh.edu.cstad.stackquizapi.util.QuizMode;
@@ -50,6 +51,7 @@ public class QuizSessionServiceImpl implements QuizSessionService, DisposableBea
     private final ParticipantMapper participantMapper;
     private final LeaderboardService leaderboardService;
     private final WebSocketService webSocketService;
+    private final QuizAnalyticsService quizAnalyticsService;
     private final AvatarRepository avatarRepository;
     private final RedisTemplate<String, String> redisTemplate;
 
@@ -90,9 +92,21 @@ public class QuizSessionServiceImpl implements QuizSessionService, DisposableBea
         quizSession.setStatus(Status.WAITING);
         quizSession.setSessionCode(generateUniqueSessionCode());
 
-        quizSession.setMode(request.mode() != null ? request.mode() : QuizMode.ASYNC);
+        // ✅ FIX: Only set mode if explicitly provided in request
+        // Mode will be set when starting the session via settings UI
+        if (request.mode() != null) {
+            quizSession.setMode(request.mode());
+            log.info("🎮 Creating session with explicit mode: {}", request.mode());
+        } else {
+            // Leave mode as null - will be set when starting session
+            quizSession.setMode(null);
+            log.info("🎮 Creating session without mode - will be set when starting");
+        }
 
         QuizSession savedSession = quizSessionRepository.save(quizSession);
+
+        // ✅ Track analytics: session created
+        quizAnalyticsService.recordSessionCreated(quiz.getId());
 
         cacheSessionQuestions(savedSession);
 
@@ -289,80 +303,103 @@ public class QuizSessionServiceImpl implements QuizSessionService, DisposableBea
         if (session.getStatus() != Status.WAITING)
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Session is not in waiting status.");
 
+        // ✅ FIX: Log current session mode and settings
+        log.info("🔍 Session {} current mode: {}, settings provided: {}",
+                sessionCode, session.getMode(), settings != null);
+        if (settings != null) {
+            log.info("🔍 Settings mode: {}", settings.getMode());
+        }
+
+        // ✅ FIX: Require mode to be set via settings if not already set
+        if (session.getMode() == null) {
+            if (settings == null || settings.getMode() == null) {
+                throw new ResponseStatusException(
+                        HttpStatus.BAD_REQUEST,
+                        "Session mode must be set. Please provide mode (SYNC or ASYNC) in settings."
+                );
+            }
+            log.info("✅ Setting initial mode for session {} to {}", sessionCode, settings.getMode());
+        }
 
         if (settings != null) {
             if (settings.getScheduledStartTime() != null) {
                 ZonedDateTime scheduledStart = settings.getScheduledStartTime();
                 ZonedDateTime now = ZonedDateTime.now();
-                
+
                 // Convert to server timezone for comparison and storage
                 ZonedDateTime scheduledStartInServerZone = scheduledStart.withZoneSameInstant(now.getZone());
-                
+
                 // ✅ FIX: Validate scheduled time with proper timezone handling
                 if (scheduledStartInServerZone.isBefore(now)) {
                     throw new ResponseStatusException(
-                        HttpStatus.BAD_REQUEST, 
-                        String.format("Scheduled start time cannot be in the past. Provided: %s, Current: %s", 
-                            scheduledStartInServerZone, now)
+                            HttpStatus.BAD_REQUEST,
+                            String.format("Scheduled start time cannot be in the past. Provided: %s, Current: %s",
+                                    scheduledStartInServerZone, now)
                     );
                 }
-                
+
                 if (scheduledStartInServerZone.isBefore(now.plusSeconds(10))) {
                     throw new ResponseStatusException(
-                        HttpStatus.BAD_REQUEST, 
-                        "Scheduled start time must be at least 10 seconds in the future"
+                            HttpStatus.BAD_REQUEST,
+                            "Scheduled start time must be at least 10 seconds in the future"
                     );
                 }
-                
+
                 // Store as LocalDateTime in server timezone
                 session.setScheduledStartTime(scheduledStartInServerZone.toLocalDateTime());
-                log.info("✅ Session {} scheduled to start at {} (current time: {})", 
-                    sessionCode, scheduledStartInServerZone, now);
+                log.info("✅ Session {} scheduled to start at {} (current time: {})",
+                        sessionCode, scheduledStartInServerZone, now);
             }
             if (settings.getScheduledEndTime() != null) {
                 ZonedDateTime scheduledEnd = settings.getScheduledEndTime();
                 ZonedDateTime now = ZonedDateTime.now();
-                
+
                 // Convert to server timezone for comparison and storage
                 ZonedDateTime scheduledEndInServerZone = scheduledEnd.withZoneSameInstant(now.getZone());
                 LocalDateTime scheduledStart = session.getScheduledStartTime();
-                
+
                 // ✅ FIX: Validate scheduled end time with proper timezone handling
                 if (scheduledEndInServerZone.isBefore(now)) {
                     throw new ResponseStatusException(
-                        HttpStatus.BAD_REQUEST, 
-                        String.format("Scheduled end time cannot be in the past. Provided: %s, Current: %s", 
-                            scheduledEndInServerZone, now)
+                            HttpStatus.BAD_REQUEST,
+                            String.format("Scheduled end time cannot be in the past. Provided: %s, Current: %s",
+                                    scheduledEndInServerZone, now)
                     );
                 }
-                
+
                 // Validate end time is after start time
                 if (scheduledStart != null && scheduledEndInServerZone.toLocalDateTime().isBefore(scheduledStart)) {
                     throw new ResponseStatusException(
-                        HttpStatus.BAD_REQUEST, 
-                        String.format("Scheduled end time (%s) must be after start time (%s)", 
-                            scheduledEndInServerZone.toLocalDateTime(), scheduledStart)
+                            HttpStatus.BAD_REQUEST,
+                            String.format("Scheduled end time (%s) must be after start time (%s)",
+                                    scheduledEndInServerZone.toLocalDateTime(), scheduledStart)
                     );
                 }
-                
+
                 // Ensure reasonable duration (at least 1 minute)
                 if (scheduledStart != null) {
                     long durationMinutes = java.time.Duration.between(scheduledStart, scheduledEndInServerZone.toLocalDateTime()).toMinutes();
                     if (durationMinutes < 1) {
                         throw new ResponseStatusException(
-                            HttpStatus.BAD_REQUEST, 
-                            "Session duration must be at least 1 minute"
+                                HttpStatus.BAD_REQUEST,
+                                "Session duration must be at least 1 minute"
                         );
                     }
                 }
-                
+
                 // Store as LocalDateTime in server timezone
                 session.setScheduledEndTime(scheduledEndInServerZone.toLocalDateTime());
-                log.info("✅ Session {} scheduled to end at {} (current time: {})", 
-                    sessionCode, scheduledEndInServerZone, now);
+                log.info("✅ Session {} scheduled to end at {} (current time: {})",
+                        sessionCode, scheduledEndInServerZone, now);
             }
             if (settings.getMode() != null) {
-                session.setMode(QuizMode.valueOf(settings.getMode()));
+                QuizMode newMode = QuizMode.valueOf(settings.getMode());
+                log.info("✅ Updating session {} mode from {} to {}",
+                        sessionCode, session.getMode(), newMode);
+                session.setMode(newMode);
+            } else {
+                log.warn("⚠️ Settings provided but mode is null for session {}. Current mode: {}",
+                        sessionCode, session.getMode());
             }
             if (settings.getMaxAttempts() != null) {
                 session.setMaxAttempts(settings.getMaxAttempts());
@@ -384,14 +421,17 @@ public class QuizSessionServiceImpl implements QuizSessionService, DisposableBea
             }
 
             quizSessionRepository.save(session);
+        } else {
+            log.warn("⚠️ No settings provided for session {}. Using existing mode: {}",
+                    sessionCode, session.getMode());
         }
 
         // ✅ FIXED: Check if we should start now or schedule for later
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime scheduledStart = session.getScheduledStartTime();
 
-        log.info("🕐 Session {} - Current time: {}, Scheduled start: {}", 
-            sessionCode, now, scheduledStart);
+        log.info("🕐 Session {} - Current time: {}, Scheduled start: {}",
+                sessionCode, now, scheduledStart);
 
         if (scheduledStart != null && scheduledStart.isAfter(now)) {
             // Schedule start for later
@@ -465,8 +505,8 @@ public class QuizSessionServiceImpl implements QuizSessionService, DisposableBea
             LocalDateTime now = LocalDateTime.now();
             LocalDateTime scheduledEnd = session.getScheduledEndTime();
 
-            log.info("🕐 Session {} - Current time: {}, Scheduled end: {}", 
-                session.getSessionCode(), now, scheduledEnd);
+            log.info("🕐 Session {} - Current time: {}, Scheduled end: {}",
+                    session.getSessionCode(), now, scheduledEnd);
 
             if (scheduledEnd.isAfter(now)) {
                 long delaySeconds = java.time.Duration.between(now, scheduledEnd).getSeconds();
@@ -492,8 +532,8 @@ public class QuizSessionServiceImpl implements QuizSessionService, DisposableBea
 
                 scheduler.schedule(() -> {
                     try {
-                        log.info("⏱️ Auto-ending session {} at scheduled time {}", 
-                            session.getSessionCode(), scheduledEnd);
+                        log.info("⏱️ Auto-ending session {} at scheduled time {}",
+                                session.getSessionCode(), scheduledEnd);
                         endSession(session.getSessionCode());
                     } catch (Exception e) {
                         log.error("❌ Error ending scheduled session {}", session.getSessionCode(), e);
@@ -503,27 +543,30 @@ public class QuizSessionServiceImpl implements QuizSessionService, DisposableBea
                 log.warn("⚠️ Scheduled end time {} is in the past, session will not auto-end", scheduledEnd);
             }
         } else {
-            log.info("ℹ️ Session {} has no scheduled end time - will run until manually ended", 
-                session.getSessionCode());
+            log.info("ℹ️ Session {} has no scheduled end time - will run until manually ended",
+                    session.getSessionCode());
         }
 
-        // ✅ FIX: Send first question to all participants regardless of mode
+        // ✅ Track analytics: participants joined
+        int participantCount = participantRepository.countBySessionIdAndIsActiveTrue(session.getId());
+        if (participantCount > 0 && session.getQuiz() != null) {
+            quizAnalyticsService.recordParticipantsJoined(session.getQuiz().getId(), participantCount);
+        }
+
+        // ✅ FIX: In SYNC mode, DON'T send first question automatically
+        // Host will click "Next Question" to start question 1
+        // In ASYNC mode, send first question to each participant
         scheduler.schedule(() -> {
             List<Participant> participants = participantRepository.findBySessionIdAndIsActiveTrue(session.getId());
             if (session.getMode() == QuizMode.SYNC) {
-                log.info("SYNC: Sending first question to {} participants in session {}", 
-                    participants.size(), session.getSessionCode());
-                // In SYNC mode, advance to question 1 and broadcast to all
-                session.setCurrentQuestion(1);
-                quizSessionRepository.save(session);
-                
-                // Broadcast the first question to all participants
-                for (Participant participant : participants) {
-                    sendNextQuestionToParticipant(participant.getId(), session.getSessionCode(), 1);
-                }
+                // ✅ FIX: In SYNC mode, wait for host to advance to question 1
+                // Don't auto-send first question - let host control when to start
+                log.info("SYNC: Session {} started. Waiting for host to advance to question 1. {} participants ready.",
+                        session.getSessionCode(), participants.size());
+                // Host will manually click "Next Question" to start question 1
             } else {
                 log.info("ASYNC: Sending first question to {} participants in session {}",
-                    participants.size(), session.getSessionCode());
+                        participants.size(), session.getSessionCode());
                 // In ASYNC mode, each participant gets their own question flow
                 for (Participant participant : participants) {
                     sendNextQuestionToParticipant(participant.getId(), session.getSessionCode(), 1);
@@ -571,23 +614,26 @@ public class QuizSessionServiceImpl implements QuizSessionService, DisposableBea
                 )
         );
 
-        // ✅ FIX: Send first question to all participants regardless of mode
+        // ✅ Track analytics: participants joined
+        int participantCount = participantRepository.countBySessionIdAndIsActiveTrue(session.getId());
+        if (participantCount > 0 && session.getQuiz() != null) {
+            quizAnalyticsService.recordParticipantsJoined(session.getQuiz().getId(), participantCount);
+        }
+
+        // ✅ FIX: In SYNC mode, DON'T send first question automatically
+        // Host will click "Next Question" to start question 1
+        // In ASYNC mode, send first question to each participant
         scheduler.schedule(() -> {
             List<Participant> participants = participantRepository.findBySessionIdAndIsActiveTrue(session.getId());
             if (session.getMode() == QuizMode.SYNC) {
-                log.info("SYNC: Sending first question to {} participants in session {}", 
-                    participants.size(), sessionCode);
-                // In SYNC mode, advance to question 1 and broadcast to all
-                session.setCurrentQuestion(1);
-                quizSessionRepository.save(session);
-                
-                // Broadcast the first question to all participants
-                for (Participant participant : participants) {
-                    sendNextQuestionToParticipant(participant.getId(), sessionCode, 1);
-                }
+                // ✅ FIX: In SYNC mode, wait for host to advance to question 1
+                // Don't auto-send first question - let host control when to start
+                log.info("SYNC: Session {} started. Waiting for host to advance to question 1. {} participants ready.",
+                        session.getSessionCode(), participants.size());
+                // Host will manually click "Next Question" to start question 1
             } else {
-                log.info("ASYNC: Sending first question to {} participants in session {}", 
-                    participants.size(), sessionCode);
+                log.info("ASYNC: Sending first question to {} participants in session {}",
+                        participants.size(), sessionCode);
                 // In ASYNC mode, each participant gets their own question flow
                 for (Participant participant : participants) {
                     sendNextQuestionToParticipant(participant.getId(), sessionCode, 1);
@@ -650,12 +696,12 @@ public class QuizSessionServiceImpl implements QuizSessionService, DisposableBea
      */
     private void handleQuestionTimeout(String participantId, String questionId, String sessionCode, int questionNumber) {
         try {
-            log.info("Time expired for participant {} on question {} in session {}", 
+            log.info("Time expired for participant {} on question {} in session {}",
                     participantId, questionNumber, sessionCode);
 
             // Check if participant already answered this question
             if (participantAnswerRepository.existsByParticipantIdAndQuestionId(participantId, questionId)) {
-                log.debug("Participant {} already answered question {} before timeout", 
+                log.debug("Participant {} already answered question {} before timeout",
                         participantId, questionId);
                 return;
             }
@@ -686,7 +732,7 @@ public class QuizSessionServiceImpl implements QuizSessionService, DisposableBea
             log.info("Sent TIME_UP notification to participant {} - they can still answer", participantId);
 
         } catch (Exception e) {
-            log.error("Error handling timeout for participant {} question {}: {}", 
+            log.error("Error handling timeout for participant {} question {}: {}",
                     participantId, questionId, e.getMessage(), e);
         }
     }
@@ -733,26 +779,26 @@ public class QuizSessionServiceImpl implements QuizSessionService, DisposableBea
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Option not found"));
 
         boolean isCorrect = Boolean.TRUE.equals(selectedOption.getIsCorrected());
-        
+
         // Calculate time taken for this specific participant
         int timeTaken = calculateParticipantTimeTaken(participantId, currentQuestion.getId());
         int questionTimeLimit = currentQuestion.getTimeLimit() != null ? currentQuestion.getTimeLimit() : defaultTimeLimit;
-        
+
         // ✅ FIX: Award base points for correct answer, bonus for speed
         int points = 0;
         int bonusPoints = 0;
-        
+
         if (isCorrect) {
             // Always award base points for correct answer
             points = currentQuestion.getPoints();
-            
+
             // Award speed bonus ONLY if answered within time limit
             if (timeTaken <= questionTimeLimit) {
                 // Calculate speed bonus (example: up to 20% bonus based on speed)
                 // Faster answer = more bonus
                 double speedRatio = (double) timeTaken / questionTimeLimit;
                 bonusPoints = (int) ((1.0 - speedRatio) * currentQuestion.getPoints() * 0.2);
-                
+
                 log.info("On-time answer from participant {} - time: {}s/{}s, base: {}, bonus: {}",
                         participantId, timeTaken, questionTimeLimit, points, bonusPoints);
             } else {
@@ -762,7 +808,7 @@ public class QuizSessionServiceImpl implements QuizSessionService, DisposableBea
                         participantId, timeTaken, questionTimeLimit, points);
             }
         }
-        
+
         // Total points = base points + speed bonus
         int totalPoints = points + bonusPoints;
 
@@ -910,6 +956,19 @@ public class QuizSessionServiceImpl implements QuizSessionService, DisposableBea
 
         leaderboardService.finalizeSessionLeaderboard(session.getId());
 
+        // ✅ Track analytics: session completed
+        if (session.getQuiz() != null) {
+            quizAnalyticsService.recordSessionCompleted(session.getQuiz().getId());
+
+            // Calculate and track question statistics
+            long totalAnswers = participantAnswerRepository.countBySessionId(session.getId());
+            long correctAnswers = participantAnswerRepository.countBySessionIdAndIsCorrect(session.getId(), true);
+
+            if (totalAnswers > 0) {
+                quizAnalyticsService.updateQuestionStatistics(session.getQuiz().getId(), totalAnswers, correctAnswers);
+            }
+        }
+
         log.info("Session {} ended", sessionCode);
 
         webSocketService.broadcastGameState(
@@ -1030,17 +1089,17 @@ public class QuizSessionServiceImpl implements QuizSessionService, DisposableBea
             String progressKey = PARTICIPANT_PROGRESS_PREFIX + participant.getId();
             redisTemplate.opsForValue().set(progressKey, String.valueOf(nextQuestionNum));
             redisTemplate.expire(progressKey, java.time.Duration.ofHours(24));
-            
+
             // Set question start time for this participant
             String startTimeKey = QUESTION_START_TIME_PREFIX + participant.getId() + ":" + questionId;
             redisTemplate.opsForValue().set(startTimeKey, String.valueOf(System.currentTimeMillis()));
             redisTemplate.expire(startTimeKey, java.time.Duration.ofHours(1));
-            
+
             // Schedule timeout handler
             scheduler.schedule(() -> handleQuestionTimeout(participant.getId(), questionId, sessionCode, nextQuestionNum),
                     timeLimit + 2, TimeUnit.SECONDS);
         }
-        log.info("Updated progress and scheduled timeout for {} participants in SYNC mode session {}", 
+        log.info("Updated progress and scheduled timeout for {} participants in SYNC mode session {}",
                 participants.size(), sessionCode);
 
         return question;

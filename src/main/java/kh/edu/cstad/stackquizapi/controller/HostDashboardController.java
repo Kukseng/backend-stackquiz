@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import kh.edu.cstad.stackquizapi.dto.request.SessionTimingRequest;
 import kh.edu.cstad.stackquizapi.dto.response.HostDashboardResponse;
+import kh.edu.cstad.stackquizapi.dto.response.QuestionAnalyticsResponse;
 import kh.edu.cstad.stackquizapi.dto.websocket.HostProgressMessage;
 import kh.edu.cstad.stackquizapi.dto.websocket.SessionTimerMessage;
 import kh.edu.cstad.stackquizapi.service.HostDashboardService;
@@ -199,5 +200,16 @@ public class HostDashboardController {
     @PostMapping("/session/{sessionId}/broadcast-timer")
     public void broadcastTimerUpdate(@PathVariable String sessionId) {
         hostDashboardService.broadcastTimerUpdate(sessionId);
+    }
+
+    @Operation(summary = "Get  question analytics for SYNC mode",
+            description = "Returns statistics after each question: participation rate, accuracy, answer distribution, and top 3 leaderboard",
+            security = { @SecurityRequirement(name = "bearerAuth") })
+    @ResponseStatus(HttpStatus.OK)
+    @GetMapping("/session/{sessionCode}/question-analytics")
+    public QuestionAnalyticsResponse getQuestionAnalytics(
+            @PathVariable String sessionCode) {
+        log.info("GET /api/v1/host/session/{}/question-analytics", sessionCode);
+        return hostDashboardService.getQuestionAnalytics(sessionCode);
     }
 }

@@ -18,6 +18,10 @@ import java.util.List;
 public interface QuizMapper {
 
     @Mapping(target = "categories", source = "quizCategories") // map quizCategories → categories
+    @Mapping(target = "totalSessionsHosted", ignore = true)
+    @Mapping(target = "totalParticipants", ignore = true)
+    @Mapping(target = "participantsDisplay", ignore = true)
+    @Mapping(target = "sessionsDisplay", ignore = true)
     QuizResponse toQuizResponse(Quiz quiz);
 
     Quiz toQuizRequest(CreateQuizRequest createQuizRequest);

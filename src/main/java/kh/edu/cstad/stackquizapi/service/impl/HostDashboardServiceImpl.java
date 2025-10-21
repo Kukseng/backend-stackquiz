@@ -49,9 +49,9 @@ public class HostDashboardServiceImpl implements HostDashboardService {
     private final WebSocketService webSocketService;
     private final ParticipantMapper participantMapper;
     private final RedisTemplate<String, String> redisTemplate;
-    
+
     private final kh.edu.cstad.stackquizapi.service.QuizSessionService quizSessionService;
-    
+
     // Constructor with @Lazy to prevent circular dependency
     public HostDashboardServiceImpl(
             QuizSessionRepository quizSessionRepository,
@@ -96,7 +96,7 @@ public class HostDashboardServiceImpl implements HostDashboardService {
                     .orElseThrow(() -> new RuntimeException("Quiz not found for session")));
 
             List<Participant> participants = participantRepository.findBySessionIdAndIsActiveTrue(sessionId);
-            
+
             // Get real-time statistics
             LiveStatsMessage liveStats = realTimeStatsService.calculateLiveStats(sessionId);
             HostProgressMessage hostProgress = realTimeStatsService.calculateHostProgress(
@@ -117,13 +117,13 @@ public class HostDashboardServiceImpl implements HostDashboardService {
             String currentQuestionId = null;
             String currentQuestionText = null;
             Map<String, Integer> answerDistribution = new HashMap<>();
-            
+
             if (session.getCurrentQuestion() != null && session.getCurrentQuestion() > 0) {
                 // Get current question details
                 List<Question> questions = questionRepository.findByQuizId(session.getQuiz().getId()).stream()
                         .sorted(Comparator.comparingInt(Question::getQuestionOrder))
                         .collect(Collectors.toList());
-                
+
                 if (session.getCurrentQuestion() <= questions.size()) {
                     Question currentQuestion = questions.get(session.getCurrentQuestion() - 1);
                     currentQuestionId = currentQuestion.getId();
@@ -141,7 +141,7 @@ public class HostDashboardServiceImpl implements HostDashboardService {
             boolean canPause = session.getStatus() == Status.IN_PROGRESS;
             boolean canResume = session.getStatus() == Status.PAUSED;
             boolean canEnd = session.getStatus() == Status.IN_PROGRESS || session.getStatus() == Status.PAUSED;
-            boolean canAdvanceQuestion = session.getStatus() == Status.IN_PROGRESS && 
+            boolean canAdvanceQuestion = session.getStatus() == Status.IN_PROGRESS &&
                     session.getCurrentQuestion() < session.getTotalQuestions();
 
             // Get session timer
@@ -158,7 +158,7 @@ public class HostDashboardServiceImpl implements HostDashboardService {
                     .scheduledStartTime(session.getScheduledStartTime())
                     .scheduledEndTime(session.getScheduledEndTime())
                     .defaultQuestionTimeLimit(session.getDefaultQuestionTimeLimit())
-                      .autoAdvanceQuestions(false) // Default value since field doesn't exist
+                    .autoAdvanceQuestions(false) // Default value since field doesn't exist
                     .allowLateJoining(session.getAllowJoinInProgress())
                     .currentTimer(currentTimer)
                     .currentQuestion(session.getCurrentQuestion())
@@ -252,7 +252,7 @@ public class HostDashboardServiceImpl implements HostDashboardService {
         try {
             String timerKey = SESSION_TIMER_PREFIX + sessionId;
             long startTime = System.currentTimeMillis();
-            
+
             redisTemplate.opsForValue().set(timerKey + ":start", String.valueOf(startTime));
             redisTemplate.opsForValue().set(timerKey + ":status", "RUNNING");
             redisTemplate.expire(timerKey + ":start", Duration.ofHours(24));
@@ -356,7 +356,7 @@ public class HostDashboardServiceImpl implements HostDashboardService {
                     session.getScheduledEndTime(),
                     session.getCurrentQuestion() != null ? session.getCurrentQuestion() : 0,
                     session.getTotalQuestions() != null ? session.getTotalQuestions() : 0,
-                      false, // Default value since field doesn't exist
+                    false, // Default value since field doesn't exist
                     remainingSeconds <= 0 ? "END_SESSION" : "CONTINUE",
                     System.currentTimeMillis()
             );
@@ -372,8 +372,8 @@ public class HostDashboardServiceImpl implements HostDashboardService {
         try {
             SessionTimerMessage timer = getSessionTimer(sessionId);
             if (timer != null) {
-                  // webSocketService.broadcastSessionStats(timer.getSessionCode(), timer);
-                  // Method doesn't exist, would need to be implemented
+                // webSocketService.broadcastSessionStats(timer.getSessionCode(), timer);
+                // Method doesn't exist, would need to be implemented
             }
 
         } catch (Exception e) {
@@ -414,15 +414,15 @@ public class HostDashboardServiceImpl implements HostDashboardService {
     @Override
     public Map<String, Object> getCurrentQuestionStats(String sessionId, String questionId) {
         try {
-              List<ParticipantAnswer> answers = participantAnswerRepository.findByQuestionIdAndParticipantSessionId(questionId, sessionId);
-            
+            List<ParticipantAnswer> answers = participantAnswerRepository.findByQuestionIdAndParticipantSessionId(questionId, sessionId);
+
             Map<String, Object> stats = new HashMap<>();
             stats.put("totalAnswers", answers.size());
             stats.put("correctAnswers", answers.stream().mapToInt(a -> a.getIsCorrect() ? 1 : 0).sum());
             stats.put("averageTime", answers.stream().mapToInt(ParticipantAnswer::getTimeTaken).average().orElse(0.0));
             stats.put("fastestTime", answers.stream().mapToInt(ParticipantAnswer::getTimeTaken).min().orElse(0));
             stats.put("slowestTime", answers.stream().mapToInt(ParticipantAnswer::getTimeTaken).max().orElse(0));
-            
+
             return stats;
 
         } catch (Exception e) {
@@ -434,35 +434,35 @@ public class HostDashboardServiceImpl implements HostDashboardService {
     @Override
     public void forceAdvanceQuestion(String sessionId) {
         log.info("Force advance question requested for session {}", sessionId);
-        
+
         try {
             // Get session to verify it exists and is in SYNC mode
             QuizSession session = quizSessionRepository.findBySessionCode(sessionId)
-                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, 
-                        "Session not found: " + sessionId));
-            
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                            "Session not found: " + sessionId));
+
             if (session.getStatus() != Status.IN_PROGRESS) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
-                    "Session is not in progress");
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                        "Session is not in progress");
             }
-            
+
             // Call the QuizSessionService to advance to next question
             Question nextQuestion = quizSessionService.advanceToNextQuestion(sessionId);
-            
+
             if (nextQuestion != null) {
-                log.info("✅ Successfully advanced to question {} in session {}", 
-                    session.getCurrentQuestion(), sessionId);
+                log.info("✅ Successfully advanced to question {} in session {}",
+                        session.getCurrentQuestion(), sessionId);
             } else {
                 log.info("✅ No more questions - session {} will end", sessionId);
             }
-            
+
         } catch (ResponseStatusException e) {
             log.error("❌ Error advancing question in session {}: {}", sessionId, e.getReason());
             throw e;
         } catch (Exception e) {
             log.error("❌ Unexpected error advancing question in session {}", sessionId, e);
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, 
-                "Failed to advance question: " + e.getMessage());
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Failed to advance question: " + e.getMessage());
         }
     }
 
@@ -563,7 +563,7 @@ public class HostDashboardServiceImpl implements HostDashboardService {
             timing.put("actualStartTime", session.getStartTime());
             timing.put("actualEndTime", session.getEndTime());
             timing.put("defaultQuestionTimeLimit", session.getDefaultQuestionTimeLimit());
-              timing.put("autoAdvanceQuestions", false); // Default value since field doesn't exist
+            timing.put("autoAdvanceQuestions", false); // Default value since field doesn't exist
 
             return timing;
 
@@ -660,5 +660,136 @@ public class HostDashboardServiceImpl implements HostDashboardService {
     private double calculateEngagementScore(String sessionId) {
         // Implementation would calculate engagement score
         return 0.78;
+    }
+
+    @Override
+    public kh.edu.cstad.stackquizapi.dto.response.QuestionAnalyticsResponse getQuestionAnalytics(String sessionCode) {
+        log.info("Getting question analytics for session: {}", sessionCode);
+
+        QuizSession session = quizSessionRepository.findBySessionCode(sessionCode)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Session not found"));
+
+        int currentQuestionNum = session.getCurrentQuestion();
+        if (currentQuestionNum == 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "No question has been started yet");
+        }
+
+        // Get the current question
+        String questionsKey = "session:questions:" + session.getId();
+        String questionId = redisTemplate.opsForList().index(questionsKey, currentQuestionNum - 1);
+
+        if (questionId == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Question not found");
+        }
+
+        Question question = questionRepository.findById(questionId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Question not found"));
+
+        // Get all participants
+        List<Participant> allParticipants = participantRepository.findBySessionId(session.getId());
+        int totalParticipants = allParticipants.size();
+
+        // Get answers for this question
+        List<ParticipantAnswer> answers = participantAnswerRepository
+                .findByQuestionIdAndParticipantSessionId(questionId, session.getId());
+
+        int participantsAnswered = answers.size();
+        int participantsNotAnswered = totalParticipants - participantsAnswered;
+        double participationRate = totalParticipants > 0 ? (participantsAnswered * 100.0 / totalParticipants) : 0.0;
+
+        // Calculate correct/incorrect
+        long correctAnswers = answers.stream().filter(ParticipantAnswer::getIsCorrect).count();
+        long incorrectAnswers = participantsAnswered - correctAnswers;
+        double accuracyRate = participantsAnswered > 0 ? (correctAnswers * 100.0 / participantsAnswered) : 0.0;
+
+        // Calculate option statistics
+        Map<String, kh.edu.cstad.stackquizapi.dto.response.QuestionAnalyticsResponse.OptionStats> optionStats = new HashMap<>();
+        question.getOptions().forEach(option -> {
+            long count = answers.stream()
+                    .filter(a -> a.getSelectedAnswer() != null && a.getSelectedAnswer().getId().equals(option.getId()))
+                    .count();
+            double percentage = participantsAnswered > 0 ? (count * 100.0 / participantsAnswered) : 0.0;
+
+            optionStats.put(option.getId(), new kh.edu.cstad.stackquizapi.dto.response.QuestionAnalyticsResponse.OptionStats(
+                    option.getId(),
+                    option.getOptionText(),
+                    option.getIsCorrected(),
+                    (int) count,
+                    percentage
+            ));
+        });
+
+        // Get top 3 leaderboard
+        LeaderboardResponse leaderboard = leaderboardService.getPodium(session.getId());
+        List<kh.edu.cstad.stackquizapi.dto.response.QuestionAnalyticsResponse.LeaderboardEntry> top3 =
+                leaderboard.entries().stream()
+                        .limit(3)
+                        .map(entry -> {
+                            // Get participant details
+                            Participant p = allParticipants.stream()
+                                    .filter(participant -> participant.getId().equals(entry.participantId()))
+                                    .findFirst()
+                                    .orElse(null);
+
+                            // Count correct answers for this participant in this session
+                            long correctCount = answers.stream()
+                                    .filter(a -> a.getParticipant().getId().equals(entry.participantId()))
+                                    .filter(ParticipantAnswer::getIsCorrect)
+                                    .count();
+
+                            return new kh.edu.cstad.stackquizapi.dto.response.QuestionAnalyticsResponse.LeaderboardEntry(
+                                    entry.rank() != null ? entry.rank().intValue() : entry.position(),
+                                    entry.participantId(),
+                                    entry.nickname(),
+                                    p != null && p.getAvatar() != null ? String.valueOf(p.getAvatar().getId()) : null,
+                                    entry.totalScore(),
+                                    (int) correctCount,
+                                    0  // Streak not available in current data model
+                            );
+                        })
+                        .collect(Collectors.toList());
+
+        // Calculate timing statistics
+        double averageResponseTime = answers.stream()
+                .filter(a -> a.getTimeTaken() != null)
+                .mapToDouble(ParticipantAnswer::getTimeTaken)
+                .average()
+                .orElse(0.0);
+
+        double fastestResponseTime = answers.stream()
+                .filter(a -> a.getTimeTaken() != null)
+                .mapToDouble(ParticipantAnswer::getTimeTaken)
+                .min()
+                .orElse(0.0);
+
+        // Build response
+        kh.edu.cstad.stackquizapi.dto.response.QuestionAnalyticsResponse response =
+                new kh.edu.cstad.stackquizapi.dto.response.QuestionAnalyticsResponse();
+        response.setSessionCode(sessionCode);
+        response.setCurrentQuestionNumber(currentQuestionNum);
+        response.setTotalQuestions(session.getTotalQuestions());
+        response.setQuestionId(questionId);
+        response.setQuestionText(question.getText());
+        response.setCorrectOptionId(question.getOptions().stream()
+                .filter(kh.edu.cstad.stackquizapi.domain.Option::getIsCorrected)
+                .findFirst()
+                .map(kh.edu.cstad.stackquizapi.domain.Option::getId)
+                .orElse(null));
+        response.setTotalParticipants(totalParticipants);
+        response.setParticipantsAnswered(participantsAnswered);
+        response.setParticipantsNotAnswered(participantsNotAnswered);
+        response.setParticipationRate(Math.round(participationRate * 100.0) / 100.0);
+        response.setCorrectAnswers((int) correctAnswers);
+        response.setIncorrectAnswers((int) incorrectAnswers);
+        response.setAccuracyRate(Math.round(accuracyRate * 100.0) / 100.0);
+        response.setOptionStatistics(optionStats);
+        response.setTop3(top3);
+        response.setAverageResponseTime(Math.round(averageResponseTime * 100.0) / 100.0);
+        response.setFastestResponseTime(Math.round(fastestResponseTime * 100.0) / 100.0);
+
+        log.info("Question analytics for session {}: {} participants, {} answered, {}% accuracy",
+                sessionCode, totalParticipants, participantsAnswered, Math.round(accuracyRate));
+
+        return response;
     }
 }

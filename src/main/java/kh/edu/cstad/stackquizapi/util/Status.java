@@ -12,5 +12,5 @@ public enum Status {
 
     PAUSED,
 
-    COMPLETED
+    SCHEDULED, COMPLETED
 }

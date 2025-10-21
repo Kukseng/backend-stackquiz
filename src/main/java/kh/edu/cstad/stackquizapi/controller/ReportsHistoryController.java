@@ -29,12 +29,12 @@ public class ReportsHistoryController {
     @PreAuthorize("hasRole('HOST') or hasRole('ADMIN')")
     public ResponseEntity<List<SessionSummaryResponse>> getMySessionSummaries(
             @AuthenticationPrincipal Jwt accessToken) {
-        
+
         String hostId = accessToken.getSubject();
         log.info("Fetching session summaries for host: {}", hostId);
-        
+
         List<SessionSummaryResponse> summaries = reportsHistoryService.getHostSessionSummaries(hostId);
-        
+
         return ResponseEntity.ok(summaries);
     }
 
@@ -47,12 +47,12 @@ public class ReportsHistoryController {
     public ResponseEntity<List<SessionSummaryResponse>> getFilteredSessionSummaries(
             @AuthenticationPrincipal Jwt accessToken,
             @RequestParam(required = false) String status) {
-        
+
         String hostId = accessToken.getSubject();
         log.info("Fetching filtered session summaries for host: {} with status: {}", hostId, status);
-        
+
         List<SessionSummaryResponse> summaries = reportsHistoryService.getFilteredSessionSummaries(hostId, status);
-        
+
         return ResponseEntity.ok(summaries);
     }
 }

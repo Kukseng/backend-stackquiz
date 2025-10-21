@@ -52,4 +52,13 @@ public interface QuizSessionRepository extends JpaRepository<QuizSession, String
 
     @Query("SELECT qs FROM QuizSession qs WHERE qs.host.id = :hostId ORDER BY qs.createdAt DESC")
     List<QuizSession> findRecentSessionsByHost(@Param("hostId") String hostId, Pageable pageable);
+
+    // Admin Dashboard Methods
+    Long countByStatus(Status status);
+    Long countByCreatedAtAfter(LocalDateTime date);
+    Long countByStatusAndCreatedAtAfter(Status status, LocalDateTime date);
+    List<QuizSession> findByStatus(Status status);
+    List<QuizSession> findByQuizId(String quizId);
+    QuizSession findTopByOrderByCreatedAtDesc();
+    QuizSession findTopByStatusOrderByEndTimeDesc(Status status);
 }

@@ -35,9 +35,9 @@ public class RealTimeRankingServiceImpl implements RealTimeRankingService {
     private static final String SESSION_STATS_PREFIX = "stats:session:";
 
     @Override
-    public void updateParticipantScoreAndRanking(String sessionId, String participantId, 
-                                               String participantNickname, int newScore, 
-                                               boolean isCorrect, int pointsEarned) {
+    public void updateParticipantScoreAndRanking(String sessionId, String participantId,
+                                                 String participantNickname, int newScore,
+                                                 boolean isCorrect, int pointsEarned) {
         try {
             // Store previous rankings before update
             Map<String, Integer> previousRankings = getCurrentRankings(sessionId);
@@ -59,12 +59,12 @@ public class RealTimeRankingServiceImpl implements RealTimeRankingService {
             // Broadcast updated leaderboard to all participants
             broadcastRankingUpdates(sessionId);
 
-            log.debug("Updated score and ranking for participant {} in session {}: {} points (total: {})", 
-                     participantNickname, sessionId, pointsEarned, newScore);
+            log.debug("Updated score and ranking for participant {} in session {}: {} points (total: {})",
+                    participantNickname, sessionId, pointsEarned, newScore);
 
         } catch (Exception e) {
-            log.error("Error updating participant score and ranking for {} in session {}: {}", 
-                     participantId, sessionId, e.getMessage(), e);
+            log.error("Error updating participant score and ranking for {} in session {}: {}",
+                    participantId, sessionId, e.getMessage(), e);
         }
     }
 
@@ -73,12 +73,12 @@ public class RealTimeRankingServiceImpl implements RealTimeRankingService {
         try {
             ParticipantRankingMessage ranking = getParticipantRanking(sessionId, participantId);
             webSocketService.sendRankingUpdateToParticipant(sessionId, participantId, ranking);
-            
-            log.debug("Sent ranking update to participant {} in session {}: rank {}", 
-                     participantId, sessionId, ranking.getCurrentRank());
+
+            log.debug("Sent ranking update to participant {} in session {}: rank {}",
+                    participantId, sessionId, ranking.getCurrentRank());
         } catch (Exception e) {
-            log.error("Error sending ranking update to participant {} in session {}: {}", 
-                     participantId, sessionId, e.getMessage(), e);
+            log.error("Error sending ranking update to participant {} in session {}: {}",
+                    participantId, sessionId, e.getMessage(), e);
         }
     }
 
@@ -111,8 +111,8 @@ public class RealTimeRankingServiceImpl implements RealTimeRankingService {
     }
 
     @Override
-    public void sendScoreUpdate(String sessionId, String participantId, int pointsEarned, 
-                               int totalScore, boolean isCorrect) {
+    public void sendScoreUpdate(String sessionId, String participantId, int pointsEarned,
+                                int totalScore, boolean isCorrect) {
         try {
             Participant participant = participantRepository.findById(participantId)
                     .orElseThrow(() -> new RuntimeException("Participant not found"));
@@ -139,18 +139,19 @@ public class RealTimeRankingServiceImpl implements RealTimeRankingService {
 
             webSocketService.sendScoreUpdateToParticipant(sessionId, participantId, scoreUpdate);
 
-            log.debug("Sent score update to participant {} in session {}: +{} points (total: {})", 
-                     participant.getNickname(), sessionId, pointsEarned, totalScore);
+            log.debug("Sent score update to participant {} in session {}: +{} points (total: {})",
+                    participant.getNickname(), sessionId, pointsEarned, totalScore);
 
         } catch (Exception e) {
-            log.error("Error sending score update to participant {} in session {}: {}", 
-                     participantId, sessionId, e.getMessage(), e);
+            log.error("Error sending score update to participant {} in session {}: {}",
+                    participantId, sessionId, e.getMessage(), e);
         }
     }
 
     @Override
     public void sendAnswerFeedback(String sessionId, String participantId, String questionId,
-                                  boolean isCorrect, int pointsEarned, int timeTaken) {
+                                   boolean isCorrect, int pointsEarned, int timeTaken,
+                                   String selectedOptionId, String correctOptionId) {
         try {
             Participant participant = participantRepository.findById(participantId)
                     .orElseThrow(() -> new RuntimeException("Participant not found"));
@@ -158,32 +159,34 @@ public class RealTimeRankingServiceImpl implements RealTimeRankingService {
             QuizSession session = quizSessionRepository.findById(sessionId)
                     .orElseThrow(() -> new RuntimeException("Session not found"));
 
+            // ✅ FIXED: Calculate actual rank instead of hardcoding to 0
             Map<String, Integer> currentRankings = getCurrentRankings(sessionId);
             int currentRank = currentRankings.getOrDefault(participantId, 0);
 
-             AnswerFeedbackMessage feedback = new AnswerFeedbackMessage(
+            // ✅ FIXED: Include all required fields
+            AnswerFeedbackMessage feedback = new AnswerFeedbackMessage(
                     session.getSessionCode(),
                     "SYSTEM",
                     participantId,
                     questionId,
-                    null, // selectedOptionId - would need to pass
-                    null, // correctOptionId - would need to pass
+                    selectedOptionId,        // ✅ Now includes selected option
+                    correctOptionId,         // ✅ Now includes correct option
                     isCorrect,
                     pointsEarned,
                     timeTaken,
                     participant.getTotalScore(),
-                    0, // currentRank - would need to calculate
-                    null // explanation
+                    currentRank,            // ✅ Now uses calculated rank
+                    null // explanation - could be added if available
             );
 
-            webSocketService.sendAnswerFeedbackToParticipant(sessionId, participantId, feedback);
+            webSocketService.sendAnswerFeedbackToParticipant(session.getSessionCode(), participantId, feedback);
 
-            log.debug("Sent answer feedback to participant {} in session {}: {} (rank {})", 
-                     participant.getNickname(), sessionId, isCorrect ? "CORRECT" : "INCORRECT", currentRank);
+            log.debug("Sent answer feedback to participant {} in session {}: {} (rank {})",
+                    participant.getNickname(), session.getSessionCode(), isCorrect ? "CORRECT" : "INCORRECT", currentRank);
 
         } catch (Exception e) {
-            log.error("Error sending answer feedback to participant {} in session {}: {}", 
-                     participantId, sessionId, e.getMessage(), e);
+            log.error("Error sending answer feedback to participant {} in session {}: {}",
+                    participantId, sessionId, e.getMessage(), e);
         }
     }
 
@@ -192,7 +195,7 @@ public class RealTimeRankingServiceImpl implements RealTimeRankingService {
         try {
             String key = CURRENT_RANKINGS_PREFIX + sessionId;
             Map<Object, Object> rankingsMap = redisTemplate.opsForHash().entries(key);
-            
+
             if (rankingsMap.isEmpty()) {
                 // Calculate fresh rankings if not cached
                 return calculateCurrentRankings(sessionId);
@@ -259,8 +262,8 @@ public class RealTimeRankingServiceImpl implements RealTimeRankingService {
             );
 
         } catch (Exception e) {
-            log.error("Error getting participant ranking for {} in session {}: {}", 
-                     participantId, sessionId, e.getMessage(), e);
+            log.error("Error getting participant ranking for {} in session {}: {}",
+                    participantId, sessionId, e.getMessage(), e);
             throw new RuntimeException("Failed to get participant ranking", e);
         }
     }
@@ -269,15 +272,15 @@ public class RealTimeRankingServiceImpl implements RealTimeRankingService {
     public String calculateRankChange(String sessionId, String participantId, int newRank) {
         try {
             int previousRank = getPreviousRank(sessionId, participantId);
-            
+
             if (previousRank == 0) return "NEW";
             if (newRank < previousRank) return "UP";
             if (newRank > previousRank) return "DOWN";
             return "SAME";
 
         } catch (Exception e) {
-            log.error("Error calculating rank change for participant {} in session {}: {}", 
-                     participantId, sessionId, e.getMessage(), e);
+            log.error("Error calculating rank change for participant {} in session {}: {}",
+                    participantId, sessionId, e.getMessage(), e);
             return "SAME";
         }
     }
@@ -287,7 +290,7 @@ public class RealTimeRankingServiceImpl implements RealTimeRankingService {
         try {
             String key = PREVIOUS_RANKINGS_PREFIX + sessionId;
             redisTemplate.delete(key);
-            
+
             if (!rankings.isEmpty()) {
                 Map<String, String> stringRankings = rankings.entrySet().stream()
                         .collect(Collectors.toMap(
@@ -321,8 +324,8 @@ public class RealTimeRankingServiceImpl implements RealTimeRankingService {
     }
 
     @Override
-    public void sendProgressUpdate(String sessionId, String participantId, int currentQuestion, 
-                                  int totalQuestions) {
+    public void sendProgressUpdate(String sessionId, String participantId, int currentQuestion,
+                                   int totalQuestions) {
         try {
             Participant participant = participantRepository.findById(participantId)
                     .orElseThrow(() -> new RuntimeException("Participant not found"));
@@ -345,12 +348,12 @@ public class RealTimeRankingServiceImpl implements RealTimeRankingService {
 
             webSocketService.sendToParticipant(sessionId, participantId, progress);
 
-            log.debug("Sent progress update to participant {} in session {}: question {}/{}", 
-                     participant.getNickname(), sessionId, currentQuestion, totalQuestions);
+            log.debug("Sent progress update to participant {} in session {}: question {}/{}",
+                    participant.getNickname(), sessionId, currentQuestion, totalQuestions);
 
         } catch (Exception e) {
-            log.error("Error sending progress update to participant {} in session {}: {}", 
-                     participantId, sessionId, e.getMessage(), e);
+            log.error("Error sending progress update to participant {} in session {}: {}",
+                    participantId, sessionId, e.getMessage(), e);
         }
     }
 
@@ -361,7 +364,7 @@ public class RealTimeRankingServiceImpl implements RealTimeRankingService {
                     .orElseThrow(() -> new RuntimeException("Session not found"));
 
             List<Participant> participants = participantRepository.findBySessionIdAndIsActiveTrue(sessionId);
-            
+
             double averageScore = participants.stream()
                     .mapToInt(Participant::getTotalScore)
                     .average()
@@ -394,8 +397,8 @@ public class RealTimeRankingServiceImpl implements RealTimeRankingService {
             // Note: SessionStatsMessage and LiveStatsMessage are different types
             // This would need proper type conversion or use a different method
 
-            log.debug("Broadcasted session stats for session {}: {} participants, avg score {}", 
-                     sessionId, participants.size(), averageScore);
+            log.debug("Broadcasted session stats for session {}: {} participants, avg score {}",
+                    sessionId, participants.size(), averageScore);
 
         } catch (Exception e) {
             log.error("Error broadcasting session stats for session {}: {}", sessionId, e.getMessage(), e);
@@ -454,7 +457,7 @@ public class RealTimeRankingServiceImpl implements RealTimeRankingService {
         try {
             String key = CURRENT_RANKINGS_PREFIX + sessionId;
             redisTemplate.delete(key);
-            
+
             if (!rankings.isEmpty()) {
                 Map<String, String> stringRankings = rankings.entrySet().stream()
                         .collect(Collectors.toMap(
@@ -477,8 +480,8 @@ public class RealTimeRankingServiceImpl implements RealTimeRankingService {
             return rankStr != null ? Integer.parseInt(rankStr) : 0;
 
         } catch (Exception e) {
-            log.error("Error getting previous rank for participant {} in session {}: {}", 
-                     participantId, sessionId, e.getMessage(), e);
+            log.error("Error getting previous rank for participant {} in session {}: {}",
+                    participantId, sessionId, e.getMessage(), e);
             return 0;
         }
     }

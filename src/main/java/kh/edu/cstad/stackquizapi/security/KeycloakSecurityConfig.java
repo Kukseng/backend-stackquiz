@@ -89,7 +89,7 @@ public class KeycloakSecurityConfig {
 
                         // Websocket
                         .requestMatchers("/ws/**").permitAll()
-
+                        .requestMatchers("/api/v1/auth/**").permitAll()
                         // Auth endpoints
                         .requestMatchers("/api/v1/auth/register").permitAll()
                         .requestMatchers("/api/v1/auth/refresh").permitAll()

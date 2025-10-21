@@ -32,7 +32,7 @@ public interface ParticipantAnswerRepository extends JpaRepository<ParticipantAn
     @Query("SELECT pa FROM ParticipantAnswer pa " +
             "WHERE pa.participant.session.id = :sessionId")
     List<ParticipantAnswer> findByParticipantSessionId(@Param("sessionId") String sessionId);
-    
+
     @Query("SELECT pa FROM ParticipantAnswer pa " +
             "WHERE pa.question.id = :questionId " +
             "AND pa.participant.session.id = :sessionId")
@@ -49,4 +49,19 @@ public interface ParticipantAnswerRepository extends JpaRepository<ParticipantAn
             @Param("participantId") String participantId,
             @Param("sessionId") String sessionId);
 
+    @Query("SELECT COUNT(pa) FROM ParticipantAnswer pa " +
+            "JOIN pa.participant p " +
+            "WHERE p.session.id = :sessionId")
+    long countBySessionId(@Param("sessionId") String sessionId);
+
+    @Query("SELECT COUNT(pa) FROM ParticipantAnswer pa " +
+            "JOIN pa.participant p " +
+            "WHERE p.session.id = :sessionId AND pa.isCorrect = :isCorrect")
+    long countBySessionIdAndIsCorrect(@Param("sessionId") String sessionId, @Param("isCorrect") boolean isCorrect);
+
+    // Admin Dashboard Methods
+    Long countByIsCorrectTrue();
+    Long countByAnsweredAtAfter(java.time.LocalDateTime date);
+    Long countByParticipantIdIn(List<String> participantIds);
+    Long countByParticipantIdInAndIsCorrectTrue(List<String> participantIds);
 }

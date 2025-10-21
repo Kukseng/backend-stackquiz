@@ -23,10 +23,6 @@ public record QuizResponse(
 
         QuizStatus status,
 
-        String parentsId,
-
-        Integer versionNumber,
-
         TimeLimitRangeInSecond questionTimeLimit,
 
         LocalDateTime createdAt,
@@ -35,7 +31,13 @@ public record QuizResponse(
 
         LocalDateTime updatedAt,
 
-        List<QuestionResponse> questions
+        List<QuestionResponse> questions,
+
+        // Analytics fields
+        Integer totalSessionsHosted,
+        Integer totalParticipants,
+        String participantsDisplay,
+        String sessionsDisplay
 
 ) {
 }

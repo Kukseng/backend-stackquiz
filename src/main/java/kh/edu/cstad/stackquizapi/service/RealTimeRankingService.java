@@ -41,7 +41,8 @@ public interface RealTimeRankingService {
      * Send answer feedback with ranking information to participant
      */
     void sendAnswerFeedback(String sessionId, String participantId, String questionId,
-                            boolean isCorrect, int pointsEarned, int timeTaken);
+                            boolean isCorrect, int pointsEarned, int timeTaken,
+                            String selectedOptionId, String correctOptionId);
 
     /**
      * Get current participant rankings for session
