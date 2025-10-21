@@ -13,13 +13,7 @@
       <change beforePath="$PROJECT_DIR$/.gradle/buildOutputCleanup/buildOutputCleanup.lock" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/buildOutputCleanup/buildOutputCleanup.lock" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.gradle/file-system.probe" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/file-system.probe" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/kh/edu/cstad/stackquizapi/controller/AuthController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kh/edu/cstad/stackquizapi/controller/AuthController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/kh/edu/cstad/stackquizapi/controller/MediaController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kh/edu/cstad/stackquizapi/controller/MediaController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/kh/edu/cstad/stackquizapi/dto/request/CreateQuestionRequest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kh/edu/cstad/stackquizapi/dto/request/CreateQuestionRequest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/kh/edu/cstad/stackquizapi/dto/request/CreateQuizRequest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kh/edu/cstad/stackquizapi/dto/request/CreateQuizRequest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/kh/edu/cstad/stackquizapi/dto/request/UpdateUserRequest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kh/edu/cstad/stackquizapi/dto/request/UpdateUserRequest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/kh/edu/cstad/stackquizapi/dto/response/KeycloakTokenResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kh/edu/cstad/stackquizapi/dto/response/KeycloakTokenResponse.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/kh/edu/cstad/stackquizapi/dto/response/TokenResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kh/edu/cstad/stackquizapi/dto/response/TokenResponse.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/kh/edu/cstad/stackquizapi/security/KeycloakSecurityConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kh/edu/cstad/stackquizapi/security/KeycloakSecurityConfig.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -188,7 +182,8 @@
       <workItem from="1761014273261" duration="41000" />
       <workItem from="1761014767012" duration="340000" />
       <workItem from="1761028696938" duration="1117000" />
-      <workItem from="1761031851253" duration="428000" />
+      <workItem from="1761031851253" duration="1979000" />
+      <workItem from="1761034652081" duration="1091000" />
     </task>
     <servers />
   </component>

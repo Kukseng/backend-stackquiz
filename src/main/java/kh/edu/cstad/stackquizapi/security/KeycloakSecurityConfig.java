@@ -83,7 +83,8 @@ public class KeycloakSecurityConfig {
                                 "/v3/api-docs/**",
                                 "/swagger-resources/**",
                                 "/webjars/**",
-                                "/actuator/health"
+                                "/actuator/health",
+                                "/media/**"
                         ).permitAll()
 
                         // Websocket
@@ -112,6 +113,7 @@ public class KeycloakSecurityConfig {
                         .requestMatchers(HttpMethod.PUT, "/api/v1/sessions/**").hasAnyRole("ADMIN", "ORGANIZER")
 
                         // Media endpoints
+                        .requestMatchers("/media/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/medias/**").hasAnyRole("ADMIN", "ORGANIZER")
                         .requestMatchers(HttpMethod.DELETE, "/api/v1/medias/**").hasAnyRole("ADMIN", "ORGANIZER")
 
