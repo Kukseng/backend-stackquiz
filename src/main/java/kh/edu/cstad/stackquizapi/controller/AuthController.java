@@ -6,18 +6,26 @@ import jakarta.validation.Valid;
 
 import kh.edu.cstad.stackquizapi.dto.request.LoginRequest;
 import kh.edu.cstad.stackquizapi.dto.request.OAuthRegisterRequest;
+import kh.edu.cstad.stackquizapi.dto.request.RefreshTokenRequest;
 import kh.edu.cstad.stackquizapi.dto.request.RegisterRequest;
 import kh.edu.cstad.stackquizapi.dto.request.ResetPasswordRequest;
+import kh.edu.cstad.stackquizapi.dto.response.KeycloakTokenResponse;
 import kh.edu.cstad.stackquizapi.dto.response.LoginResponse;
 import kh.edu.cstad.stackquizapi.dto.response.RegisterResponse;
+import kh.edu.cstad.stackquizapi.dto.response.TokenResponse;
 import kh.edu.cstad.stackquizapi.exception.ApiResponse;
 import kh.edu.cstad.stackquizapi.repository.UserRepository;
 import kh.edu.cstad.stackquizapi.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -29,6 +37,7 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Mono;
 
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -50,6 +59,12 @@ public class AuthController {
 
     @Value("${keycloak.token-client-secret}")
     private String clientSecret;
+
+    @Value("${keycloak.realm}")
+    private String realm;
+
+    @Value("${keycloak.server-url}")
+    private String keycloakServerUrl;
 
     @PostMapping("/register")
     public ResponseEntity<ApiResponse<RegisterResponse>> register(
@@ -104,6 +119,54 @@ public class AuthController {
                             .success(false)
                             .message("Login failed: " + ex.getResponseBodyAsString())
                             .build());
+        }
+    }
+
+    @PostMapping("/refresh")
+    @Operation(summary = "Refresh access token (public)")
+    public ResponseEntity<?> refreshToken(@RequestBody RefreshTokenRequest request) {
+        try {
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+
+            MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
+            formData.add("grant_type", "refresh_token");
+            formData.add("client_id", clientId);
+            formData.add("refresh_token", request.refreshToken());
+
+            if (clientSecret != null && !clientSecret.isEmpty()) {
+                formData.add("client_secret", clientSecret);
+            }
+
+            HttpEntity<MultiValueMap<String, String>> entity = new HttpEntity<>(formData, headers);
+
+            String tokenUrl = keycloakServerUrl + "/realms/" + realm + "/protocol/openid-connect/token";
+            ResponseEntity<KeycloakTokenResponse> response = restTemplate.postForEntity(
+                    tokenUrl,
+                    entity,
+                    KeycloakTokenResponse.class
+            );
+
+            if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
+                KeycloakTokenResponse keycloakResponse = response.getBody();
+
+                TokenResponse tokenResponse = TokenResponse.builder()
+                        .accessToken(keycloakResponse.accessToken())
+                        .refreshToken(keycloakResponse.refreshToken())
+                        .tokenType(keycloakResponse.tokenType())
+                        .expiresIn(keycloakResponse.expiresIn())
+                        .build();
+
+                return ResponseEntity.ok(tokenResponse);
+            } else {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(Map.of("error", "Invalid refresh token"));
+            }
+
+        } catch (Exception e) {
+            log.error("Token refresh failed: ", e);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("error", "Token refresh failed"));
         }
     }
 

@@ -40,16 +40,13 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
             {
                 StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
                 if (accessor != null && StompCommand.CONNECT.equals(accessor.getCommand())) {
-                    // ✅ CRITICAL FIX: Use participantId as Principal for user-specific message routing
                     String principalName = null;
 
-                    // Try to get participantId from headers (for participants)
                     List<String> participantIds = accessor.getNativeHeader("participantId");
                     if (participantIds != null && !participantIds.isEmpty() && participantIds.get(0) != null && !participantIds.get(0).isBlank()) {
                         principalName = participantIds.get(0);
                     }
 
-                    // Fallback to nickname (for hosts or other users)
                     if (principalName == null || principalName.isBlank()) {
                         List<String> nicks = accessor.getNativeHeader("nickname");
                         if (nicks != null && !nicks.isEmpty() && nicks.get(0) != null && !nicks.get(0).isBlank()) {
@@ -57,12 +54,11 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                         }
                     }
 
-                    // Final fallback to session ID
                     if (principalName == null || principalName.isBlank()) {
                         principalName = accessor.getSessionId();
                     }
 
-                    final String finalPrincipalName = principalName; // must be final for anonymous class
+                    final String finalPrincipalName = principalName;
                     accessor.setUser(new Principal() {
                         @Override
                         public String getName() {

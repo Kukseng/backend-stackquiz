@@ -13,7 +13,9 @@ public record CreateQuestionRequest(
         QuestionType type,
 
         @NotBlank(message = "Quiz ID is required")
-        String quizId
+        String quizId,
+
+        String imageUrl
 
 ) {
 }

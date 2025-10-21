@@ -23,6 +23,8 @@ public record CreateQuizRequest(
         @NotNull(message = "Status is required")
         QuizStatus status,
 
+        String thumbnailUrl,
+
         @NotNull(message = "Question time limit must be provided")
         TimeLimitRangeInSecond questionTimeLimit,
 

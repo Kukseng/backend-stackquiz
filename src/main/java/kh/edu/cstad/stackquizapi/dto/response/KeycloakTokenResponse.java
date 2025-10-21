@@ -14,10 +14,10 @@ public record KeycloakTokenResponse(
         String tokenType,
 
         @JsonProperty("expires_in")
-        Integer expiresIn,
+        Long expiresIn,
 
         @JsonProperty("refresh_expires_in")
-        Integer refreshExpiresIn,
+        Long refreshExpiresIn,
 
         @JsonProperty("scope")
         String scope
