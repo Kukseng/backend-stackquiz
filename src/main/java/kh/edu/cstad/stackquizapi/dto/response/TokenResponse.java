@@ -2,12 +2,16 @@ package kh.edu.cstad.stackquizapi.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
-@JsonIgnoreProperties(ignoreUnknown = true)
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class TokenResponse {
 
     @JsonProperty("access_token")
@@ -28,8 +32,6 @@ public class TokenResponse {
     @JsonProperty("scope")
     private String scope;
 
-    // Optional but nice to have
     @JsonProperty("session_state")
     private String sessionState;
-
 }
