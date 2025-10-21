@@ -63,9 +63,6 @@ public class AuthController {
     @Value("${keycloak.realm}")
     private String realm;
 
-    @Value("${keycloak.server-url}")
-    private String keycloakServerUrl;
-
     @PostMapping("/register")
     public ResponseEntity<ApiResponse<RegisterResponse>> register(
             @Valid @RequestBody RegisterRequest request) {
@@ -124,49 +121,56 @@ public class AuthController {
 
     @PostMapping("/refresh")
     @Operation(summary = "Refresh access token (public)")
-    public ResponseEntity<?> refreshToken(@RequestBody RefreshTokenRequest request) {
+    public ResponseEntity<ApiResponse<TokenResponse>> refreshToken(@RequestBody RefreshTokenRequest request) {
         try {
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+            Mono<KeycloakTokenResponse> tokenMono = webClient.post()
+                    .uri(keycloakTokenUrl)
+                    .header("Content-Type", "application/x-www-form-urlencoded")
+                    .body(BodyInserters
+                            .fromFormData("grant_type", "refresh_token")
+                            .with("client_id", clientId)
+                            .with("client_secret", clientSecret)
+                            .with("refresh_token", request.refreshToken()))
+                    .retrieve()
+                    .bodyToMono(KeycloakTokenResponse.class);
 
-            MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
-            formData.add("grant_type", "refresh_token");
-            formData.add("client_id", clientId);
-            formData.add("refresh_token", request.refreshToken());
+            KeycloakTokenResponse keycloakResponse = tokenMono.block();
 
-            if (clientSecret != null && !clientSecret.isEmpty()) {
-                formData.add("client_secret", clientSecret);
-            }
-
-            HttpEntity<MultiValueMap<String, String>> entity = new HttpEntity<>(formData, headers);
-
-            String tokenUrl = keycloakServerUrl + "/realms/" + realm + "/protocol/openid-connect/token";
-            ResponseEntity<KeycloakTokenResponse> response = restTemplate.postForEntity(
-                    tokenUrl,
-                    entity,
-                    KeycloakTokenResponse.class
-            );
-
-            if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
-                KeycloakTokenResponse keycloakResponse = response.getBody();
-
-                TokenResponse tokenResponse = TokenResponse.builder()
-                        .accessToken(keycloakResponse.accessToken())
-                        .refreshToken(keycloakResponse.refreshToken())
-                        .tokenType(keycloakResponse.tokenType())
-                        .expiresIn(keycloakResponse.expiresIn())
-                        .build();
-
-                return ResponseEntity.ok(tokenResponse);
-            } else {
+            if (keycloakResponse == null) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                        .body(Map.of("error", "Invalid refresh token"));
+                        .body(ApiResponse.<TokenResponse>builder()
+                                .success(false)
+                                .message("Invalid or expired refresh token")
+                                .build());
             }
 
+            TokenResponse tokenResponse = TokenResponse.builder()
+                    .accessToken(keycloakResponse.accessToken())
+                    .refreshToken(keycloakResponse.refreshToken())
+                    .tokenType(keycloakResponse.tokenType())
+                    .expiresIn(keycloakResponse.expiresIn())
+                    .build();
+
+            return ResponseEntity.ok(ApiResponse.<TokenResponse>builder()
+                    .success(true)
+                    .message("Token refreshed successfully")
+                    .data(tokenResponse)
+                    .build());
+
+        } catch (WebClientResponseException ex) {
+            log.error("Keycloak token refresh failed: {}", ex.getResponseBodyAsString());
+            return ResponseEntity.status(ex.getStatusCode())
+                    .body(ApiResponse.<TokenResponse>builder()
+                            .success(false)
+                            .message("Token refresh failed: " + ex.getResponseBodyAsString())
+                            .build());
         } catch (Exception e) {
-            log.error("Token refresh failed: ", e);
+            log.error("Token refresh error: ", e);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of("error", "Token refresh failed"));
+                    .body(ApiResponse.<TokenResponse>builder()
+                            .success(false)
+                            .message("Token refresh failed")
+                            .build());
         }
     }
 
