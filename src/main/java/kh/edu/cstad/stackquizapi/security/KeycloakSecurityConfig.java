@@ -91,7 +91,8 @@ public class KeycloakSecurityConfig {
                         .requestMatchers("/ws/**").permitAll()
 
                         // Auth endpoints
-                        .requestMatchers("/api/v1/auth/**").permitAll()
+                        .requestMatchers("/api/v1/auth/register").permitAll()
+                        .requestMatchers("/api/v1/auth/refresh").permitAll()
                         .requestMatchers("/api/v1/auth/request-reset-password").hasRole("ORGANIZER")
                         .requestMatchers("/api/v1/auth/reset-password").hasRole("ADMIN")
 
