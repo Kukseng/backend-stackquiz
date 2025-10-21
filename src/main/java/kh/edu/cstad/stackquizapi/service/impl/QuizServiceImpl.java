@@ -147,17 +147,14 @@ public class QuizServiceImpl implements QuizService {
 
         String userId = accessToken.getSubject();
 
-        User user = userRepository.findByIdAndIsActiveTrue(userId).orElseThrow(
-                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found")
-        );
-
-        return quizRepository.findByUserId(user.getId())
-                .stream()
+        return quizRepository.findAll().stream()
                 .filter(quiz ->
-                        quiz.getIsActive().equals(true)
+                        quiz.getUser().getId().equals(userId)
+                                && quiz.getIsActive().equals(true)
                                 && !quiz.getStatus().equals(QuizStatus.DRAFT)
                                 && !quiz.getFlagged())
-                .map(quizMapper::toQuizResponse).toList();
+                .map(quizMapper::toQuizResponse)
+                .toList();
     }
 
     @Override
