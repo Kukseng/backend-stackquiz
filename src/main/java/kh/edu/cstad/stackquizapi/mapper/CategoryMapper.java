@@ -1,7 +1,6 @@
 package kh.edu.cstad.stackquizapi.mapper;
 
 import kh.edu.cstad.stackquizapi.domain.Category;
-import kh.edu.cstad.stackquizapi.dto.request.CategoryRequest;
 import kh.edu.cstad.stackquizapi.dto.response.CategoryResponse;
 import org.mapstruct.Mapper;
 
@@ -9,7 +8,5 @@ import org.mapstruct.Mapper;
 public interface CategoryMapper {
 
     CategoryResponse toCategoryResponse(Category category);
-
-    Category mapCategoryRequest(CategoryRequest categoryRequest);
 
 }

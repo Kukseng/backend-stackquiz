@@ -5,6 +5,9 @@ import kh.edu.cstad.stackquizapi.dto.response.QuizAnalyticsResponse;
 /**
  * Service for tracking and retrieving quiz analytics
  * Tracks: total sessions hosted, total participants, accuracy, etc.
+ *
+ * @author Phou Kukseng
+ * @since 1.0
  */
 public interface QuizAnalyticsService {
     

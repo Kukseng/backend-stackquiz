@@ -9,7 +9,9 @@ import java.util.List;
 
 /**
  * Service interface for handling media operations such as uploading files.
- * @author aintantony
+ *
+ * @author Pech Rattanakmony
+ * @since 1.0
  */
 public interface MediaService {
 

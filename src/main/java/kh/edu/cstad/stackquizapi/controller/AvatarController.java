@@ -20,9 +20,6 @@ public class AvatarController {
 
     private final AvatarService avatarService;
 
-    /**
-     * Get all avatars (public endpoint)
-     */
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
     @Operation(summary = "Get all avatars", description = "Retrieve all available avatars for participants")
@@ -30,9 +27,6 @@ public class AvatarController {
         return avatarService.getAllAvatars();
     }
 
-    /**
-     * Get avatar by ID (public endpoint)
-     */
     @GetMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
     @Operation(summary = "Get avatar by ID", description = "Retrieve a specific avatar by its ID")
@@ -40,9 +34,6 @@ public class AvatarController {
         return avatarService.getAvatarById(id);
     }
 
-    /**
-     * Create new avatar (public endpoint for easy setup)
-     */
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     @Operation(summary = "Create new avatar", description = "Create a new avatar")
@@ -50,9 +41,6 @@ public class AvatarController {
         return avatarService.createNewAvatar(request);
     }
 
-    /**
-     * Create multiple avatars at once (public endpoint for easy setup)
-     */
     @PostMapping("/batch")
     @ResponseStatus(HttpStatus.CREATED)
     @Operation(summary = "Create multiple avatars", description = "Create multiple avatars in a single request")
@@ -60,9 +48,6 @@ public class AvatarController {
         return avatarService.createMultipleAvatars(requests);
     }
 
-    /**
-     * Update avatar
-     */
     @PutMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
     @Operation(summary = "Update avatar", description = "Update an existing avatar")
@@ -72,9 +57,6 @@ public class AvatarController {
         return avatarService.updateAvatar(id, request);
     }
 
-    /**
-     * Delete avatar
-     */
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @Operation(summary = "Delete avatar", description = "Delete an avatar by ID")
@@ -82,9 +64,6 @@ public class AvatarController {
         avatarService.deleteAvatar(id);
     }
 
-    /**
-     * Initialize default avatars (convenience endpoint)
-     */
     @PostMapping("/init-defaults")
     @ResponseStatus(HttpStatus.CREATED)
     @Operation(summary = "Initialize default avatars", description = "Create 20 default avatars for the quiz app")
@@ -92,9 +71,6 @@ public class AvatarController {
         return avatarService.initializeDefaultAvatars();
     }
 
-    /**
-     * Check if avatar exists
-     */
     @GetMapping("/{id}/exists")
     @ResponseStatus(HttpStatus.OK)
     @Operation(summary = "Check if avatar exists", description = "Check if an avatar exists by ID")
@@ -102,9 +78,6 @@ public class AvatarController {
         return avatarService.avatarExists(id);
     }
 
-    /**
-     * Get total avatar count
-     */
     @GetMapping("/count")
     @ResponseStatus(HttpStatus.OK)
     @Operation(summary = "Get avatar count", description = "Get total number of avatars")

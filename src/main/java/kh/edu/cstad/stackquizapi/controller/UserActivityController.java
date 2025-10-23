@@ -11,9 +11,6 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
-/**
- * Controller for user activity and analytics endpoints
- */
 @Slf4j
 @RestController
 @RequiredArgsConstructor

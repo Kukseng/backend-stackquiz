@@ -47,7 +47,7 @@ public class ReportsHistoryServiceImpl implements ReportsHistoryService {
             Status status = Status.valueOf(statusFilter.toUpperCase());
             sessions = sessions.stream()
                     .filter(session -> session.getStatus() == status)
-                    .collect(Collectors.toList());
+                    .toList();
         }
         
         return sessions.stream()

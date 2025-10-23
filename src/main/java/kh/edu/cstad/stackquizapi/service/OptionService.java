@@ -1,18 +1,17 @@
 package kh.edu.cstad.stackquizapi.service;
 
-import kh.edu.cstad.stackquizapi.domain.Option;
 import kh.edu.cstad.stackquizapi.dto.request.AddOptionRequest;
 import kh.edu.cstad.stackquizapi.dto.request.UpdateOptionRequest;
 import kh.edu.cstad.stackquizapi.dto.response.OptionResponse;
 
 import java.util.List;
 
-
 /**
  * Service interface for managing options related to questions.
  * Provides methods to add, update, and delete options.
  *
  * @author Pech Rattanakmony
+ * @since 1.0
  */
 public interface OptionService {
 

@@ -30,7 +30,6 @@ public class UserController {
         return userService.findAll();
     }
 
-    // get current user for profile
     @Operation(summary = "Delete user by ID (secured)",
             security = {@SecurityRequirement(name = "bearerAuth")})
     @ResponseStatus(HttpStatus.NO_CONTENT)

@@ -10,8 +10,6 @@ import java.util.Optional;
 
 public interface QuestionRepository extends JpaRepository<Question, String> {
 
-    boolean existsByQuestionOrder(Integer order);
-
     List<Question> findByQuizUserId(String userId);
 
     List<Question> findByQuizId(String s);

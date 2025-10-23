@@ -1,6 +1,5 @@
 package kh.edu.cstad.stackquizapi.config;
 
-
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Contact;
@@ -14,12 +13,6 @@ import org.springframework.context.annotation.Configuration;
 
 import java.util.List;
 
-/**
- * Swagger/OpenAPI configuration for the StackQuiz API.
- * Configures JWT Bearer token authentication for protected endpoints.
- *
- * @author PECH RATTANAKMONY
- */
 @Configuration
 public class SwaggerConfig {
 
@@ -46,8 +39,6 @@ public class SwaggerConfig {
                 .servers(List.of(
                         new Server().url(apiUrl).description("Development server"),
                         new Server().url("https://stackquiz-api.stackquiz.me").description("Production server")))
-//                .addSecurityItem(new SecurityRequirement()
-//                        .addList(securitySchemeName))
                 .components(new Components()
                         .addSecuritySchemes(securitySchemeName,
                                 new SecurityScheme()

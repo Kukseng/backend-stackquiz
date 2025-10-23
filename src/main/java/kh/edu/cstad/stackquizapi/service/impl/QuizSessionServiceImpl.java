@@ -70,7 +70,6 @@ public class QuizSessionServiceImpl implements QuizSessionService, DisposableBea
         scheduler.shutdownNow();
     }
 
-    // =================== SESSION CREATION ===================
     @Override
     @Transactional
     public SessionResponse createSession(SessionCreateRequest request, Jwt accessToken) {
@@ -92,7 +91,7 @@ public class QuizSessionServiceImpl implements QuizSessionService, DisposableBea
         quizSession.setStatus(Status.WAITING);
         quizSession.setSessionCode(generateUniqueSessionCode());
 
-        // ✅ FIX: Only set mode if explicitly provided in request
+        // FIX: Only set mode if explicitly provided in request
         // Mode will be set when starting the session via settings UI
         if (request.mode() != null) {
             quizSession.setMode(request.mode());
@@ -105,7 +104,7 @@ public class QuizSessionServiceImpl implements QuizSessionService, DisposableBea
 
         QuizSession savedSession = quizSessionRepository.save(quizSession);
 
-        // ✅ Track analytics: session created
+        // Track analytics: session created
         quizAnalyticsService.recordSessionCreated(quiz.getId());
 
         cacheSessionQuestions(savedSession);
@@ -130,8 +129,6 @@ public class QuizSessionServiceImpl implements QuizSessionService, DisposableBea
 
         return quizSessionMapper.toSessionResponse(savedSession);
     }
-
-    // ===================== replace in QuizSessionServiceImpl =====================
 
     private void cacheSessionQuestions(QuizSession session) {
         List<Question> questions = session.getQuiz().getQuestions().stream()
@@ -214,7 +211,7 @@ public class QuizSessionServiceImpl implements QuizSessionService, DisposableBea
             redisTemplate.opsForValue().set(startTimeKey, String.valueOf(System.currentTimeMillis()));
             redisTemplate.expire(startTimeKey, java.time.Duration.ofHours(1));
 
-            // ✅ FIX: Schedule timeout handler to auto-submit if time expires
+            // FIX: Schedule timeout handler to auto-submit if time expires
             int timeLimit = question.getTimeLimit() != null ? question.getTimeLimit().intValue() : defaultTimeLimit;
             String sessionCodeForTimeout = session.getSessionCode();
             scheduler.schedule(() -> handleQuestionTimeout(participantId, question.getId(), sessionCodeForTimeout, questionNumber),
@@ -303,14 +300,14 @@ public class QuizSessionServiceImpl implements QuizSessionService, DisposableBea
         if (session.getStatus() != Status.WAITING)
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Session is not in waiting status.");
 
-        // ✅ FIX: Log current session mode and settings
+        // FIX: Log current session mode and settings
         log.info("🔍 Session {} current mode: {}, settings provided: {}",
                 sessionCode, session.getMode(), settings != null);
         if (settings != null) {
             log.info("🔍 Settings mode: {}", settings.getMode());
         }
 
-        // ✅ FIX: Require mode to be set via settings if not already set
+        // FIX: Require mode to be set via settings if not already set
         if (session.getMode() == null) {
             if (settings == null || settings.getMode() == null) {
                 throw new ResponseStatusException(
@@ -318,7 +315,7 @@ public class QuizSessionServiceImpl implements QuizSessionService, DisposableBea
                         "Session mode must be set. Please provide mode (SYNC or ASYNC) in settings."
                 );
             }
-            log.info("✅ Setting initial mode for session {} to {}", sessionCode, settings.getMode());
+            log.info("Setting initial mode for session {} to {}", sessionCode, settings.getMode());
         }
 
         if (settings != null) {
@@ -329,7 +326,7 @@ public class QuizSessionServiceImpl implements QuizSessionService, DisposableBea
                 // Convert to server timezone for comparison and storage
                 ZonedDateTime scheduledStartInServerZone = scheduledStart.withZoneSameInstant(now.getZone());
 
-                // ✅ FIX: Validate scheduled time with proper timezone handling
+                // FIX: Validate scheduled time with proper timezone handling
                 if (scheduledStartInServerZone.isBefore(now)) {
                     throw new ResponseStatusException(
                             HttpStatus.BAD_REQUEST,
@@ -347,7 +344,7 @@ public class QuizSessionServiceImpl implements QuizSessionService, DisposableBea
 
                 // Store as LocalDateTime in server timezone
                 session.setScheduledStartTime(scheduledStartInServerZone.toLocalDateTime());
-                log.info("✅ Session {} scheduled to start at {} (current time: {})",
+                log.info("Session {} scheduled to start at {} (current time: {})",
                         sessionCode, scheduledStartInServerZone, now);
             }
             if (settings.getScheduledEndTime() != null) {
@@ -358,7 +355,7 @@ public class QuizSessionServiceImpl implements QuizSessionService, DisposableBea
                 ZonedDateTime scheduledEndInServerZone = scheduledEnd.withZoneSameInstant(now.getZone());
                 LocalDateTime scheduledStart = session.getScheduledStartTime();
 
-                // ✅ FIX: Validate scheduled end time with proper timezone handling
+                // FIX: Validate scheduled end time with proper timezone handling
                 if (scheduledEndInServerZone.isBefore(now)) {
                     throw new ResponseStatusException(
                             HttpStatus.BAD_REQUEST,
@@ -394,11 +391,11 @@ public class QuizSessionServiceImpl implements QuizSessionService, DisposableBea
             }
             if (settings.getMode() != null) {
                 QuizMode newMode = QuizMode.valueOf(settings.getMode());
-                log.info("✅ Updating session {} mode from {} to {}",
+                log.info("Updating session {} mode from {} to {}",
                         sessionCode, session.getMode(), newMode);
                 session.setMode(newMode);
             } else {
-                log.warn("⚠️ Settings provided but mode is null for session {}. Current mode: {}",
+                log.warn("Settings provided but mode is null for session {}. Current mode: {}",
                         sessionCode, session.getMode());
             }
             if (settings.getMaxAttempts() != null) {
@@ -422,7 +419,7 @@ public class QuizSessionServiceImpl implements QuizSessionService, DisposableBea
 
             quizSessionRepository.save(session);
         } else {
-            log.warn("⚠️ No settings provided for session {}. Using existing mode: {}",
+            log.warn("No settings provided for session {}. Using existing mode: {}",
                     sessionCode, session.getMode());
         }
 
@@ -430,14 +427,14 @@ public class QuizSessionServiceImpl implements QuizSessionService, DisposableBea
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime scheduledStart = session.getScheduledStartTime();
 
-        log.info("🕐 Session {} - Current time: {}, Scheduled start: {}",
+        log.info("Session {} - Current time: {}, Scheduled start: {}",
                 sessionCode, now, scheduledStart);
 
         if (scheduledStart != null && scheduledStart.isAfter(now)) {
             // Schedule start for later
             long delaySeconds = java.time.Duration.between(now, scheduledStart).getSeconds();
 
-            log.info("⏰ Session {} scheduled to start at {} (in {} seconds)",
+            log.info("Session {} scheduled to start at {} (in {} seconds)",
                     sessionCode, scheduledStart, delaySeconds);
 
             // Broadcast scheduled message
@@ -467,7 +464,7 @@ public class QuizSessionServiceImpl implements QuizSessionService, DisposableBea
             return quizSessionMapper.toSessionResponse(session);
         } else {
             // Start immediately
-            log.info("⚡ Starting session {} immediately (no valid scheduled time)", sessionCode);
+            log.info("Starting session {} immediately (no valid scheduled time)", sessionCode);
             return actuallyStartSession(session);
         }
     }
@@ -500,19 +497,19 @@ public class QuizSessionServiceImpl implements QuizSessionService, DisposableBea
                 )
         );
 
-        // ✅ ADDED: Schedule auto-end if scheduled end time is set
+        // ADDED: Schedule auto-end if scheduled end time is set
         if (session.getScheduledEndTime() != null) {
             LocalDateTime now = LocalDateTime.now();
             LocalDateTime scheduledEnd = session.getScheduledEndTime();
 
-            log.info("🕐 Session {} - Current time: {}, Scheduled end: {}",
+            log.info("Session {} - Current time: {}, Scheduled end: {}",
                     session.getSessionCode(), now, scheduledEnd);
 
             if (scheduledEnd.isAfter(now)) {
                 long delaySeconds = java.time.Duration.between(now, scheduledEnd).getSeconds();
                 long durationMinutes = delaySeconds / 60;
 
-                log.info("⏰ Session {} scheduled to auto-end at {} (in {} minutes / {} seconds)",
+                log.info("Session {} scheduled to auto-end at {} (in {} minutes / {} seconds)",
                         session.getSessionCode(), scheduledEnd, durationMinutes, delaySeconds);
 
                 // Broadcast scheduled end time to participants
@@ -532,34 +529,34 @@ public class QuizSessionServiceImpl implements QuizSessionService, DisposableBea
 
                 scheduler.schedule(() -> {
                     try {
-                        log.info("⏱️ Auto-ending session {} at scheduled time {}",
+                        log.info("Auto-ending session {} at scheduled time {}",
                                 session.getSessionCode(), scheduledEnd);
                         endSession(session.getSessionCode());
                     } catch (Exception e) {
-                        log.error("❌ Error ending scheduled session {}", session.getSessionCode(), e);
+                        log.error("Error ending scheduled session {}", session.getSessionCode(), e);
                     }
                 }, delaySeconds, TimeUnit.SECONDS);
             } else {
-                log.warn("⚠️ Scheduled end time {} is in the past, session will not auto-end", scheduledEnd);
+                log.warn("Scheduled end time {} is in the past, session will not auto-end", scheduledEnd);
             }
         } else {
             log.info("ℹ️ Session {} has no scheduled end time - will run until manually ended",
                     session.getSessionCode());
         }
 
-        // ✅ Track analytics: participants joined
+        // Track analytics: participants joined
         int participantCount = participantRepository.countBySessionIdAndIsActiveTrue(session.getId());
         if (participantCount > 0 && session.getQuiz() != null) {
             quizAnalyticsService.recordParticipantsJoined(session.getQuiz().getId(), participantCount);
         }
 
-        // ✅ FIX: In SYNC mode, DON'T send first question automatically
+        // FIX: In SYNC mode, DON'T send first question automatically
         // Host will click "Next Question" to start question 1
         // In ASYNC mode, send first question to each participant
         scheduler.schedule(() -> {
             List<Participant> participants = participantRepository.findBySessionIdAndIsActiveTrue(session.getId());
             if (session.getMode() == QuizMode.SYNC) {
-                // ✅ FIX: In SYNC mode, wait for host to advance to question 1
+                // FIX: In SYNC mode, wait for host to advance to question 1
                 // Don't auto-send first question - let host control when to start
                 log.info("SYNC: Session {} started. Waiting for host to advance to question 1. {} participants ready.",
                         session.getSessionCode(), participants.size());
@@ -614,19 +611,19 @@ public class QuizSessionServiceImpl implements QuizSessionService, DisposableBea
                 )
         );
 
-        // ✅ Track analytics: participants joined
+        // Track analytics: participants joined
         int participantCount = participantRepository.countBySessionIdAndIsActiveTrue(session.getId());
         if (participantCount > 0 && session.getQuiz() != null) {
             quizAnalyticsService.recordParticipantsJoined(session.getQuiz().getId(), participantCount);
         }
 
-        // ✅ FIX: In SYNC mode, DON'T send first question automatically
+        // FIX: In SYNC mode, DON'T send first question automatically
         // Host will click "Next Question" to start question 1
         // In ASYNC mode, send first question to each participant
         scheduler.schedule(() -> {
             List<Participant> participants = participantRepository.findBySessionIdAndIsActiveTrue(session.getId());
             if (session.getMode() == QuizMode.SYNC) {
-                // ✅ FIX: In SYNC mode, wait for host to advance to question 1
+                // FIX: In SYNC mode, wait for host to advance to question 1
                 // Don't auto-send first question - let host control when to start
                 log.info("SYNC: Session {} started. Waiting for host to advance to question 1. {} participants ready.",
                         session.getSessionCode(), participants.size());
@@ -655,7 +652,7 @@ public class QuizSessionServiceImpl implements QuizSessionService, DisposableBea
                 return;
             }
 
-            // ✅ FIXED: Don't auto-end if scheduled end time is set and not reached
+            // FIXED: Don't auto-end if scheduled end time is set and not reached
             if (session.getScheduledEndTime() != null) {
                 LocalDateTime now = LocalDateTime.now();
                 if (now.isBefore(session.getScheduledEndTime())) {
@@ -690,9 +687,9 @@ public class QuizSessionServiceImpl implements QuizSessionService, DisposableBea
             log.error("Error checking session completion for session {}", session.getId(), e);
         }
     }
-    // =================== TIMEOUT HANDLER ===================
+
     /**
-     * ✅ FIX: Handle question timeout - notify participant but allow late answer
+     * FIX: Handle question timeout - notify participant but allow late answer
      */
     private void handleQuestionTimeout(String participantId, String questionId, String sessionCode, int questionNumber) {
         try {
@@ -715,7 +712,7 @@ public class QuizSessionServiceImpl implements QuizSessionService, DisposableBea
 
             QuizSession session = participant.getSession();
 
-            // ✅ NEW FIX: Just send notification - DON'T auto-submit or move to next question
+            // NEW FIX: Just send notification - DON'T auto-submit or move to next question
             // Let participant still answer after time is up, but they won't get speed bonus
             GameStateMessage timeUpNotification = new GameStateMessage(
                     sessionCode,
@@ -737,7 +734,6 @@ public class QuizSessionServiceImpl implements QuizSessionService, DisposableBea
         }
     }
 
-    // =================== SUBMIT ANSWER ===================
     @Override
     @Transactional
     public void submitAnswer(String sessionCode, String participantId, String selectedOptionId) {
@@ -784,7 +780,7 @@ public class QuizSessionServiceImpl implements QuizSessionService, DisposableBea
         int timeTaken = calculateParticipantTimeTaken(participantId, currentQuestion.getId());
         int questionTimeLimit = currentQuestion.getTimeLimit() != null ? currentQuestion.getTimeLimit() : defaultTimeLimit;
 
-        // ✅ FIX: Award base points for correct answer, bonus for speed
+        // FIX: Award base points for correct answer, bonus for speed
         int points = 0;
         int bonusPoints = 0;
 
@@ -872,9 +868,6 @@ public class QuizSessionServiceImpl implements QuizSessionService, DisposableBea
         }
     }
 
-
-
-    // =================== PARTICIPANT JOIN ===================
     @Transactional
     public SessionResponse joinSession(String sessionCode, String nickname, String userId, String avatarId) {
         QuizSession session = quizSessionRepository.findBySessionCode(sessionCode)
@@ -937,7 +930,6 @@ public class QuizSessionServiceImpl implements QuizSessionService, DisposableBea
         return quizSessionMapper.toSessionResponse(session);
     }
 
-    // =================== END SESSION ===================
     @Override
     @Transactional
     public SessionResponse endSession(String sessionCode) {
@@ -956,7 +948,7 @@ public class QuizSessionServiceImpl implements QuizSessionService, DisposableBea
 
         leaderboardService.finalizeSessionLeaderboard(session.getId());
 
-        // ✅ Track analytics: session completed
+        // Track analytics: session completed
         if (session.getQuiz() != null) {
             quizAnalyticsService.recordSessionCompleted(session.getQuiz().getId());
 
@@ -1032,7 +1024,6 @@ public class QuizSessionServiceImpl implements QuizSessionService, DisposableBea
         return UUID.randomUUID().toString().substring(0, 6).toUpperCase();
     }
 
-    // =================== SYNC ADVANCEMENT ===================
     @Override
     @Transactional
     public Question advanceToNextQuestion(String sessionCode) {

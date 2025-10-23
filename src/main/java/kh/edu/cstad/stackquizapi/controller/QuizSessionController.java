@@ -29,7 +29,6 @@ import java.util.Optional;
 public class QuizSessionController {
 
     private final QuizSessionService quizSessionService;
-//    private final QuizSessionServiceExtended quizSessionServiceExtended;
 
     @Operation(summary = "Get all users (secured)",
             security = { @SecurityRequirement(name = "bearerAuth") })
@@ -51,7 +50,6 @@ public class QuizSessionController {
             @RequestBody(required = false) HostCommandMessage.SessionSettings settings) {
 
         log.info("Starting session {} with settings: {}", sessionCode, settings);
-
 
         SessionResponse response = quizSessionService.startSessionWithSettings(sessionCode, settings);
 

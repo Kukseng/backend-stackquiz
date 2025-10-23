@@ -43,14 +43,14 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                     String principalName = null;
 
                     List<String> participantIds = accessor.getNativeHeader("participantId");
-                    if (participantIds != null && !participantIds.isEmpty() && participantIds.get(0) != null && !participantIds.get(0).isBlank()) {
-                        principalName = participantIds.get(0);
+                    if (participantIds != null && !participantIds.isEmpty() && participantIds.getFirst() != null && !participantIds.getFirst().isBlank()) {
+                        principalName = participantIds.getFirst();
                     }
 
                     if (principalName == null || principalName.isBlank()) {
                         List<String> nicks = accessor.getNativeHeader("nickname");
-                        if (nicks != null && !nicks.isEmpty() && nicks.get(0) != null && !nicks.get(0).isBlank()) {
-                            principalName = nicks.get(0);
+                        if (nicks != null && !nicks.isEmpty() && nicks.getFirst() != null && !nicks.getFirst().isBlank()) {
+                            principalName = nicks.getFirst();
                         }
                     }
 

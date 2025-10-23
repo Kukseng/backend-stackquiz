@@ -55,12 +55,6 @@ public class AuthServiceImpl implements AuthService {
     @Value("${keycloak.server-url}")
     private String serverUrl;
 
-    @Value("${keycloak.client-id}")
-    private String clientId;
-
-    @Value("${keycloak.client-secret:}")
-    private String clientSecret;
-
     @Value("${app.default-role}")
     private String defaultRole;
 
@@ -298,8 +292,7 @@ public class AuthServiceImpl implements AuthService {
         TokenResponse token;
 
         if (!existingUsers.isEmpty()) {
-            // ===== EXISTING user in KC =====
-            UserRepresentation existingUser = existingUsers.get(0);
+            UserRepresentation existingUser = existingUsers.getFirst();
             userId = existingUser.getId();
             kcUsername = existingUser.getUsername();
             log.info("User already exists in Keycloak: {}", userId);
@@ -350,7 +343,6 @@ public class AuthServiceImpl implements AuthService {
             }
 
         } else {
-            // ===== NEW user in KC =====
             String desired = (request.username() != null && !request.username().isBlank())
                     ? request.username()
                     : email;

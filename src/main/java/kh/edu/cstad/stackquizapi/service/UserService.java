@@ -12,6 +12,7 @@ import java.util.List;
  * service interface users management
  *
  * @author Ben Loemheng
+ * @since 1.0
  * */
 public interface UserService{
 

@@ -14,30 +14,40 @@ import java.util.List;
 @AllArgsConstructor
 public class SessionReportRequest {
 
-    // Basic filters
     private String sessionCode;
-    private List<String> participantIds; // Filter specific participants
-    private List<Integer> questionNumbers; // Filter specific questions
 
-    // Report customization
+    private List<String> participantIds;
+
+    private List<Integer> questionNumbers;
+
     private ReportType reportType;
+
     private List<ReportSection> includeSections;
+
     private ReportFormat format;
+
     private Boolean includeDetailedAnswers;
+
     private Boolean includePerformanceInsights;
+
     private Boolean includeRecommendations;
 
-    // Data filters
     private LocalDateTime fromDate;
-    private LocalDateTime toDate;
-    private Double minAccuracy;
-    private Double maxAccuracy;
-    private String completionStatus; // "ALL", "COMPLETED", "PARTIAL", "ABANDONED"
 
-    // Sorting and pagination
-    private String sortBy; // "score", "accuracy", "responseTime", "nickname"
-    private String sortDirection; // "ASC", "DESC"
+    private LocalDateTime toDate;
+
+    private Double minAccuracy;
+
+    private Double maxAccuracy;
+
+    private String completionStatus;
+
+    private String sortBy;
+
+    private String sortDirection;
+
     private Integer page;
+
     private Integer size;
 
     public enum ReportType {

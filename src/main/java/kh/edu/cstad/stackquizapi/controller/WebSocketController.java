@@ -1,7 +1,4 @@
-
-
 package kh.edu.cstad.stackquizapi.controller;
-
 
 import kh.edu.cstad.stackquizapi.dto.request.JoinSessionRequest;
 import kh.edu.cstad.stackquizapi.dto.request.SubmitAnswerRequest;
@@ -24,6 +21,7 @@ public class WebSocketController {
 
     private final QuizSessionService quizSessionService;
     private final ParticipantService participantService;
+
     // Host commands
     @MessageMapping("/session/{sessionId}/host-command")
     public void handleHostCommand(
@@ -34,7 +32,7 @@ public class WebSocketController {
 
         switch (commandMsg.getCommand()) {
             case START_SESSION -> {
-                // ✅ FIXED: Pass settings to startSession
+                // FIXED: Pass settings to startSession
                 if (commandMsg.getSettings() != null) {
                     quizSessionService.startSessionWithSettings(sessionId, commandMsg.getSettings());
                 } else {
@@ -65,9 +63,6 @@ public class WebSocketController {
         participantService.joinSession(request);
     }
 
-
-
-
     // Participant submits an answer
     @MessageMapping("/session/{sessionId}/answer")
     public void handleAnswerSubmission(
@@ -78,12 +73,12 @@ public class WebSocketController {
                 answerDto.getParticipantId(), sessionId, answerDto.getSelectedOptionId());
 
         SubmitAnswerRequest request = new SubmitAnswerRequest(
-                answerDto.getParticipantId(),      // participantId
-                answerDto.getQuestionId(),         // questionId
-                answerDto.getSelectedOptionId(),   // optionId
-                null,                              // answerText (MCQ only)
-                Math.toIntExact(answerDto.getResponseTime()),       // timeTaken (Long)
-                sessionId                          // sessionId
+                answerDto.getParticipantId(),
+                answerDto.getQuestionId(),
+                answerDto.getSelectedOptionId(),
+                null,
+                Math.toIntExact(answerDto.getResponseTime()),
+                sessionId
         );
 
         participantService.submitAnswer(request);

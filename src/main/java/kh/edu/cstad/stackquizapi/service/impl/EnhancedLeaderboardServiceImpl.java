@@ -110,7 +110,7 @@ public class EnhancedLeaderboardServiceImpl implements EnhancedLeaderboardServic
 
             // Calculate additional metrics
             int pointsBehindLeader = allParticipants.isEmpty() ? 0 : 
-                    allParticipants.get(0).getTotalScore() - participant.getTotalScore();
+                    allParticipants.getFirst().getTotalScore() - participant.getTotalScore();
             
             int pointsAheadOfNext = 0;
             if (currentRank < allParticipants.size()) {

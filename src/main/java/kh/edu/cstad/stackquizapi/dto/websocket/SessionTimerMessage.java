@@ -7,10 +7,6 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
-/**
- * WebSocket message for session timer updates
- * Provides real-time timing information to both host and participants
- */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

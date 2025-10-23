@@ -9,14 +9,8 @@ import java.util.Optional;
 @Repository
 public interface QuizAnalyticsRepository extends JpaRepository<QuizAnalytics, Long> {
 
-    /**
-     * Find analytics by quiz ID
-     */
     Optional<QuizAnalytics> findByQuizId(String quizId);
 
-    /**
-     * Check if analytics exist for a quiz
-     */
     boolean existsByQuizId(String quizId);
 }
 

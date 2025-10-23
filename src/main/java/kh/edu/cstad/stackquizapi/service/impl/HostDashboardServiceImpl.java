@@ -450,17 +450,17 @@ public class HostDashboardServiceImpl implements HostDashboardService {
             Question nextQuestion = quizSessionService.advanceToNextQuestion(sessionId);
 
             if (nextQuestion != null) {
-                log.info("✅ Successfully advanced to question {} in session {}",
+                log.info("Successfully advanced to question {} in session {}",
                         session.getCurrentQuestion(), sessionId);
             } else {
-                log.info("✅ No more questions - session {} will end", sessionId);
+                log.info("No more questions - session {} will end", sessionId);
             }
 
         } catch (ResponseStatusException e) {
-            log.error("❌ Error advancing question in session {}: {}", sessionId, e.getReason());
+            log.error("Error advancing question in session {}: {}", sessionId, e.getReason());
             throw e;
         } catch (Exception e) {
-            log.error("❌ Unexpected error advancing question in session {}", sessionId, e);
+            log.error("Unexpected error advancing question in session {}", sessionId, e);
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
                     "Failed to advance question: " + e.getMessage());
         }

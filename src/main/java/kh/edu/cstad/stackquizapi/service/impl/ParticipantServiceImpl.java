@@ -54,7 +54,7 @@ public class ParticipantServiceImpl implements ParticipantService {
     private final QuizSessionServiceImpl quizSessionServiceImpl;
     private final RealTimeRankingService realTimeRankingService;
 
-    // --- Helper to broadcast leaderboard ---
+    // Helper to broadcast leaderboard
     private void broadcastLeaderboardToSession(String sessionId) {
         LeaderboardResponse leaderboard = leaderboardService.getRealTimeLeaderboard(
                 new LeaderboardRequest(sessionId, 50, 0, false, null)
@@ -124,7 +124,7 @@ public class ParticipantServiceImpl implements ParticipantService {
 
         if (session.getStatus() == Status.IN_PROGRESS) {
             if (session.getMode() == QuizMode.SYNC) {
-                // ✅ FIX: In SYNC mode, send the current question only to this late joiner
+                // FIX: In SYNC mode, send the current question only to this late joiner
                 if (session.getCurrentQuestion() != null && session.getCurrentQuestion() > 0) {
                     List<Question> questions = session.getQuiz().getQuestions().stream()
                             .sorted(Comparator.comparingInt(Question::getQuestionOrder)).toList();
@@ -142,7 +142,7 @@ public class ParticipantServiceImpl implements ParticipantService {
                                     "START_QUESTION"
                             );
 
-                            // ✅ FIX: Send only to this participant, not broadcast
+                            // FIX: Send only to this participant, not broadcast
                             webSocketService.sendQuestionToParticipant(session.getSessionCode(), response.id(), qMsg);
                             log.info("Sent current question {} to late joiner {} in SYNC session {}",
                                     session.getCurrentQuestion(), response.nickname(), session.getSessionCode());

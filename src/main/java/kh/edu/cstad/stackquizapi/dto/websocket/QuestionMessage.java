@@ -20,7 +20,7 @@ public class QuestionMessage extends WebSocketMessage {
     private Long timeLimit;
     private String action;
 
-    // ✅ Constructor using QuestionResponse directly
+    // Constructor using QuestionResponse directly
     public QuestionMessage(String sessionId, String senderId, QuestionResponse question,
                            Integer questionNumber, Integer totalQuestions, Long timeLimit, String action) {
         super("QUESTION", sessionId, senderId);
@@ -31,7 +31,7 @@ public class QuestionMessage extends WebSocketMessage {
         this.action = action;
     }
 
-    // ✅ Constructor using domain Question (maps to QuestionResponse)
+    // Constructor using domain Question (maps to QuestionResponse)
     public QuestionMessage(String sessionId, String hostName, Question question,
                            int questionNumber, int totalQuestions, int timeLimit, String action) {
         super("QUESTION", sessionId, hostName);

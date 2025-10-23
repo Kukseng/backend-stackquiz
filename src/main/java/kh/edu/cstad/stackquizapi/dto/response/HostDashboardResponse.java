@@ -10,12 +10,9 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Comprehensive response DTO for host dashboard
- * Contains all information needed for real-time session management
- */
 @Builder
 public record HostDashboardResponse(
+
         // Session basic info
         String sessionId,
         String sessionCode,

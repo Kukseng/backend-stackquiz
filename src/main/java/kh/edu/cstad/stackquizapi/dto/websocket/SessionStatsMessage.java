@@ -5,10 +5,6 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
-/**
- * WebSocket message for broadcasting session statistics to all participants
- * Provides real-time session overview information
- */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

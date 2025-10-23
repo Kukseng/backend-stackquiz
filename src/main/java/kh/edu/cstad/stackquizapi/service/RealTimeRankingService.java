@@ -1,92 +1,153 @@
 package kh.edu.cstad.stackquizapi.service;
 
 import kh.edu.cstad.stackquizapi.dto.websocket.ParticipantRankingMessage;
-import kh.edu.cstad.stackquizapi.dto.websocket.ScoreUpdateMessage;
-import kh.edu.cstad.stackquizapi.dto.websocket.AnswerFeedbackMessage;
 
 import java.util.List;
 import java.util.Map;
 
 /**
- * Service for managing real-time participant rankings and score updates
- * Provides Kahoot-style real-time feedback to participants during quiz
+ * Service for managing real-time participant rankings and score updates.
+ * <p>
+ * Provides Kahoot-style instant feedback to participants during quizzes,
+ * including ranking updates, score notifications, and leaderboard broadcasts.
+ * </p>
+ *
+ * @author Phou Kukseng
+ * @since 1.0
  */
 public interface RealTimeRankingService {
 
     /**
-     * Update participant score and broadcast ranking changes to all participants
-     * Called after each answer submission
+     * Update a participant's score and broadcast ranking changes to all participants.
+     * Typically called after each answer submission.
+     *
+     * @param sessionId the session ID
+     * @param participantId the participant's ID
+     * @param participantNickname the participant's display nickname
+     * @param newScore the participant's updated score
+     * @param isCorrect whether the answer was correct
+     * @param pointsEarned points earned for the answer
      */
     void updateParticipantScoreAndRanking(String sessionId, String participantId,
                                           String participantNickname, int newScore,
                                           boolean isCorrect, int pointsEarned);
 
     /**
-     * Calculate and send individual ranking update to specific participant
+     * Calculate and send an individual ranking update to a specific participant.
+     *
+     * @param sessionId the session ID
+     * @param participantId the participant's ID
      */
     void sendRankingUpdateToParticipant(String sessionId, String participantId);
 
     /**
-     * Broadcast current leaderboard with ranking changes to all participants
+     * Broadcast the current leaderboard with updated rankings to all participants.
+     *
+     * @param sessionId the session ID
      */
     void broadcastRankingUpdates(String sessionId);
 
     /**
-     * Send score update message to specific participant
+     * Send a score update message to a specific participant.
+     *
+     * @param sessionId the session ID
+     * @param participantId the participant's ID
+     * @param pointsEarned points earned for the latest answer
+     * @param totalScore participant's total score
+     * @param isCorrect whether the answer was correct
      */
     void sendScoreUpdate(String sessionId, String participantId, int pointsEarned,
                          int totalScore, boolean isCorrect);
 
     /**
-     * Send answer feedback with ranking information to participant
+     * Send detailed answer feedback with ranking information to a participant.
+     *
+     * @param sessionId the session ID
+     * @param participantId the participant's ID
+     * @param questionId the question ID
+     * @param isCorrect whether the answer was correct
+     * @param pointsEarned points earned
+     * @param timeTaken time taken to answer
+     * @param selectedOptionId participant's selected option
+     * @param correctOptionId the correct option
      */
     void sendAnswerFeedback(String sessionId, String participantId, String questionId,
                             boolean isCorrect, int pointsEarned, int timeTaken,
                             String selectedOptionId, String correctOptionId);
 
     /**
-     * Get current participant rankings for session
+     * Get current participant rankings for a session.
+     *
+     * @param sessionId the session ID
+     * @return a map of participant IDs to their current rank
      */
     Map<String, Integer> getCurrentRankings(String sessionId);
 
     /**
-     * Get participant's current rank and position information
+     * Get detailed ranking information for a specific participant.
+     *
+     * @param sessionId the session ID
+     * @param participantId the participant's ID
+     * @return participant ranking message containing rank and position
      */
     ParticipantRankingMessage getParticipantRanking(String sessionId, String participantId);
 
     /**
-     * Calculate rank change for participant (UP, DOWN, SAME, NEW)
+     * Calculate rank change for a participant compared to previous ranking.
+     *
+     * @param sessionId the session ID
+     * @param participantId the participant's ID
+     * @param newRank the participant's new rank
+     * @return rank change indicator: "UP", "DOWN", "SAME", or "NEW"
      */
     String calculateRankChange(String sessionId, String participantId, int newRank);
 
     /**
-     * Store previous rankings for rank change calculation
+     * Store previous session rankings for rank change calculations.
+     *
+     * @param sessionId the session ID
+     * @param rankings map of participant IDs to their previous ranks
      */
     void storePreviousRankings(String sessionId, Map<String, Integer> rankings);
 
     /**
-     * Get top performers for session (top 3 or 5)
+     * Get top performers for a session.
+     *
+     * @param sessionId the session ID
+     * @param limit number of top participants to retrieve
+     * @return list of participant ranking messages
      */
     List<ParticipantRankingMessage> getTopPerformers(String sessionId, int limit);
 
     /**
-     * Send real-time progress update to participant showing their position
+     * Send real-time progress updates to a participant.
+     *
+     * @param sessionId the session ID
+     * @param participantId the participant's ID
+     * @param currentQuestion current question number
+     * @param totalQuestions total number of questions in the session
      */
     void sendProgressUpdate(String sessionId, String participantId, int currentQuestion,
                             int totalQuestions);
 
     /**
-     * Broadcast session statistics to all participants
+     * Broadcast session-wide statistics to all participants.
+     *
+     * @param sessionId the session ID
      */
     void broadcastSessionStats(String sessionId);
 
     /**
-     * Initialize ranking system for new session
+     * Initialize the ranking system for a new session.
+     *
+     * @param sessionId the session ID
      */
     void initializeSessionRankings(String sessionId);
 
     /**
-     * Clean up ranking data when session ends
+     * Clean up ranking data when a session ends.
+     *
+     * @param sessionId the session ID
      */
     void cleanupSessionRankings(String sessionId);
 }

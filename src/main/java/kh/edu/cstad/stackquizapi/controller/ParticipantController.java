@@ -29,11 +29,6 @@ public class ParticipantController {
     private final ParticipantService participantService;
     private final HostDashboardService hostDashboardService; // ✅ ADDED: Inject HostDashboardService
 
-    /**
-     * Join a quiz session
-     * @param request Contains session code and participant nickname
-     * @return ParticipantResponse with participant details
-     */
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping("/join")
     public ParticipantResponse joinSession(@Valid @RequestBody JoinSessionRequest request) {
@@ -48,21 +43,12 @@ public class ParticipantController {
         return participantService.joinSessionAsAuthenticatedUser(accessToken, request);
     }
 
-    /**
-     * Submit an answer to a question
-     * @param request Contains participant ID, question ID, selected option, and time taken
-     * @return Response with answer submission details
-     */
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping("/submit-answer")
     public SubmitAnswerResponse submitAnswer(@Valid @RequestBody SubmitAnswerRequest request) {
         return participantService.submitAnswer(request);
     }
 
-    /**
-     * Get all active participants in a session
-     * @return List of active participants
-     */
     @Operation(summary = "Host get all participants in a session",
             security = { @SecurityRequirement(name = "bearerAuth") })
     @ResponseStatus(HttpStatus.OK)
@@ -71,10 +57,6 @@ public class ParticipantController {
         return participantService.getSessionParticipants(quizCode);
     }
 
-    /**
-     * Remove participant from session (mark as inactive)
-     * @param participantId The participant ID to remove
-     */
     @Operation(summary = "Host Delete specify participants in a session",
             security = { @SecurityRequirement(name = "bearerAuth") })
     @ResponseStatus(HttpStatus.NO_CONTENT)
@@ -83,12 +65,6 @@ public class ParticipantController {
         participantService.leaveSession(participantId);
     }
 
-    /**
-     * Check if a nickname is available in a session
-     * @param quizCode The session ID
-     * @param nickname The nickname to check
-     * @return Boolean indicating availability
-     */
     @ResponseStatus(HttpStatus.OK)
     @GetMapping("/session/{quizCode}/nickname-available")
     public boolean isNicknameAvailable(
@@ -97,14 +73,6 @@ public class ParticipantController {
         return participantService.isNicknameAvailable(quizCode, nickname);
     }
 
-    /**
-     * ✅ FIXED: Get question analytics for participants
-     * This endpoint allows participants to see statistics after answering a question
-     * Reuses the existing HostDashboardService implementation
-     *
-     * @param sessionCode The session code
-     * @return Question analytics including participation rate, accuracy, option distribution, and top 3
-     */
     @Operation(summary = "Get question analytics for participants (no auth required)")
     @ResponseStatus(HttpStatus.OK)
     @GetMapping("/session/{sessionCode}/question-analytics")
@@ -112,18 +80,13 @@ public class ParticipantController {
             @PathVariable String sessionCode) {
         log.info("GET /api/v1/participants/session/{}/question-analytics", sessionCode);
 
-        // ✅ FIXED: Use the existing HostDashboardService method
+        // FIXED: Use the existing HostDashboardService method
         // This is safe because the analytics data is public to all participants in the session
         QuestionAnalyticsResponse analytics = hostDashboardService.getQuestionAnalytics(sessionCode);
 
         return ResponseEntity.ok(analytics);
     }
 
-    /**
-     * Check if a session can be joined
-     * @param quizCode The session code
-     * @return Boolean indicating if session is joinable
-     */
     @ResponseStatus(HttpStatus.OK)
     @GetMapping("/session/{quizCode}/can-join")
     public boolean canJoinSession(@PathVariable String quizCode) {

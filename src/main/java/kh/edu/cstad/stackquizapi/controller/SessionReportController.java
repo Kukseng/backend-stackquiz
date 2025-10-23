@@ -25,10 +25,6 @@ public class SessionReportController {
 
     private final SessionReportService sessionReportService;
 
-    /**
-     * Generate comprehensive session report
-     * GET /api/v1/reports/session/{sessionCode}
-     */
     @GetMapping("/session/{sessionCode}")
     @PreAuthorize("hasRole('HOST') or hasRole('ADMIN')")
     public ResponseEntity<SessionReportResponse> getSessionReport(
@@ -53,10 +49,6 @@ public class SessionReportController {
         return ResponseEntity.ok(report);
     }
 
-    /**
-     * Get session statistics summary
-     * GET /api/v1/reports/session/{sessionCode}/statistics
-     */
     @GetMapping("/session/{sessionCode}/statistics")
     @PreAuthorize("hasRole('HOST') or hasRole('ADMIN')")
     public ResponseEntity<SessionReportResponse.SessionStatistics> getSessionStatistics(
@@ -70,10 +62,6 @@ public class SessionReportController {
         return ResponseEntity.ok(statistics);
     }
 
-    /**
-     * Get detailed question analysis
-     * GET /api/v1/reports/session/{sessionCode}/questions
-     */
     @GetMapping("/session/{sessionCode}/questions")
     @PreAuthorize("hasRole('HOST') or hasRole('ADMIN')")
     public ResponseEntity<List<SessionReportResponse.QuestionAnalysis>> getQuestionAnalysis(
@@ -87,10 +75,6 @@ public class SessionReportController {
         return ResponseEntity.ok(analysis);
     }
 
-    /**
-     * Get participant reports with pagination and filtering
-     * GET /api/v1/reports/session/{sessionCode}/participants
-     */
     @GetMapping("/session/{sessionCode}/participants")
     @PreAuthorize("hasRole('HOST') or hasRole('ADMIN')")
     public ResponseEntity<Page<SessionReportResponse.ParticipantReport>> getParticipantReports(
@@ -123,10 +107,6 @@ public class SessionReportController {
         return ResponseEntity.ok(reports);
     }
 
-    /**
-     * Get individual participant detailed report
-     * GET /api/v1/reports/session/{sessionCode}/participant/{participantId}
-     */
     @GetMapping("/session/{sessionCode}/participant/{participantId}")
     @PreAuthorize("hasRole('HOST') or hasRole('ADMIN') or #participantId == authentication.name")
     public ResponseEntity<SessionReportResponse.ParticipantReport> getParticipantReport(
@@ -142,10 +122,6 @@ public class SessionReportController {
         return ResponseEntity.ok(report);
     }
 
-    /**
-     * Get performance insights and recommendations
-     * GET /api/v1/reports/session/{sessionCode}/insights
-     */
     @GetMapping("/session/{sessionCode}/insights")
     @PreAuthorize("hasRole('HOST') or hasRole('ADMIN')")
     public ResponseEntity<SessionReportResponse.PerformanceInsights> getPerformanceInsights(
@@ -159,10 +135,6 @@ public class SessionReportController {
         return ResponseEntity.ok(insights);
     }
 
-    /**
-     * Get real-time session report (for ongoing sessions)
-     * GET /api/v1/reports/session/{sessionCode}/live
-     */
     @GetMapping("/session/{sessionCode}/live")
     @PreAuthorize("hasRole('HOST') or hasRole('ADMIN')")
     public ResponseEntity<SessionReportResponse> getLiveSessionReport(
@@ -175,10 +147,6 @@ public class SessionReportController {
         return ResponseEntity.ok(report);
     }
 
-    /**
-     * Get question answer history
-     * GET /api/v1/reports/session/{sessionCode}/question/{questionId}/answers
-     */
     @GetMapping("/session/{sessionCode}/question/{questionId}/answers")
     @PreAuthorize("hasRole('HOST') or hasRole('ADMIN')")
     public ResponseEntity<List<SessionReportResponse.ParticipantAnswer>> getQuestionAnswerHistory(
@@ -193,10 +161,6 @@ public class SessionReportController {
         return ResponseEntity.ok(answers);
     }
 
-    /**
-     * Export session report in different formats
-     * GET /api/v1/reports/session/{sessionCode}/export
-     */
     @GetMapping("/session/{sessionCode}/export")
     @PreAuthorize("hasRole('HOST') or hasRole('ADMIN')")
     public ResponseEntity<byte[]> exportSessionReport(
@@ -217,7 +181,6 @@ public class SessionReportController {
 
         byte[] reportData = sessionReportService.exportSessionReport(sessionCode, request);
 
-        // Set appropriate headers based on format
         HttpHeaders headers = new HttpHeaders();
         String filename = "session_report_" + sessionCode;
 
@@ -244,10 +207,6 @@ public class SessionReportController {
                 .body(reportData);
     }
 
-    /**
-     * Compare multiple session reports
-     * POST /api/v1/reports/compare
-     */
     @PostMapping("/compare")
     @PreAuthorize("hasRole('HOST') or hasRole('ADMIN')")
     public ResponseEntity<List<SessionReportResponse>> compareSessionReports(
@@ -256,7 +215,7 @@ public class SessionReportController {
         log.info("Comparing session reports for sessions: {}", sessionCodes);
 
         if (sessionCodes.size() > 10) {
-            return ResponseEntity.badRequest().build(); // Limit comparison to 10 sessions
+            return ResponseEntity.badRequest().build();
         }
 
         List<SessionReportResponse> reports =
@@ -265,10 +224,6 @@ public class SessionReportController {
         return ResponseEntity.ok(reports);
     }
 
-    /**
-     * Generate custom report with advanced filtering
-     * POST /api/v1/reports/session/{sessionCode}/custom
-     */
     @PostMapping("/session/{sessionCode}/custom")
     @PreAuthorize("hasRole('HOST') or hasRole('ADMIN')")
     public ResponseEntity<SessionReportResponse> generateCustomReport(
@@ -285,10 +240,6 @@ public class SessionReportController {
         return ResponseEntity.ok(report);
     }
 
-    /**
-     * Get session report summary for dashboard
-     * GET /api/v1/reports/session/{sessionCode}/summary
-     */
     @GetMapping("/session/{sessionCode}/summary")
     @PreAuthorize("hasRole('HOST') or hasRole('ADMIN')")
     public ResponseEntity<SessionReportResponse> getSessionSummary(
@@ -309,10 +260,6 @@ public class SessionReportController {
         return ResponseEntity.ok(report);
     }
 
-    /**
-     * Get participant performance trends
-     * GET /api/v1/reports/session/{sessionCode}/participant/{participantId}/trends
-     */
     @GetMapping("/session/{sessionCode}/participant/{participantId}/trends")
     @PreAuthorize("hasRole('HOST') or hasRole('ADMIN') or #participantId == authentication.name")
     public ResponseEntity<SessionReportResponse.PerformanceMetrics> getParticipantTrends(
@@ -328,10 +275,6 @@ public class SessionReportController {
         return ResponseEntity.ok(report.getPerformance());
     }
 
-    /**
-     * Get question difficulty analysis
-     * GET /api/v1/reports/session/{sessionCode}/difficulty
-     */
     @GetMapping("/session/{sessionCode}/difficulty")
     @PreAuthorize("hasRole('HOST') or hasRole('ADMIN')")
     public ResponseEntity<List<SessionReportResponse.QuestionAnalysis>> getQuestionDifficultyAnalysis(
@@ -353,10 +296,6 @@ public class SessionReportController {
         return ResponseEntity.ok(analysis);
     }
 
-    /**
-     * Get session engagement metrics
-     * GET /api/v1/reports/session/{sessionCode}/engagement
-     */
     @GetMapping("/session/{sessionCode}/engagement")
     @PreAuthorize("hasRole('HOST') or hasRole('ADMIN')")
     public ResponseEntity<EngagementMetrics> getEngagementMetrics(
@@ -383,9 +322,6 @@ public class SessionReportController {
         return ResponseEntity.ok(metrics);
     }
 
-    /**
-     * Helper class for engagement metrics
-     */
     @lombok.Data
     @lombok.Builder
     @lombok.NoArgsConstructor
@@ -400,9 +336,6 @@ public class SessionReportController {
         private Integer activeParticipants;
     }
 
-    /**
-     * Exception handler for report generation errors
-     */
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<ErrorResponse> handleReportError(RuntimeException ex) {
         log.error("Error generating report: {}", ex.getMessage(), ex);
@@ -416,9 +349,6 @@ public class SessionReportController {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
     }
 
-    /**
-     * Exception handler for not found errors
-     */
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ErrorResponse> handleNotFound(IllegalArgumentException ex) {
         log.warn("Resource not found: {}", ex.getMessage());
@@ -432,9 +362,6 @@ public class SessionReportController {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
     }
 
-    /**
-     * Helper class for error responses
-     */
     @lombok.Data
     @lombok.Builder
     @lombok.NoArgsConstructor

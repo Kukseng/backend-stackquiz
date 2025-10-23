@@ -22,16 +22,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-/**
- * Security configuration for integrating Keycloak with Spring Security.
- * <p>
- * Configures JWT authentication, role mapping, and HTTP security rules
- * for the API. Ensures stateless session management and disables form login/CSRF
- * for API-based authentication.
- * </p>
- *
- * @author PECH RATTANAKMONY
- */
+
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
@@ -122,6 +113,7 @@ public class KeycloakSecurityConfig {
                         // Quiz endpoints
                         .requestMatchers(HttpMethod.GET, "/api/v1/quizzes").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/quizzes/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/quizzes/suspend").hasRole("ORGANIZER")
                         .requestMatchers(HttpMethod.GET, "/api/v1/quizzes/me").hasRole("ORGANIZER")
                         .requestMatchers(HttpMethod.GET, "/api/v1/quizzes/draft").hasRole("ORGANIZER")
                         .requestMatchers(HttpMethod.GET, "/api/v1/quizzes/favorite/me").hasRole("ORGANIZER")

@@ -159,23 +159,23 @@ public class RealTimeRankingServiceImpl implements RealTimeRankingService {
             QuizSession session = quizSessionRepository.findById(sessionId)
                     .orElseThrow(() -> new RuntimeException("Session not found"));
 
-            // ✅ FIXED: Calculate actual rank instead of hardcoding to 0
+            // FIXED: Calculate actual rank instead of hardcoding to 0
             Map<String, Integer> currentRankings = getCurrentRankings(sessionId);
             int currentRank = currentRankings.getOrDefault(participantId, 0);
 
-            // ✅ FIXED: Include all required fields
+            // FIXED: Include all required fields
             AnswerFeedbackMessage feedback = new AnswerFeedbackMessage(
                     session.getSessionCode(),
                     "SYSTEM",
                     participantId,
                     questionId,
-                    selectedOptionId,        // ✅ Now includes selected option
-                    correctOptionId,         // ✅ Now includes correct option
+                    selectedOptionId,        // Now includes selected option
+                    correctOptionId,         // Now includes correct option
                     isCorrect,
                     pointsEarned,
                     timeTaken,
                     participant.getTotalScore(),
-                    currentRank,            // ✅ Now uses calculated rank
+                    currentRank,            // Now uses calculated rank
                     null // explanation - could be added if available
             );
 
@@ -237,7 +237,7 @@ public class RealTimeRankingServiceImpl implements RealTimeRankingService {
             int pointsAheadOfNext = 0;
 
             if (!allParticipants.isEmpty()) {
-                int leaderScore = allParticipants.get(0).getTotalScore();
+                int leaderScore = allParticipants.getFirst().getTotalScore();
                 pointsBehindLeader = leaderScore - participant.getTotalScore();
 
                 if (currentRank < totalParticipants) {

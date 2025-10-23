@@ -23,8 +23,6 @@ public class LeaderboardController {
 
     private final LeaderboardService leaderboardService;
 
-    // ----- Public endpoints -----
-
     @ResponseStatus(HttpStatus.OK)
     @PostMapping("/live")
     public LeaderboardResponse getRealTimeLeaderboard(@Valid @RequestBody LeaderboardRequest request) {
@@ -73,8 +71,6 @@ public class LeaderboardController {
     public SessionStats getSessionStats(@PathVariable String sessionId) {
         return leaderboardService.getSessionStatistics(sessionId);
     }
-
-    // ----- Secured endpoints (for host/organizer) -----
 
     @Operation(summary = "Get historical leaderboards", security = { @SecurityRequirement(name = "bearerAuth") })
     @ResponseStatus(HttpStatus.OK)

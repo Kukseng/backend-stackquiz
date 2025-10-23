@@ -54,7 +54,7 @@ public class AvatarServiceImpl implements AvatarService {
         log.info("Fetching avatar with ID: {}", id);
         Avatar avatar = avatarRepository.findById(id)
                 .orElseThrow(() -> {
-                    log.error("❌ Avatar not found with ID: {}", id);
+                    log.error("Avatar not found with ID: {}", id);
                     return new ResponseStatusException(
                             HttpStatus.NOT_FOUND,
                             "Avatar not found with ID: " + id
@@ -70,7 +70,7 @@ public class AvatarServiceImpl implements AvatarService {
         
         Avatar avatar = avatarRepository.findById(id)
                 .orElseThrow(() -> {
-                    log.error("❌ Avatar not found with ID: {}", id);
+                    log.error("Avatar not found with ID: {}", id);
                     return new ResponseStatusException(
                             HttpStatus.NOT_FOUND,
                             "Avatar not found with ID: " + id
@@ -81,7 +81,7 @@ public class AvatarServiceImpl implements AvatarService {
         avatar.setName(updateRequest.name());
         
         Avatar updatedAvatar = avatarRepository.save(avatar);
-        log.info("✅ Avatar updated successfully: {}", updatedAvatar.getName());
+        log.info("Avatar updated successfully: {}", updatedAvatar.getName());
         
         return mapToResponse(updatedAvatar);
     }
@@ -100,7 +100,7 @@ public class AvatarServiceImpl implements AvatarService {
         }
         
         avatarRepository.deleteById(id);
-        log.info("✅ Avatar deleted successfully with ID: {}", id);
+        log.info("Avatar deleted successfully with ID: {}", id);
     }
 
     @Override
@@ -118,7 +118,7 @@ public class AvatarServiceImpl implements AvatarService {
                 .collect(Collectors.toList());
         
         List<Avatar> savedAvatars = avatarRepository.saveAll(avatars);
-        log.info("✅ Successfully created {} avatars", savedAvatars.size());
+        log.info("Successfully created {} avatars", savedAvatars.size());
         
         return savedAvatars.stream()
                 .map(this::mapToResponse)
@@ -165,7 +165,7 @@ public class AvatarServiceImpl implements AvatarService {
         );
         
         List<AvatarResponse> createdAvatars = createMultipleAvatars(defaultAvatars);
-        log.info("✅ Successfully initialized {} default avatars", createdAvatars.size());
+        log.info("Successfully initialized {} default avatars", createdAvatars.size());
         
         return createdAvatars;
     }

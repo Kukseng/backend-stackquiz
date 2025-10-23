@@ -28,9 +28,6 @@ public class AIQuizIntegrationServiceImpl {
     private final QuestionRepository questionRepository;
     private final OptionRepository optionRepository;
 
-    /**
-     * Generate AI questions and save them directly to a quiz
-     */
     @Transactional
     public List<Question> generateAndSaveQuestions(String quizId, AIQuizGenerationRequest request) {
         log.info("Generating and saving {} questions for quiz: {}", request.getNumberOfQuestions(), quizId);
@@ -65,9 +62,6 @@ public class AIQuizIntegrationServiceImpl {
         return savedQuestions;
     }
 
-    /**
-     * Generate a single question and add to quiz
-     */
     @Transactional
     public Question generateAndSaveSingleQuestion(String quizId, String topic, String difficulty, String questionType) {
         Quiz quiz = quizRepository.findById(quizId)

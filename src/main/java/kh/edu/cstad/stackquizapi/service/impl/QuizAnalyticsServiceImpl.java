@@ -54,7 +54,7 @@ public class QuizAnalyticsServiceImpl implements QuizAnalyticsService {
 
         quizAnalyticsRepository.save(analytics);
 
-        log.info("📊 Session created for quiz {}. Total sessions: {}",
+        log.info("Session created for quiz {}. Total sessions: {}",
                 quizId, analytics.getTotalSessionsHosted());
     }
 
@@ -67,7 +67,7 @@ public class QuizAnalyticsServiceImpl implements QuizAnalyticsService {
 
         quizAnalyticsRepository.save(analytics);
 
-        log.info("📊 {} participants joined quiz {}. Total participants: {}, Avg per session: {}",
+        log.info("{} participants joined quiz {}. Total participants: {}, Avg per session: {}",
                 participantCount, quizId, analytics.getTotalParticipants(),
                 String.format("%.1f", analytics.getAverageParticipantsPerSession()));
     }
@@ -82,7 +82,7 @@ public class QuizAnalyticsServiceImpl implements QuizAnalyticsService {
 
         quizAnalyticsRepository.save(analytics);
 
-        log.info("📊 Session completed for quiz {}. Total completions: {}",
+        log.info("Session completed for quiz {}. Total completions: {}",
                 quizId, analytics.getTotalCompletions());
     }
 
@@ -95,7 +95,7 @@ public class QuizAnalyticsServiceImpl implements QuizAnalyticsService {
 
         quizAnalyticsRepository.save(analytics);
 
-        log.info("📊 Updated question stats for quiz {}. Accuracy: {:.1f}%",
+        log.info("Updated question stats for quiz {}. Accuracy: {:.1f}%",
                 quizId, analytics.getOverallAccuracyRate());
     }
 
@@ -113,9 +113,6 @@ public class QuizAnalyticsServiceImpl implements QuizAnalyticsService {
         }
     }
 
-    /**
-     * Get existing analytics or create new one
-     */
     private QuizAnalytics getOrCreateAnalytics(String quizId) {
         return quizAnalyticsRepository.findByQuizId(quizId)
                 .orElseGet(() -> {

@@ -10,10 +10,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-/**
- * Controller for Admin Dashboard endpoints
- * Provides comprehensive statistics for system administrators
- */
 @Slf4j
 @RestController
 @RequiredArgsConstructor
@@ -22,29 +18,6 @@ public class AdminDashboardController {
 
     private final AdminDashboardService adminDashboardService;
 
-    /**
-     * Get comprehensive admin dashboard statistics
-     * 
-     * Returns:
-     * - Total sessions (all time)
-     * - Active sessions (currently running)
-     * - Completed sessions
-     * - Total participants (across all sessions)
-     * - Active participants (currently in sessions)
-     * - Total unique participants
-     * - Total quizzes
-     * - Total questions
-     * - Total answers submitted
-     * - Average participants per session
-     * - Average session duration
-     * - Overall accuracy rate
-     * - Sessions today/this week/this month
-     * - Participants today/this week/this month
-     * - Top 5 most popular quizzes
-     * - Recent activity
-     * 
-     * @return AdminDashboardResponse with all statistics
-     */
     @Operation(
         summary = "Get admin dashboard statistics",
         description = "Get comprehensive statistics for admin dashboard including sessions, participants, quizzes, and engagement metrics",
@@ -58,12 +31,6 @@ public class AdminDashboardController {
         return ResponseEntity.ok(stats);
     }
 
-    /**
-     * Get admin dashboard statistics for a specific time period
-     * 
-     * @param days Number of days to look back (default: 30)
-     * @return AdminDashboardResponse with filtered statistics
-     */
     @Operation(
         summary = "Get admin dashboard statistics by period",
         description = "Get statistics for a specific time period (e.g., last 7 days, last 30 days)",

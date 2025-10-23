@@ -1,7 +1,5 @@
-
 package kh.edu.cstad.stackquizapi.dto.response;
 
-import kh.edu.cstad.stackquizapi.domain.Option;
 import kh.edu.cstad.stackquizapi.util.QuestionType;
 
 import java.util.List;

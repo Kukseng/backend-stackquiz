@@ -5,10 +5,6 @@ import lombok.Builder;
 
 import java.time.LocalDateTime;
 
-/**
- * Request DTO for updating session timing settings
- * Allows hosts to control session scheduling and question timing
- */
 @Builder
 public record SessionTimingRequest(
         LocalDateTime scheduledStartTime,

@@ -17,17 +17,16 @@ public interface ParticipantAnswerRepository extends JpaRepository<ParticipantAn
     Optional<ParticipantAnswer> findByParticipantIdAndQuestionId(String participantId, String questionId);
 
     List<ParticipantAnswer> findByParticipantIdOrderByAnsweredAtAsc(String participantId);
+
     long countByParticipantId(String participantId);
 
-//    List<ParticipantAnswer> findByQuestionIdOrderByAnsweredAtAsc(String questionId);
+    Long countByIsCorrectTrue();
 
-//    boolean existsByParticipantIdAndQuestionId(String participantId, String questionId);
+    Long countByAnsweredAtAfter(java.time.LocalDateTime date);
 
-    long countByQuestionId(String questionId);
+    Long countByParticipantIdIn(List<String> participantIds);
 
-//    @Query("SELECT COUNT(pa) FROM ParticipantAnswer pa " +
-//           "WHERE pa.participant.id = :participantId AND pa.isCorrect = true")
-//    long countCorrectAnswersByParticipantId(@Param("participantId") String participantId);
+    Long countByParticipantIdInAndIsCorrectTrue(List<String> participantIds);
 
     @Query("SELECT pa FROM ParticipantAnswer pa " +
             "WHERE pa.participant.session.id = :sessionId")
@@ -41,14 +40,6 @@ public interface ParticipantAnswerRepository extends JpaRepository<ParticipantAn
             @Param("sessionId") String sessionId
     );
 
-    @Query("SELECT pa FROM ParticipantAnswer pa " +
-            "JOIN pa.participant p " +
-            "WHERE pa.participant.id = :participantId AND p.session.id = :sessionId " +
-            "ORDER BY pa.answeredAt ASC")
-    List<ParticipantAnswer> findByParticipantIdAndParticipantSessionIdOrderByAnsweredAtAsc(
-            @Param("participantId") String participantId,
-            @Param("sessionId") String sessionId);
-
     @Query("SELECT COUNT(pa) FROM ParticipantAnswer pa " +
             "JOIN pa.participant p " +
             "WHERE p.session.id = :sessionId")
@@ -59,9 +50,4 @@ public interface ParticipantAnswerRepository extends JpaRepository<ParticipantAn
             "WHERE p.session.id = :sessionId AND pa.isCorrect = :isCorrect")
     long countBySessionIdAndIsCorrect(@Param("sessionId") String sessionId, @Param("isCorrect") boolean isCorrect);
 
-    // Admin Dashboard Methods
-    Long countByIsCorrectTrue();
-    Long countByAnsweredAtAfter(java.time.LocalDateTime date);
-    Long countByParticipantIdIn(List<String> participantIds);
-    Long countByParticipantIdInAndIsCorrectTrue(List<String> participantIds);
 }

@@ -6,10 +6,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-/**
- * Controller for quiz analytics endpoints
- * Provides statistics like "Played by 5K students" and "100 times hosted"
- */
 @RestController
 @RequestMapping("/api/v1/quizzes")
 @RequiredArgsConstructor

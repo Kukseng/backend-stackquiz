@@ -2,10 +2,6 @@ package kh.edu.cstad.stackquizapi.dto.response;
 
 import java.time.LocalDateTime;
 
-/**
- * Response DTO for quiz analytics
- * Shows statistics like "Played by 5K students" and "100 times hosted"
- */
 public record QuizAnalyticsResponse(
         String quizId,
 
@@ -31,9 +27,7 @@ public record QuizAnalyticsResponse(
         String sessionsDisplay,           // "100 sessions"
         String accuracyDisplay            // "85.5% accuracy"
 ) {
-    /**
-     * Create response with formatted display strings
-     */
+
     public static QuizAnalyticsResponse from(
             String quizId,
             Integer totalSessionsHosted,

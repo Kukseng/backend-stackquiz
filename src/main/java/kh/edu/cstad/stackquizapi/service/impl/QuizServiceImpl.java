@@ -8,7 +8,6 @@ import kh.edu.cstad.stackquizapi.dto.request.QuizUpdateRequest;
 import kh.edu.cstad.stackquizapi.dto.request.SuspendQuizRequest;
 import kh.edu.cstad.stackquizapi.dto.response.FavoriteQuizResponse;
 import kh.edu.cstad.stackquizapi.dto.response.CreateFeedbackResponse;
-import kh.edu.cstad.stackquizapi.dto.response.QuestionResponse;
 import kh.edu.cstad.stackquizapi.dto.response.QuizFeedbackResponse;
 import kh.edu.cstad.stackquizapi.dto.response.QuizResponse;
 import kh.edu.cstad.stackquizapi.dto.response.QuizSuspensionResponse;
@@ -35,7 +34,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class QuizServiceImpl implements QuizService {
 
-    private final QuizAnalyticsService  quizAnalyticsService;
+    private final QuizAnalyticsService quizAnalyticsService;
     private final QuizRepository quizRepository;
     private final QuizMapper quizMapper;
     private final CategoryRepository categoryRepository;
@@ -131,8 +130,6 @@ public class QuizServiceImpl implements QuizService {
     }
 
 
-
-
     @Override
     public QuizResponse updateQuiz(String QuizId, QuizUpdateRequest quizUpdateRequest, Jwt accessToken) {
 
@@ -223,6 +220,47 @@ public class QuizServiceImpl implements QuizService {
                 ),
                 "Quiz '" + quiz.getTitle() + "' has been suspended successfully and the creator has been notified."
         );
+    }
+
+    @Override
+    public List<QuizSuspensionResponse> getSuspendedQuizzes(Jwt accessToken) {
+        String userId = accessToken.getSubject();
+
+        List<Quiz> suspendedQuizzes = quizRepository.findAll()
+                .stream()
+                .filter(quiz -> quiz.getUser().getId().equals(userId)
+                        && quiz.getStatus().equals(QuizStatus.SUSPENDED))
+                .toList();
+
+        if (suspendedQuizzes.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No suspended quizzes found for this user");
+        }
+
+        return suspendedQuizzes.stream()
+                .map(quiz -> new QuizSuspensionResponse(
+                        "success",
+                        "suspended_quiz_notification",
+                        new QuizSuspensionResponse.QuizInfo(
+                                quiz.getId(),
+                                quiz.getTitle(),
+                                quiz.getStatus().name(), // oldStatus not tracked here
+                                quiz.getStatus().name(),
+                                quiz.getIsActive(),
+                                quiz.getFlagged()
+                        ),
+                        "Your quiz has been suspended",
+                        new QuizSuspensionResponse.AdminInfo(
+                                null,
+                                "SYSTEM"
+                        ),
+                        LocalDateTime.now(),
+                        new QuizSuspensionResponse.NextSteps(
+                                "/api/quizzes/" + quiz.getId() + "/appeal",
+                                LocalDateTime.now().plusDays(7)
+                        ),
+                        "Quiz '" + quiz.getTitle() + "' has been suspended successfully."
+                ))
+                .toList();
     }
 
     @Override

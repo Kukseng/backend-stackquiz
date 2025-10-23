@@ -219,19 +219,16 @@ public class SessionReportServiceImpl implements SessionReportService {
 
     @Override
     public byte[] exportSessionReport(String sessionCode, SessionReportRequest request) {
+
         // Implementation for exporting to different formats (CSV, PDF, Excel)
         SessionReportResponse report = generateSessionReport(sessionCode, request);
 
-        switch (request.getFormat()) {
-            case CSV:
-                return exportToCsv(report);
-            case PDF:
-                return exportToPdf(report);
-            case EXCEL:
-                return exportToExcel(report);
-            default:
-                throw new IllegalArgumentException("Unsupported export format: " + request.getFormat());
-        }
+        return switch (request.getFormat()) {
+            case CSV -> exportToCsv(report);
+            case PDF -> exportToPdf(report);
+            case EXCEL -> exportToExcel(report);
+            default -> throw new IllegalArgumentException("Unsupported export format: " + request.getFormat());
+        };
     }
 
     @Override
@@ -765,7 +762,7 @@ public class SessionReportServiceImpl implements SessionReportService {
         // Calculate variance in performance
         List<Boolean> results = answers.stream()
                 .map(ParticipantAnswer::getIsCorrect)
-                .collect(Collectors.toList());
+                .toList();
 
         // Simple consistency measure based on streaks
         int changes = 0;

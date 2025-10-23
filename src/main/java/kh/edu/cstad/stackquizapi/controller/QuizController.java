@@ -80,13 +80,21 @@ public class QuizController {
     @Operation(summary = "Suspend quiz (admin)",
             security = {@SecurityRequirement(name = "bearerAuth")})
     @ResponseStatus(HttpStatus.CREATED)
-    @PostMapping("/admin/{quizId}/suspends")
+    @PatchMapping("/admin/{quizId}/suspend")
     public QuizSuspensionResponse suspendQuiz(
             @PathVariable String quizId,
             @Valid @RequestBody SuspendQuizRequest request,
             @AuthenticationPrincipal Jwt accessToken
     ) {
         return quizService.suspendQuiz(quizId, request, accessToken);
+    }
+
+    @Operation(summary = "Suspend quiz (admin)",
+            security = {@SecurityRequirement(name = "bearerAuth")})
+    @ResponseStatus(HttpStatus.CREATED)
+    @GetMapping("/suspend")
+    List<QuizSuspensionResponse> getSuspendedQuizzes(@AuthenticationPrincipal Jwt accessToken) {
+        return quizService.getSuspendedQuizzes(accessToken);
     }
 
     @Operation(summary = "Add quiz to favorites (user)",

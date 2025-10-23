@@ -1,13 +1,10 @@
 package kh.edu.cstad.stackquizapi.service.impl;
 
 import kh.edu.cstad.stackquizapi.domain.Category;
-import kh.edu.cstad.stackquizapi.domain.User;
 import kh.edu.cstad.stackquizapi.dto.request.CategoryRequest;
 import kh.edu.cstad.stackquizapi.dto.response.CategoryResponse;
 import kh.edu.cstad.stackquizapi.mapper.CategoryMapper;
 import kh.edu.cstad.stackquizapi.repository.CategoryRepository;
-import kh.edu.cstad.stackquizapi.repository.QuizRepository;
-import kh.edu.cstad.stackquizapi.repository.UserRepository;
 import kh.edu.cstad.stackquizapi.service.CategoryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -22,7 +19,6 @@ import java.util.List;
 public class CategoryServiceImpl implements CategoryService {
 
     private final CategoryRepository categoryRepository;
-    private final UserRepository userRepository;
     private final CategoryMapper categoryMapper;
 
 

@@ -7,128 +7,229 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Enhanced leaderboard service with comprehensive real-time features
- * Extends basic leaderboard functionality with Kahoot-style real-time updates
+ * Enhanced leaderboard service with comprehensive real-time features.
+ * <p>
+ * Extends basic leaderboard functionality with advanced, Kahoot-style
+ * real-time updates, dynamic ranking, and detailed performance analytics.
+ * </p>
+ *
+ * <p>This service provides:
+ * <ul>
+ *   <li>Real-time leaderboard synchronization for participants and hosts</li>
+ *   <li>Detailed participant ranking and performance metrics</li>
+ *   <li>Historical snapshots and trend analysis</li>
+ *   <li>Export and visualization support</li>
+ * </ul>
+ * </p>
+ *
+ * @author Phou Kukseng
+ * @since 1.0
  */
 public interface EnhancedLeaderboardService {
-    
+
     /**
-     * Get enhanced real-time leaderboard with ranking changes and context
+     * Retrieves an enhanced real-time leaderboard with ranking changes and context.
+     *
+     * @param sessionId the game session identifier
+     * @param limit     the maximum number of participants to return
+     * @param offset    the pagination offset
+     * @return a response containing the enhanced real-time leaderboard
      */
     LeaderboardResponse getEnhancedRealTimeLeaderboard(String sessionId, int limit, int offset);
-    
+
     /**
-     * Get leaderboard with current question context
+     * Retrieves the leaderboard with current question context.
+     *
+     * @param sessionId        the game session identifier
+     * @param currentQuestion  the current question index
+     * @return a response containing leaderboard data with question context
      */
     LeaderboardResponse getLeaderboardWithQuestionContext(String sessionId, int currentQuestion);
-    
+
     /**
-     * Get participant ranking with detailed position information
+     * Retrieves a participant's detailed ranking position and statistics.
+     *
+     * @param sessionId      the game session identifier
+     * @param participantId  the participant identifier
+     * @return detailed participant ranking information
      */
     ParticipantRankingMessage getDetailedParticipantRanking(String sessionId, String participantId);
-    
+
     /**
-     * Get top performers with rank change indicators
+     * Retrieves top performers with indicators showing rank changes since the last update.
+     *
+     * @param sessionId the game session identifier
+     * @param limit     the number of top performers to include
+     * @return a list of participants with rank change data
      */
     List<ParticipantRankingMessage> getTopPerformersWithChanges(String sessionId, int limit);
-    
+
     /**
-     * Get leaderboard segment around specific participant
+     * Retrieves a segment of the leaderboard centered around a specific participant.
+     *
+     * @param sessionId      the game session identifier
+     * @param participantId  the participant identifier
+     * @param range          the number of participants above and below to include
+     * @return a response containing the localized leaderboard segment
      */
     LeaderboardResponse getLeaderboardAroundParticipant(String sessionId, String participantId, int range);
-    
+
     /**
-     * Broadcast enhanced leaderboard updates to all participants
+     * Broadcasts enhanced leaderboard updates to all participants in a session.
+     *
+     * @param sessionId  the game session identifier
+     * @param updateType the type of leaderboard update (e.g., "rank_change", "score_update")
      */
     void broadcastEnhancedLeaderboard(String sessionId, String updateType);
-    
+
     /**
-     * Send personalized leaderboard to specific participant
+     * Sends a personalized leaderboard to a specific participant.
+     *
+     * @param sessionId      the game session identifier
+     * @param participantId  the participant identifier
      */
     void sendPersonalizedLeaderboard(String sessionId, String participantId);
-    
+
     /**
-     * Get leaderboard with performance indicators
+     * Retrieves leaderboard data with performance indicators like accuracy or average speed.
+     *
+     * @param sessionId the game session identifier
+     * @return leaderboard with performance metrics
      */
     LeaderboardResponse getLeaderboardWithPerformance(String sessionId);
-    
+
     /**
-     * Get real-time leaderboard changes since last update
+     * Retrieves real-time leaderboard changes since a specific timestamp.
+     *
+     * @param sessionId       the game session identifier
+     * @param lastUpdateTime  the last update timestamp in milliseconds
+     * @return a map containing updated leaderboard elements
      */
     Map<String, Object> getLeaderboardChanges(String sessionId, long lastUpdateTime);
-    
+
     /**
-     * Get leaderboard statistics for host view
+     * Retrieves leaderboard statistics for the host's analytical view.
+     *
+     * @param sessionId the game session identifier
+     * @return a map of aggregated leaderboard statistics
      */
     Map<String, Object> getLeaderboardStatistics(String sessionId);
-    
+
     /**
-     * Create leaderboard snapshot for specific moment
+     * Creates a snapshot of the leaderboard at a specific moment in time.
+     *
+     * @param sessionId    the game session identifier
+     * @param snapshotType the type of snapshot (e.g., "end_of_round", "final")
      */
     void createLeaderboardSnapshot(String sessionId, String snapshotType);
-    
+
     /**
-     * Get historical leaderboard snapshots
+     * Retrieves a list of historical leaderboard snapshots.
+     *
+     * @param sessionId the game session identifier
+     * @return a list of snapshot metadata or stored leaderboard states
      */
     List<Map<String, Object>> getLeaderboardSnapshots(String sessionId);
-    
+
     /**
-     * Calculate and broadcast rank changes after score update
+     * Calculates and broadcasts rank changes after a participant's score is updated.
+     *
+     * @param sessionId      the game session identifier
+     * @param participantId  the participant identifier
+     * @param oldRank        the participant's previous rank
+     * @param newRank        the participant's new rank
      */
     void processRankChanges(String sessionId, String participantId, int oldRank, int newRank);
-    
+
     /**
-     * Get leaderboard with time-based filtering
+     * Retrieves a leaderboard filtered by a time range.
+     *
+     * @param sessionId the game session identifier
+     * @param startTime the start timestamp
+     * @param endTime   the end timestamp
+     * @return the filtered leaderboard response
      */
     LeaderboardResponse getTimeFilteredLeaderboard(String sessionId, long startTime, long endTime);
-    
+
     /**
-     * Get participant performance comparison
+     * Compares a participant’s performance with others.
+     *
+     * @param sessionId      the game session identifier
+     * @param participantId  the participant identifier
+     * @return a map containing comparative performance data
      */
     Map<String, Object> getParticipantComparison(String sessionId, String participantId);
-    
+
     /**
-     * Get leaderboard with question-by-question breakdown
+     * Retrieves a detailed leaderboard with per-question breakdowns.
+     *
+     * @param sessionId the game session identifier
+     * @return a map containing question-by-question performance data
      */
     Map<String, Object> getDetailedLeaderboardBreakdown(String sessionId);
-    
+
     /**
-     * Broadcast leaderboard to host with additional context
+     * Broadcasts an enriched leaderboard view to the host with extra session context.
+     *
+     * @param sessionId the game session identifier
      */
     void broadcastHostLeaderboard(String sessionId);
-    
+
     /**
-     * Get animated leaderboard data for smooth transitions
+     * Retrieves data for animating leaderboard transitions smoothly.
+     *
+     * @param sessionId the game session identifier
+     * @return a map containing animation frame or transition data
      */
     Map<String, Object> getAnimatedLeaderboardData(String sessionId);
-    
+
     /**
-     * Calculate leaderboard trends and patterns
+     * Calculates leaderboard trends and patterns over time.
+     *
+     * @param sessionId the game session identifier
+     * @return a map containing trend and pattern analytics
      */
     Map<String, Object> getLeaderboardTrends(String sessionId);
-    
+
     /**
-     * Get leaderboard with participant avatars and profiles
+     * Retrieves leaderboard data enriched with participant avatars and profiles.
+     *
+     * @param sessionId the game session identifier
+     * @return leaderboard with profile and avatar information
      */
     LeaderboardResponse getEnrichedLeaderboard(String sessionId);
-    
+
     /**
-     * Export leaderboard data in various formats
+     * Exports leaderboard data into a specified format (e.g., JSON, CSV, PDF).
+     *
+     * @param sessionId the game session identifier
+     * @param format    the export format
+     * @return a map containing export file metadata or data
      */
     Map<String, Object> exportLeaderboardData(String sessionId, String format);
-    
+
     /**
-     * Get real-time leaderboard updates for streaming
+     * Streams real-time leaderboard updates to connected clients.
+     *
+     * @param sessionId the game session identifier
      */
     void streamLeaderboardUpdates(String sessionId);
-    
+
     /**
-     * Calculate and update participant streaks
+     * Calculates and updates participant streaks (e.g., correct answer streaks).
+     *
+     * @param sessionId      the game session identifier
+     * @param participantId  the participant identifier
+     * @param isCorrect      whether the participant's last answer was correct
      */
     void updateParticipantStreaks(String sessionId, String participantId, boolean isCorrect);
-    
+
     /**
-     * Get leaderboard with streak information
+     * Retrieves leaderboard data including participants’ current streaks.
+     *
+     * @param sessionId the game session identifier
+     * @return leaderboard including streak information
      */
     LeaderboardResponse getLeaderboardWithStreaks(String sessionId);
 }
+

@@ -7,10 +7,6 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
-/**
- * Response DTO for Admin Dashboard Statistics
- * Provides overview of all sessions and participants
- */
 @Data
 @Builder
 @NoArgsConstructor

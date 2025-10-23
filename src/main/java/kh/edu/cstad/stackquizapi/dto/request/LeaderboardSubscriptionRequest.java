@@ -2,7 +2,6 @@ package kh.edu.cstad.stackquizapi.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
 
-// For real-time leaderboard subscriptions (WebSocket)
 public record LeaderboardSubscriptionRequest(
 
         @NotBlank(message = "Session ID is required")

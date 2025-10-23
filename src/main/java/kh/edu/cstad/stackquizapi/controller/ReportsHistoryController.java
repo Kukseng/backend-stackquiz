@@ -21,10 +21,6 @@ public class ReportsHistoryController {
 
     private final ReportsHistoryService reportsHistoryService;
 
-    /**
-     * Get all session summaries for the current host
-     * GET /api/v1/reports-history/my-sessions
-     */
     @GetMapping("/my-sessions")
     @PreAuthorize("hasRole('HOST') or hasRole('ADMIN')")
     public ResponseEntity<List<SessionSummaryResponse>> getMySessionSummaries(
@@ -38,10 +34,6 @@ public class ReportsHistoryController {
         return ResponseEntity.ok(summaries);
     }
 
-    /**
-     * Get session summaries filtered by status
-     * GET /api/v1/reports-history/my-sessions?status=COMPLETED
-     */
     @GetMapping("/my-sessions/filter")
     @PreAuthorize("hasRole('HOST') or hasRole('ADMIN')")
     public ResponseEntity<List<SessionSummaryResponse>> getFilteredSessionSummaries(

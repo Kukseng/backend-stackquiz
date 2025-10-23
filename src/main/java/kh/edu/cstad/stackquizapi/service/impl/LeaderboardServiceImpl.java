@@ -1,14 +1,12 @@
 package kh.edu.cstad.stackquizapi.service.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.HashMap;
 import java.util.Map;
 import kh.edu.cstad.stackquizapi.domain.*;
 import kh.edu.cstad.stackquizapi.dto.request.HistoricalLeaderboardRequest;
 import kh.edu.cstad.stackquizapi.dto.request.LeaderboardRequest;
-import kh.edu.cstad.stackquizapi.dto.request.ParticipantRedisData;
 import kh.edu.cstad.stackquizapi.dto.response.*;
 import kh.edu.cstad.stackquizapi.dto.websocket.LeaderboardMessage;
 import kh.edu.cstad.stackquizapi.repository.*;
@@ -41,8 +39,6 @@ public class LeaderboardServiceImpl implements LeaderboardService {
     private final QuizSessionRepository quizSessionRepository;
     private final ParticipantRepository participantRepository;
     private final ParticipantAnswerRepository participantAnswerRepository;
-    private final QuestionRepository questionRepository;
-    //    private final RedisTemplate<String, Object> redisTemplate;
     private final SimpMessagingTemplate messagingTemplate;
     private static final String LEADERBOARD_KEY_PREFIX = "leaderboard:session:";
     private static final String PARTICIPANT_DATA_PREFIX = "participant:";

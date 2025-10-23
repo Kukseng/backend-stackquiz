@@ -6,10 +6,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Response DTO for user activity and analytics
- * Contains all data needed for dashboard graphs and statistics
- */
 @Builder
 public record UserActivityResponse(
         // User info

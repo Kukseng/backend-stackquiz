@@ -2,7 +2,6 @@ package kh.edu.cstad.stackquizapi.dto.response;
 
 import lombok.Builder;
 
-// For session statistics
 @Builder
 public record SessionStats(
 

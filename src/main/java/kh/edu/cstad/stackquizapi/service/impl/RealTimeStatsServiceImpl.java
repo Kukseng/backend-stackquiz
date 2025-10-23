@@ -150,7 +150,7 @@ public class RealTimeStatsServiceImpl implements RealTimeStatsService {
         int pointsAheadOfNext = 0;
 
         if (!allParticipants.isEmpty()) {
-            int leaderScore = allParticipants.get(0).getTotalScore();
+            int leaderScore = allParticipants.getFirst().getTotalScore();
             pointsBehindLeader = leaderScore - participant.getTotalScore();
 
             if (currentRank < totalParticipants) {
