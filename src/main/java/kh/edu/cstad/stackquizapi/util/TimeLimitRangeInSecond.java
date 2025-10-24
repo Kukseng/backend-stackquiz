@@ -5,6 +5,7 @@ import lombok.Getter;
 @Getter
 public enum TimeLimitRangeInSecond {
 
+    DEFAULT(0),
     FIVE(5),
     SIX(6),
     SEVEN(7),

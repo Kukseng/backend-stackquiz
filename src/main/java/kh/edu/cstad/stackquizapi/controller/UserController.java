@@ -57,10 +57,19 @@ public class UserController {
     @Operation(summary = "Update current user (secured)",
             security = {@SecurityRequirement(name = "bearerAuth")})
     @ResponseStatus(HttpStatus.CREATED)
-    @PatchMapping(value = "/me")
+    @PatchMapping(value = "/update/me")
     public UserResponse updateUser(
             @AuthenticationPrincipal Jwt accessToken,
             @Valid @RequestBody UpdateUserRequest updateUserRequest) {
         return userService.updateUser(accessToken, updateUserRequest);
+    }
+
+    @Operation(summary = "Update date user by admin",
+            security = {@SecurityRequirement(name = "bearerAuth")})
+    @PatchMapping("/update/{userId}")
+    public UserResponse updateUserByAdmin(
+            @PathVariable String userId,
+            @RequestBody @Valid UpdateUserRequest updateUserRequest) {
+        return userService.updateUserByAdmin(userId, updateUserRequest);
     }
 }

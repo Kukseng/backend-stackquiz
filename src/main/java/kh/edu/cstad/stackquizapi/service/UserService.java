@@ -39,6 +39,8 @@ public interface UserService{
      */
     UserResponse updateUser(Jwt accessToken, UpdateUserRequest updateUserRequest);
 
+    UserResponse updateUserByAdmin(String id, UpdateUserRequest updateUserRequest);
+
     /**
      * Deletes a user by their ID.
      *

@@ -15,7 +15,10 @@ import kh.edu.cstad.stackquizapi.mapper.QuizMapper;
 import kh.edu.cstad.stackquizapi.repository.*;
 import kh.edu.cstad.stackquizapi.service.QuizAnalyticsService;
 import kh.edu.cstad.stackquizapi.service.QuizService;
+import kh.edu.cstad.stackquizapi.util.QuizDifficultyType;
 import kh.edu.cstad.stackquizapi.util.QuizStatus;
+import kh.edu.cstad.stackquizapi.util.TimeLimitRangeInSecond;
+import kh.edu.cstad.stackquizapi.util.VisibilityType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -43,6 +46,7 @@ public class QuizServiceImpl implements QuizService {
     private final QuestionRepository questionRepository;
     private final OptionRepository optionRepository;
     private final QuizFeedbackRepository quizFeedbackRepository;
+    private final QuizCategoryRepository quizCategoryRepository;
 
     @Override
     public QuizResponse createQuiz(CreateQuizRequest createQuizRequest, Jwt accessToken) {
@@ -54,7 +58,44 @@ public class QuizServiceImpl implements QuizService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
                         "User Id not found " + userId));
 
-        Quiz quiz = quizMapper.toQuizRequest(createQuizRequest);
+        Quiz quiz = new Quiz();
+        if (!createQuizRequest.status().equals(QuizStatus.DRAFT)) {
+            quiz = quizMapper.toQuizRequest(createQuizRequest);
+
+            Quiz finalQuiz1 = quiz;
+            List<QuizCategory> quizCategories = createQuizRequest.categoryIds().stream()
+                    .map(catId -> {
+                        Category category = categoryRepository.findById(catId)
+                                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                                        "Category not found"));
+                        QuizCategory qc = new QuizCategory();
+                        qc.setQuiz(finalQuiz1);
+                        qc.setCategory(category);
+                        return qc;
+                    }).toList();
+
+            quiz.setQuizCategories(quizCategories);
+
+        } else {
+
+
+            quiz.setTitle("Untiled Quiz");
+            quiz.setDescription("N/A");
+            quiz.setVisibility(VisibilityType.PRIVATE);
+            quiz.setStatus(createQuizRequest.status());
+            quiz.setThumbnailUrl("N/A");
+            quiz.setQuestionTimeLimit(TimeLimitRangeInSecond.FIVE);
+            quiz.setDifficulty(QuizDifficultyType.EASY);
+
+            List<QuizCategory> catId = quizCategoryRepository.findAll()
+                    .stream()
+                    .filter(
+                            qc -> "GENERAL_KNOWLEDGE"
+                                    .equals(qc.getCategory().getId()))
+                    .toList();
+
+            quiz.setQuizCategories(catId);
+        }
 
         quiz.setUser(user);
         quiz.setFlagged(false);
@@ -63,18 +104,6 @@ public class QuizServiceImpl implements QuizService {
         quiz.setUpdatedAt(LocalDateTime.now());
         quiz.setIsActive(true);
 
-        List<QuizCategory> quizCategories = createQuizRequest.categoryIds().stream()
-                .map(catId -> {
-                    Category category = categoryRepository.findById(catId)
-                            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                                    "Category not found"));
-                    QuizCategory qc = new QuizCategory();
-                    qc.setQuiz(quiz);
-                    qc.setCategory(category);
-                    return qc;
-                }).toList();
-
-        quiz.setQuizCategories(quizCategories);
         quizRepository.save(quiz);
 
         return quizMapper.toQuizResponse(quiz);
@@ -128,7 +157,6 @@ public class QuizServiceImpl implements QuizService {
                 })
                 .toList();
     }
-
 
     @Override
     public QuizResponse updateQuiz(String QuizId, QuizUpdateRequest quizUpdateRequest, Jwt accessToken) {
@@ -406,7 +434,6 @@ public class QuizServiceImpl implements QuizService {
         return newQuiz;
     }
 
-
     private void cloneQuestionsAndOptions(Quiz savedQuiz, String originalQuizId) {
         Quiz originalQuiz = quizRepository.findById(originalQuizId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Original quiz not found"));
@@ -436,7 +463,6 @@ public class QuizServiceImpl implements QuizService {
             }
         }
     }
-
 
     @Override
     public CreateFeedbackResponse giveFeedback(CreateFeedbackRequest createFeedbackRequest, String quizId, Jwt accessToken) {

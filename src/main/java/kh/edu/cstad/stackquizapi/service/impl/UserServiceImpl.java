@@ -9,6 +9,9 @@ import kh.edu.cstad.stackquizapi.repository.UserRepository;
 import kh.edu.cstad.stackquizapi.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.keycloak.admin.client.Keycloak;
+import org.keycloak.representations.idm.UserRepresentation;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
@@ -25,6 +28,10 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final UserMapper userMapper;
+    private final Keycloak adminKeycloak;
+
+    @Value("${keycloak.realm}")
+    private String realm;
 
     @Override
     public UserResponse createUser(CreateUserRequest createUserRequest) {
@@ -84,9 +91,8 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserResponse updateUser(Jwt accessToken, UpdateUserRequest updateUserRequest) {
-
         String userId = accessToken.getSubject();
-        log.info("User ID form jwt access token: {}", userId);
+        log.info("User ID from jwt access token: {}", userId);
 
         try {
             if (userId == null || userId.isEmpty()) {
@@ -94,24 +100,138 @@ public class UserServiceImpl implements UserService {
                         "User ID cannot be null or empty");
             }
 
+            // Get user from database
             User user = userRepository.findById(userId)
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
-            userMapper.toCustomerPartially(updateUserRequest, user);
+            // Get user from Keycloak
+            UserRepresentation keycloakUser = adminKeycloak.realm(realm)
+                    .users()
+                    .get(userId)
+                    .toRepresentation();
 
-            if (updateUserRequest.email() != null &&
-                userRepository.existsByEmail(updateUserRequest.email()) &&
-                !user.getEmail().equals(updateUserRequest.email())) {
-                throw new ResponseStatusException(HttpStatus.CONFLICT, "Email already exists");
+            // Check email uniqueness if email is being updated
+            if (updateUserRequest.email() != null && !user.getEmail().equals(updateUserRequest.email())) {
+                // Check in database
+                if (userRepository.existsByEmail(updateUserRequest.email())) {
+                    throw new ResponseStatusException(HttpStatus.CONFLICT, "Email already exists");
+                }
+                // Check in Keycloak
+                List<UserRepresentation> existingEmails = adminKeycloak.realm(realm)
+                        .users()
+                        .searchByEmail(updateUserRequest.email(), true);
+                if (!existingEmails.isEmpty()) {
+                    throw new ResponseStatusException(HttpStatus.CONFLICT, "Email already registered in Keycloak");
+                }
             }
 
+            // Update Keycloak user
+            if (updateUserRequest.email() != null) {
+                keycloakUser.setEmail(updateUserRequest.email());
+            }
+            if (updateUserRequest.firstName() != null) {
+                keycloakUser.setFirstName(updateUserRequest.firstName());
+            }
+            if (updateUserRequest.lastName() != null) {
+                keycloakUser.setLastName(updateUserRequest.lastName());
+            }
+
+            try {
+                adminKeycloak.realm(realm).users().get(userId).update(keycloakUser);
+                log.info("User updated in Keycloak: {}", userId);
+            } catch (Exception e) {
+                log.error("Failed to update user in Keycloak: {}", e.getMessage());
+                throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                        "Failed to update user in Keycloak");
+            }
+
+            // Update database user
+            userMapper.toCustomerPartially(updateUserRequest, user);
             user = userRepository.save(user);
+            log.info("User updated in database: {}", userId);
+
             return userMapper.toUserResponse(user);
 
         } catch (ResponseStatusException e) {
             throw e;
         } catch (Exception e) {
             log.error("Unexpected error while updating user with id {}", userId, e);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Internal error occurred");
+        }
+    }
+
+    @Override
+    public UserResponse updateUserByAdmin(String userId, UpdateUserRequest updateUserRequest) {
+        log.info("Admin updating user with ID: {}", userId);
+
+        try {
+            if (userId == null || userId.isEmpty()) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                        "User ID cannot be null or empty");
+            }
+
+            // Get user from database
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+
+            // Get user from Keycloak
+            UserRepresentation keycloakUser;
+            try {
+                keycloakUser = adminKeycloak.realm(realm)
+                        .users()
+                        .get(userId)
+                        .toRepresentation();
+            } catch (Exception e) {
+                log.error("Failed to get user from Keycloak: {}", e.getMessage());
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found in Keycloak");
+            }
+
+            // Check email uniqueness if email is being updated
+            if (updateUserRequest.email() != null && !user.getEmail().equals(updateUserRequest.email())) {
+                // Check in database
+                if (userRepository.existsByEmail(updateUserRequest.email())) {
+                    throw new ResponseStatusException(HttpStatus.CONFLICT, "Email already exists");
+                }
+                // Check in Keycloak
+                List<UserRepresentation> existingEmails = adminKeycloak.realm(realm)
+                        .users()
+                        .searchByEmail(updateUserRequest.email(), true);
+                if (!existingEmails.isEmpty()) {
+                    throw new ResponseStatusException(HttpStatus.CONFLICT, "Email already registered in Keycloak");
+                }
+            }
+
+            // Update Keycloak user
+            if (updateUserRequest.email() != null) {
+                keycloakUser.setEmail(updateUserRequest.email());
+            }
+            if (updateUserRequest.firstName() != null) {
+                keycloakUser.setFirstName(updateUserRequest.firstName());
+            }
+            if (updateUserRequest.lastName() != null) {
+                keycloakUser.setLastName(updateUserRequest.lastName());
+            }
+
+            try {
+                adminKeycloak.realm(realm).users().get(userId).update(keycloakUser);
+                log.info("Admin updated user in Keycloak: {}", userId);
+            } catch (Exception e) {
+                log.error("Admin failed to update user in Keycloak: {}", e.getMessage());
+                throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                        "Failed to update user in Keycloak");
+            }
+
+            // Update database user
+            userMapper.toCustomerPartially(updateUserRequest, user);
+            user = userRepository.save(user);
+            log.info("Admin updated user in database: {}", userId);
+
+            return userMapper.toUserResponse(user);
+
+        } catch (ResponseStatusException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("Unexpected error while admin updating user with id {}", userId, e);
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Internal error occurred");
         }
     }
