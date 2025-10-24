@@ -19,7 +19,7 @@ public class CorsConfig {
                 "http://localhost:3000",
                 "http://localhost:3001",
                 "http://127.0.0.1:3000",
-                "https://app.stackquiz.me",
+                "https://www.stackquiz.me",
                 "https://stackquiz-two.vercel.app",
                 "https://stackquiz-api.stackquiz.me"
 
